@@ -12,7 +12,7 @@ export default defineConfig({
         name: "iron-id",
         short_name: "iron-id",
         description: "Authentification de médias : protection et vérification",
-        theme_color: "#0f172a",
+        theme_color: "#f8fafc",
         background_color: "#f8fafc",
         display: "standalone",
         orientation: "portrait-primary",

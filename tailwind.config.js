@@ -1,63 +1,62 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: "class",
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       fontFamily: {
         sans: ["Outfit", "system-ui", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
       },
       colors: {
         brand: {
-          50: "#eef2ff",
-          100: "#e0e7ff",
-          200: "#c7d2fe",
-          300: "#a5b4fc",
-          400: "#818cf8",
-          500: "#6366f1",
-          600: "#4f46e5",
-          700: "#4338ca",
-          800: "#3730a3",
-          900: "#312e81",
+          50: "var(--brand-50)",
+          100: "var(--brand-100)",
+          200: "var(--brand-200)",
+          300: "var(--brand-300)",
+          400: "var(--brand-400)",
+          500: "var(--brand-500)",
+          600: "var(--brand-600)",
+          700: "var(--brand-700)",
+          800: "var(--brand-800)",
         },
         surface: {
-          DEFAULT: "#f8fafc",
-          elevated: "#ffffff",
-          muted: "#f1f5f9",
+          DEFAULT: "var(--surface)",
+          elevated: "var(--surface-elevated)",
+          muted: "var(--surface-muted)",
         },
         ink: {
-          DEFAULT: "#0f172a",
-          muted: "#64748b",
-          subtle: "#94a3b8",
+          DEFAULT: "var(--ink)",
+          muted: "var(--ink-muted)",
+          subtle: "var(--ink-subtle)",
         },
-      },
-      borderRadius: {
-        card: "1rem",
-        button: "0.75rem",
-        input: "0.5rem",
-        full: "9999px",
-      },
-      boxShadow: {
-        card: "0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)",
-        cardHover: "0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06)",
-        header: "0 1px 0 0 rgb(15 23 42 / 0.06)",
       },
       spacing: {
         page: "clamp(1rem, 4vw, 2rem)",
         section: "clamp(2rem, 6vw, 4rem)",
       },
       maxWidth: {
-        content: "72rem",
-        form: "32rem",
-      },
-      spacing: {
-        "safe-top": "env(safe-area-inset-top, 0px)",
-        "safe-bottom": "env(safe-area-inset-bottom, 0px)",
-        "safe-left": "env(safe-area-inset-left, 0px)",
-        "safe-right": "env(safe-area-inset-right, 0px)",
-        "bottom-nav": "4.5rem",
+        content: "clamp(40rem, 80vw, 72rem)",
+        form: "clamp(20rem, 90vw, 32rem)",
       },
       minHeight: {
-        touch: "44px",
+        touch: "48px",
+      },
+      minWidth: {
+        touch: "48px",
+      },
+      borderRadius: {
+        card: "0.75rem",
+        button: "9999px",
+        input: "0.5rem",
+      },
+      boxShadow: {
+        card: "0 1px 3px rgba(0,0,0,0.05)",
+        cardHover: "0 4px 6px rgba(0,0,0,0.1)",
+        header: "0 1px 0 rgba(0,0,0,0.05)",
+      },
+      transitionDuration: {
+        150: "150ms",
       },
     },
   },
