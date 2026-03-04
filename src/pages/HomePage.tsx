@@ -38,22 +38,22 @@ export default function HomePage() {
   const { t } = useI18n();
 
   return (
-    <div className="max-w-content mx-auto px-page py-section">
+    <div className="max-w-content mx-auto px-page py-8 sm:py-section">
       {/* Hero */}
-      <section className="text-center max-w-2xl mx-auto mb-section">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-ink mb-4">
+      <section className="text-center max-w-2xl mx-auto mb-8 sm:mb-section">
+        <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-ink mb-3 sm:mb-4 px-1">
           {t("home.title")}
         </h1>
-        <p className="text-lg text-ink-muted leading-relaxed">
+        <p className="text-base sm:text-lg text-ink-muted leading-relaxed">
           {t("home.subtitle")}
         </p>
       </section>
 
       {/* CTAs */}
-      <section className="grid sm:grid-cols-2 gap-4 max-w-xl mx-auto mb-section">
+      <section className="grid sm:grid-cols-2 gap-3 sm:gap-4 max-w-xl mx-auto mb-8 sm:mb-section">
         <Link
           to="/protect"
-          className="group card-hover flex flex-col items-center gap-4 p-8 rounded-card text-left"
+          className="group card-hover flex flex-col items-center gap-3 sm:gap-4 p-6 sm:p-8 rounded-card text-left min-h-touch"
         >
           <span className="flex items-center justify-center w-14 h-14 rounded-button bg-brand-50 text-brand-600 group-hover:bg-brand-100 transition-colors">
             <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -68,7 +68,7 @@ export default function HomePage() {
 
         <Link
           to="/verify"
-          className="group card-hover flex flex-col items-center gap-4 p-8 rounded-card text-left"
+          className="group card-hover flex flex-col items-center gap-3 sm:gap-4 p-6 sm:p-8 rounded-card text-left min-h-touch"
         >
           <span className="flex items-center justify-center w-14 h-14 rounded-button bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-colors">
             <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -83,9 +83,9 @@ export default function HomePage() {
       </section>
 
       {/* Features */}
-      <section className="grid sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
+      <section className="grid sm:grid-cols-3 gap-3 sm:gap-4 max-w-4xl mx-auto">
         {features.map((f) => (
-          <div key={f.key} className="card p-5">
+          <div key={f.key} className="card p-4 sm:p-5">
             <span className="flex items-center justify-center w-10 h-10 rounded-button bg-slate-100 text-ink-muted mb-3">
               {f.icon}
             </span>

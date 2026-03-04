@@ -170,4 +170,20 @@ Règles : hauteur confortable (py-2.5 ou py-3), pas de bordure sur primaire, bor
 | `pages/ProtectPage.tsx` | Formulaire protection, états, résultat. |
 | `pages/VerifyPage.tsx` | Formulaire vérification, résultat. |
 
+---
+
+## 11. PWA & Mobile
+
+### PWA
+- **Manifest** : `display: standalone`, `orientation: portrait-primary`, shortcuts Protéger / Vérifier.
+- **Service worker** : `autoUpdate`, `navigateFallback` vers `/index.html` pour offline, cache des fonts Google.
+- **Meta** : `viewport-fit=cover`, `theme-color`, `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style: black-translucent`.
+
+### Mobile (< 768px)
+- **Navigation** : barre fixe en bas (Accueil, Protéger, Vérifier) avec icônes + labels ; header réduit (logo + sélecteur de langue).
+- **Safe areas** : `env(safe-area-inset-*)` sur le header (top) et la bottom nav (bottom, left, right).
+- **Contenu** : `main` avec `pb-24` pour ne pas passer sous la bottom nav.
+- **Touch** : zones tactiles `min-h-touch` (44px), inputs 16px pour éviter le zoom iOS.
+- **Pages** : dropzones `min-h-[200px]`, padding réduit sur petit écran.
+
 Ce document sert de **tableau d’art** et de référence pour toute évolution ou recette UI/UX du frontend iron-id.

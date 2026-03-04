@@ -78,8 +78,8 @@ export default function VerifyPage() {
   const st = result ? STATUS_MAP[result.status] || STATUS_MAP.unverified : null;
 
   return (
-    <div className="max-w-form mx-auto px-page py-10">
-      <h1 className="text-2xl font-bold text-ink mb-6">{t("verify.title")}</h1>
+    <div className="max-w-form mx-auto px-page py-6 sm:py-10">
+      <h1 className="text-xl sm:text-2xl font-bold text-ink mb-4 sm:mb-6">{t("verify.title")}</h1>
 
       {!result && (
         <>
@@ -87,7 +87,7 @@ export default function VerifyPage() {
             onDragOver={(e) => e.preventDefault()}
             onDrop={onDrop}
             onClick={() => inputRef.current?.click()}
-            className="card border-2 border-dashed border-slate-200 hover:border-brand-300 p-10 text-center cursor-pointer transition-colors rounded-card"
+            className="card border-2 border-dashed border-slate-200 hover:border-brand-300 active:border-brand-400 p-6 sm:p-10 min-h-[200px] sm:min-h-0 text-center cursor-pointer transition-colors rounded-card flex flex-col items-center justify-center"
           >
             {preview ? (
               <img
