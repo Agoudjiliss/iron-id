@@ -2,6 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  min-height: 100vh;
+@layer base {
+  body {
+    @apply min-h-screen text-ink;
+  }
+  /* Focus visible pour accessibilité */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-500;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-button font-semibold text-white bg-brand-600 hover:bg-brand-700 active:bg-brand-800 shadow-sm transition-colors duration-150;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-button font-medium text-ink border border-slate-200 bg-surface-elevated hover:bg-slate-50 active:bg-slate-100 transition-colors duration-150;
+  }
+  .input-base {
+    @apply w-full rounded-input border border-slate-200 bg-surface-elevated px-3 py-2.5 text-sm text-ink placeholder:text-ink-subtle focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition;
+  }
+  .card {
+    @apply rounded-card bg-surface-elevated border border-slate-100 shadow-card;
+  }
+  .card-hover {
+    @apply card transition-shadow duration-200 hover:shadow-cardHover;
+  }
 }
