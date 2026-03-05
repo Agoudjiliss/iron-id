@@ -98,7 +98,7 @@ export default function App() {
             className="flex items-center gap-2.5 text-iron-white font-display font-bold text-lg tracking-tight hover:text-iron-neon-blue transition-colors min-h-touch items-center"
             aria-label="Iron-ID - Accueil"
           >
-            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-iron-neon-blue text-white shrink-0 shadow-lg shadow-iron-neon-blue/30">
+            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-iron-neon-blue text-white shrink-0 shadow-lg shadow-iron-neon-blue/40" style={{ filter: "drop-shadow(0 0 8px rgba(59,130,246,0.4))" }}>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>

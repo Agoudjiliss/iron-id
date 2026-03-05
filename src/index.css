@@ -44,6 +44,7 @@
 }
 
 @layer components {
+  /* ── Grain overlay ────────────────────────────────── */
   .grain {
     position: relative;
   }
@@ -51,35 +52,89 @@
     content: "";
     position: absolute;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
     pointer-events: none;
     z-index: 1;
   }
+
+  /* ── Spotlight ──────────────────────────────────────── */
   .spotlight {
     background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(59, 130, 246, 0.12) 0%, transparent 60%);
   }
+  .spotlight-top {
+    background: radial-gradient(ellipse 55% 45% at 50% -5%, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0.05) 50%, transparent 75%);
+  }
+  .spotlight-purple {
+    background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(139, 92, 246, 0.12) 0%, transparent 65%);
+  }
+
+  /* ── Glass ──────────────────────────────────────────── */
   .glass {
     @apply bg-white/[0.04] backdrop-blur-2xl border border-white/[0.08];
   }
   .glass-panel {
-    @apply glass rounded-2xl p-6 transition-all duration-500;
+    @apply glass rounded-2xl p-6 transition-all duration-500 relative overflow-hidden;
+  }
+  .glass-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(59,130,246,0.03) 0%, transparent 60%, rgba(139,92,246,0.03) 100%);
+    pointer-events: none;
   }
   .glass-panel:hover {
-    @apply bg-white/[0.06] border-iron-neon-blue/30 shadow-glow;
+    @apply bg-white/[0.07] shadow-glow;
+    border-color: rgba(59, 130, 246, 0.25);
   }
+
+  /* ── Exhibit frames ─────────────────────────────────── */
   .exhibit-frame {
-    @apply relative overflow-hidden rounded-lg border border-white/10 bg-iron-deep/80;
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 25px 50px -12px rgba(0,0,0,0.6);
+    @apply relative overflow-hidden rounded-xl border border-white/10 bg-iron-deep/80;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 25px 50px -12px rgba(0,0,0,0.7);
+    transition: border-color 0.4s ease, box-shadow 0.4s ease;
   }
   .exhibit-frame:hover {
     border-color: rgba(59, 130, 246, 0.3);
-    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2), 0 0 40px rgba(59, 130, 246, 0.08), 0 25px 50px -12px rgba(0,0,0,0.5);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2), 0 0 50px rgba(59, 130, 246, 0.08), 0 25px 50px -12px rgba(0,0,0,0.6);
   }
+
+  /* ── Museum corner markers ──────────────────────────── */
+  .museum-corners {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .museum-corners::before,
+  .museum-corners::after {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-color: rgba(59, 130, 246, 0.45);
+    border-style: solid;
+    transition: border-color 0.4s ease;
+  }
+  .museum-corners::before {
+    top: 10px;
+    left: 10px;
+    border-width: 2px 0 0 2px;
+    border-radius: 1px 0 0 0;
+  }
+  .museum-corners::after {
+    bottom: 10px;
+    right: 10px;
+    border-width: 0 2px 2px 0;
+    border-radius: 0 0 1px 0;
+  }
+  /* Extra corners via sibling span trick — see JS component */
+
+  /* ── Buttons ────────────────────────────────────────── */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3.5 min-h-touch min-w-[160px] rounded-full font-semibold text-white bg-iron-neon-blue hover:bg-iron-neon-blue/90 active:scale-[0.98] shadow-lg shadow-iron-neon-blue/30 hover:shadow-iron-neon-blue/40 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-iron-neon-blue focus-visible:ring-offset-2 focus-visible:ring-offset-iron-black;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3.5 min-h-touch min-w-[160px] rounded-full font-semibold text-white bg-iron-neon-blue hover:bg-iron-neon-blue/90 active:scale-[0.98] shadow-lg shadow-iron-neon-blue/30 hover:shadow-iron-neon-blue/50 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-iron-neon-blue focus-visible:ring-offset-2 focus-visible:ring-offset-iron-black;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3.5 min-h-touch min-w-[160px] rounded-full font-medium text-iron-white border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-iron-neon-blue focus-visible:ring-offset-2 focus-visible:ring-offset-iron-black;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3.5 min-h-touch min-w-[160px] rounded-full font-medium text-iron-white border border-white/20 bg-white/5 hover:bg-white/10 hover:border-iron-neon-blue/30 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-iron-neon-blue focus-visible:ring-offset-2 focus-visible:ring-offset-iron-black;
   }
   .input-base {
     @apply w-full min-h-touch rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-iron-white placeholder:text-iron-muted/60 focus:border-iron-neon-blue/50 focus:ring-2 focus:ring-iron-neon-blue/20 outline-none transition-all duration-200;
@@ -92,6 +147,23 @@
   }
   .safe-bottom {
     padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+  }
+
+  /* ── Gradient text ──────────────────────────────────── */
+  .text-gradient-blue {
+    background: linear-gradient(135deg, #93c5fd 0%, #3b82f6 50%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* ── Verified stamp glow ────────────────────────────── */
+  .stamp-glow {
+    animation: stamp-glow 2.5s ease-in-out infinite;
+  }
+  @keyframes stamp-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(59,130,246,0.3), inset 0 0 20px rgba(59,130,246,0.05); }
+    50%       { box-shadow: 0 0 50px rgba(59,130,246,0.55), inset 0 0 30px rgba(59,130,246,0.1); }
   }
 }
 
@@ -106,7 +178,25 @@
 
 .grid-bg {
   background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size: 60px 60px;
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Glitch distortion for AI-manipulated state */
+@keyframes glitch-h {
+  0%, 100% { clip-path: inset(0 0 100% 0); transform: translate(0); }
+  10%       { clip-path: inset(10% 0 75% 0); transform: translate(-4px, 1px); }
+  20%       { clip-path: inset(40% 0 40% 0); transform: translate(4px, -2px); }
+  30%       { clip-path: inset(70% 0 15% 0); transform: translate(-2px, 1px); }
+  40%       { clip-path: inset(20% 0 65% 0); transform: translate(3px, -1px); }
+  50%       { clip-path: inset(55% 0 30% 0); transform: translate(-3px, 2px); }
+  60%       { clip-path: inset(0 0 100% 0);  transform: translate(0); }
+}
+.glitch-overlay {
+  animation: glitch-h 3s steps(1) infinite;
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  opacity: 0.6;
 }
