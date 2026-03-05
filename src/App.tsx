@@ -21,10 +21,10 @@ function NavLink({
   return (
     <Link
       to={to}
-      className={`rounded-button text-sm font-medium transition-all duration-150 min-h-touch inline-flex items-center justify-center px-3 py-2 ${
+      className={`rounded-lg text-sm font-medium transition-all duration-200 min-h-touch inline-flex items-center justify-center px-3 py-2 ${
         active
-          ? "bg-brand-100 dark:bg-brand-50/30 text-brand-700 dark:text-brand-400"
-          : "text-ink-muted hover:text-ink hover:bg-surface-muted"
+          ? "bg-iron-primary/20 text-iron-primary"
+          : "text-iron-muted hover:text-white hover:bg-white/5"
       } ${className}`}
       aria-current={active ? "page" : undefined}
     >
@@ -38,7 +38,7 @@ function DarkToggle({ dark, onToggle }: { dark: boolean; onToggle: () => void })
     <button
       type="button"
       onClick={onToggle}
-      className="touch-target rounded-button text-ink-muted hover:text-ink transition-colors"
+      className="touch-target rounded-lg text-iron-muted hover:text-white transition-colors"
       aria-label={dark ? "Passer en mode clair" : "Passer en mode sombre"}
     >
       {dark ? (
@@ -57,7 +57,7 @@ function DarkToggle({ dark, onToggle }: { dark: boolean; onToggle: () => void })
 export default function App() {
   const { t, lang, setLang } = useI18n();
   const { pathname } = useLocation();
-  const [dark, setDarkState] = useState(false);
+  const [dark, setDarkState] = useState(true);
 
   const setDarkMode = (value: boolean) => {
     setDarkState(value);
@@ -66,7 +66,7 @@ export default function App() {
       root.classList.add("dark");
       localStorage.setItem("theme", "dark");
       const meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute("content", "#1e293b");
+      if (meta) meta.setAttribute("content", "#05070A");
     } else {
       root.classList.remove("dark");
       localStorage.setItem("theme", "light");
@@ -82,30 +82,33 @@ export default function App() {
     setDarkState(isDark);
   }, []);
 
+  const isHome = pathname === "/";
+
   return (
-    <div className="min-h-screen flex flex-col bg-surface">
+    <div className="min-h-screen flex flex-col bg-iron-bg">
       <header
-        className="sticky top-0 z-50 bg-surface-elevated/95 backdrop-blur-sm border-b border-slate-200/80 dark:border-slate-700/80 shadow-header"
+        className={`sticky top-0 z-50 transition-all duration-300 ${
+          isHome ? "bg-iron-bg/80 backdrop-blur-xl border-b border-white/5" : "bg-iron-surface/95 backdrop-blur-xl border-b border-white/10"
+        }`}
         style={{ paddingTop: "max(env(safe-area-inset-top, 0px), 0.75rem)" }}
       >
         <div className="max-w-content mx-auto px-page py-3 flex items-center justify-between">
           <Link
             to="/"
-            className="flex items-center gap-2.5 text-ink font-bold text-lg tracking-tight hover:text-brand-600 transition-colors min-h-touch items-center"
-            aria-label="iron-id - Accueil"
+            className="flex items-center gap-2.5 text-white font-display font-bold text-lg tracking-tight hover:text-iron-primary transition-colors min-h-touch items-center"
+            aria-label="Iron-ID - Accueil"
           >
-            <span className="flex items-center justify-center w-9 h-9 rounded-button bg-brand-500 text-white shrink-0">
+            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-iron-primary text-white shrink-0 shadow-lg shadow-iron-primary/30">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
             </span>
-            <span className="hidden sm:inline">iron-id</span>
+            <span className="hidden sm:inline">Iron-ID</span>
           </Link>
 
           <div className="flex items-center gap-2">
             <DarkToggle dark={dark} onToggle={toggleDark} />
 
-            {/* Nav desktop */}
             <div className="hidden md:flex items-center gap-2">
               <nav className="flex items-center gap-0.5" aria-label="Navigation principale">
                 <NavLink to="/">{t("nav.home")}</NavLink>
@@ -113,15 +116,15 @@ export default function App() {
                 <NavLink to="/verify">{t("nav.verify")}</NavLink>
                 <NavLink to="/feedback">{t("nav.feedback")}</NavLink>
               </nav>
-              <div className="w-px h-6 bg-slate-200 dark:bg-slate-600" aria-hidden />
-              <div className="flex gap-0.5 rounded-full bg-surface-muted p-0.5" role="group" aria-label="Langue">
+              <div className="w-px h-6 bg-white/10" aria-hidden />
+              <div className="flex gap-0.5 rounded-lg bg-white/5 p-0.5" role="group" aria-label="Langue">
                 {(["fr", "en", "ar"] as const).map((code) => (
                   <button
                     key={code}
                     type="button"
                     onClick={() => setLang(code)}
-                    className={`min-w-[2.25rem] min-h-touch px-2 rounded-full text-xs font-medium transition-all duration-150 ${
-                      lang === code ? "bg-surface-elevated text-ink shadow-sm" : "text-ink-muted hover:text-ink"
+                    className={`min-w-[2.25rem] min-h-touch px-2 rounded-md text-xs font-medium transition-all duration-200 ${
+                      lang === code ? "bg-white/10 text-white" : "text-iron-muted hover:text-white"
                     }`}
                   >
                     {t(`lang.${code}`)}
@@ -130,16 +133,15 @@ export default function App() {
               </div>
             </div>
 
-            {/* Mobile: dropdown langue */}
             <div className="md:hidden">
               <label className="sr-only" htmlFor="lang-select">
-                {t("nav.home")} - Langue
+                Langue
               </label>
               <select
                 id="lang-select"
                 value={lang}
                 onChange={(e) => setLang(e.target.value as "fr" | "en" | "ar")}
-                className="input-base py-2 px-3 text-sm min-h-[40px] w-auto"
+                className="input-base py-2 px-3 text-sm min-h-[40px] w-auto bg-white/5 border-white/10"
                 aria-label="Sélectionner la langue"
               >
                 <option value="fr">{t("lang.fr")}</option>
@@ -160,9 +162,8 @@ export default function App() {
         </Routes>
       </main>
 
-      {/* Bottom navigation (mobile / PWA) */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-surface-elevated border-t border-slate-200 dark:border-slate-700 safe-bottom"
+        className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-iron-surface/95 backdrop-blur-xl border-t border-white/10 safe-bottom"
         style={{
           paddingBottom: "max(env(safe-area-inset-bottom), 0.5rem)",
           paddingLeft: "env(safe-area-inset-left, 0)",
@@ -173,9 +174,7 @@ export default function App() {
         <div className="flex items-center justify-around h-14 max-w-content mx-auto">
           <Link
             to="/"
-            className={`flex flex-col items-center justify-center flex-1 min-h-touch py-2 gap-0.5 ${
-              pathname === "/" ? "text-brand-600" : "text-ink-muted"
-            }`}
+            className={`flex flex-col items-center justify-center flex-1 min-h-touch py-2 gap-0.5 ${pathname === "/" ? "text-iron-primary" : "text-iron-muted"}`}
             aria-current={pathname === "/" ? "page" : undefined}
           >
             <svg className="w-6 h-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={pathname === "/" ? 2.5 : 1.5} aria-hidden>
@@ -185,9 +184,7 @@ export default function App() {
           </Link>
           <Link
             to="/protect"
-            className={`flex flex-col items-center justify-center flex-1 min-h-touch py-2 gap-0.5 ${
-              pathname === "/protect" ? "text-brand-600" : "text-ink-muted"
-            }`}
+            className={`flex flex-col items-center justify-center flex-1 min-h-touch py-2 gap-0.5 ${pathname === "/protect" ? "text-iron-primary" : "text-iron-muted"}`}
             aria-current={pathname === "/protect" ? "page" : undefined}
           >
             <svg className="w-6 h-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={pathname === "/protect" ? 2.5 : 1.5} aria-hidden>
@@ -197,9 +194,7 @@ export default function App() {
           </Link>
           <Link
             to="/verify"
-            className={`flex flex-col items-center justify-center flex-1 min-h-touch py-2 gap-0.5 ${
-              pathname === "/verify" ? "text-brand-600" : "text-ink-muted"
-            }`}
+            className={`flex flex-col items-center justify-center flex-1 min-h-touch py-2 gap-0.5 ${pathname === "/verify" ? "text-iron-primary" : "text-iron-muted"}`}
             aria-current={pathname === "/verify" ? "page" : undefined}
           >
             <svg className="w-6 h-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={pathname === "/verify" ? 2.5 : 1.5} aria-hidden>
@@ -210,10 +205,11 @@ export default function App() {
         </div>
       </nav>
 
-      <footer className="hidden md:block border-t border-slate-200 dark:border-slate-700 bg-surface-elevated py-6">
-        <div className="max-w-content mx-auto px-page flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center">
-          <p className="text-sm text-ink-muted">{t("footer.text")} · © {new Date().getFullYear()}</p>
-          <Link to="/feedback" className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400 font-medium">
+      <footer className="hidden md:block border-t border-white/5 py-8 relative overflow-hidden">
+        <div className="absolute inset-0 grid-bg opacity-30" />
+        <div className="relative max-w-content mx-auto px-page flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center">
+          <p className="text-sm text-iron-muted">{t("footer.text")} · © {new Date().getFullYear()}</p>
+          <Link to="/feedback" className="text-sm text-iron-primary hover:text-iron-secondary font-medium transition-colors">
             {t("nav.feedback")}
           </Link>
         </div>

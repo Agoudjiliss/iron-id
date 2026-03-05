@@ -5,27 +5,27 @@ import { useI18n } from "../i18n";
 const STATUS_MAP: Record<string, { labelKey: string; color: string; bg: string; border: string }> = {
   authentic: {
     labelKey: "status.authentic",
-    color: "text-emerald-800 dark:text-emerald-200",
-    bg: "bg-emerald-50 dark:bg-emerald-900/20",
-    border: "border-emerald-200 dark:border-emerald-800",
+    color: "text-emerald-400",
+    bg: "bg-emerald-500/10",
+    border: "border-emerald-500/30",
   },
   modified: {
     labelKey: "status.modified",
-    color: "text-amber-800 dark:text-amber-200",
-    bg: "bg-amber-50 dark:bg-amber-900/20",
-    border: "border-amber-200 dark:border-amber-800",
+    color: "text-amber-400",
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/30",
   },
   suspect: {
     labelKey: "status.suspect",
-    color: "text-orange-800 dark:text-orange-200",
-    bg: "bg-orange-50 dark:bg-orange-900/20",
-    border: "border-orange-200 dark:border-orange-800",
+    color: "text-orange-400",
+    bg: "bg-orange-500/10",
+    border: "border-orange-500/30",
   },
   unverified: {
     labelKey: "status.unverified",
-    color: "text-ink-muted",
-    bg: "bg-slate-50 dark:bg-slate-800/50",
-    border: "border-slate-200 dark:border-slate-600",
+    color: "text-iron-muted",
+    bg: "bg-white/5",
+    border: "border-white/10",
   },
 };
 
@@ -90,7 +90,7 @@ export default function VerifyPage() {
 
   return (
     <div className="max-w-form mx-auto px-page py-6 sm:py-10">
-      <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-ink mb-4 sm:mb-6 leading-tight">
+      <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 sm:mb-6 leading-tight">
         {t("verify.title")}
       </h1>
 
@@ -104,8 +104,8 @@ export default function VerifyPage() {
             onDrop={onDrop}
             onClick={() => inputRef.current?.click()}
             onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
-            className={`card border-2 border-dashed p-6 sm:p-10 min-h-[200px] sm:min-h-0 text-center cursor-pointer transition-all duration-150 rounded-card flex flex-col items-center justify-center ${
-              dragOver ? "border-brand-300 bg-brand-50/30 dark:bg-brand-50/10" : "border-slate-200 dark:border-slate-600 hover:border-brand-300"
+            className={`card border-2 border-dashed p-6 sm:p-10 min-h-[200px] sm:min-h-0 text-center cursor-pointer transition-all duration-150 rounded-2xl flex flex-col items-center justify-center ${
+              dragOver ? "border-iron-primary/50 bg-iron-primary/10" : "border-white/10 hover:border-iron-primary/30"
             }`}
             aria-label={t("verify.hint")}
           >
@@ -117,12 +117,12 @@ export default function VerifyPage() {
                 loading="lazy"
               />
             ) : (
-              <div className="text-ink-muted">
+              <div className="text-iron-muted">
                 <svg className="w-12 h-12 mx-auto mb-3 text-ink-subtle" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
-                <p className="font-medium text-ink">{t("verify.hint")}</p>
-                <p className="text-sm mt-1 text-ink-muted">{t("verify.hint.sub")}</p>
+                <p className="font-medium text-white">{t("verify.hint")}</p>
+                <p className="text-sm mt-1 text-iron-muted">{t("verify.hint.sub")}</p>
               </div>
             )}
             <input
@@ -156,45 +156,45 @@ export default function VerifyPage() {
       )}
 
       {error && (
-        <div className="mt-6 card border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-5 rounded-card animate-shake">
-          <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+        <div className="mt-6 card border-red-500/30 bg-red-500/10 p-5 rounded-2xl animate-shake">
+          <p className="text-sm text-red-300/90">{error}</p>
         </div>
       )}
 
       {result && st && (
         <div className="space-y-4">
-          <div className={`card border ${st.bg} ${st.border} p-5 rounded-card`}>
+          <div className={`card border ${st.bg} ${st.border} p-5 rounded-2xl`}>
             <h2 className={`font-bold text-lg ${st.color}`}>{t(st.labelKey)}</h2>
           </div>
 
-          <div className="card p-5 space-y-3 text-sm">
+          <div className="card p-5 space-y-3 text-sm rounded-2xl">
             <Check label={t("verify.watermarkDetected")} ok={result.watermark_found} />
             <div className="flex justify-between">
-              <span className="text-ink-muted">{t("verify.confidence")}</span>
-              <span className="font-medium text-ink">{(result.watermark_confidence * 100).toFixed(1)}%</span>
+              <span className="text-iron-muted">{t("verify.confidence")}</span>
+              <span className="font-medium text-white">{(result.watermark_confidence * 100).toFixed(1)}%</span>
             </div>
             <Check label={t("verify.c2paValid")} ok={result.c2pa_valid} />
             {result.author && (
               <div className="flex justify-between">
-                <span className="text-ink-muted">{t("verify.author")}</span>
-                <span className="font-medium text-ink">{result.author}</span>
+                <span className="text-iron-muted">{t("verify.author")}</span>
+                <span className="font-medium text-white">{result.author}</span>
               </div>
             )}
             {result.original_date && (
               <div className="flex justify-between">
-                <span className="text-ink-muted">{t("verify.date")}</span>
-                <span className="font-medium text-ink">{result.original_date}</span>
+                <span className="text-iron-muted">{t("verify.date")}</span>
+                <span className="font-medium text-white">{result.original_date}</span>
               </div>
             )}
             <Check label={t("verify.modifications")} ok={!result.modifications_detected} invertLabel />
           </div>
 
           {result.details && Object.keys(result.details).length > 0 && (
-            <details className="card p-4 rounded-card">
-              <summary className="cursor-pointer font-medium text-sm text-ink-muted">
+            <details className="card p-4 rounded-2xl">
+              <summary className="cursor-pointer font-medium text-sm text-iron-muted">
                 {t("verify.details")}
               </summary>
-              <pre className="mt-2 text-xs overflow-auto whitespace-pre-wrap text-ink-subtle font-mono">
+              <pre className="mt-2 text-xs overflow-auto whitespace-pre-wrap text-iron-muted/80 font-mono">
                 {JSON.stringify(result.details, null, 2)}
               </pre>
             </details>
@@ -221,16 +221,16 @@ function Check({
   const show = invertLabel ? !ok : ok;
   return (
     <div className="flex items-center justify-between">
-      <span className="text-ink-muted">{label}</span>
+      <span className="text-iron-muted">{label}</span>
       {show ? (
-        <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+        <span className="text-emerald-400 font-medium flex items-center gap-1">
           <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
           {invertLabel ? "Non" : "Oui"}
         </span>
       ) : (
-        <span className="text-red-500 dark:text-red-400 font-medium flex items-center gap-1">
+        <span className="text-red-400 font-medium flex items-center gap-1">
           <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>

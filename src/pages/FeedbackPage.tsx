@@ -30,28 +30,28 @@ export default function FeedbackPage() {
 
   return (
     <div className="max-w-form mx-auto px-page py-6 sm:py-10">
-      <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-ink mb-2 leading-tight">
+      <h1 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 leading-tight">
         {t("feedback.title")}
       </h1>
-      <p className="text-base md:text-lg text-ink-muted mb-6">
+      <p className="text-base md:text-lg text-iron-muted mb-6">
         {t("feedback.subtitle")}
       </p>
 
       {sent && (
-        <div className="card border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 p-5 rounded-card mb-6">
-          <p className="text-emerald-800 dark:text-emerald-200 font-medium">{t("feedback.success")}</p>
+        <div className="card border-emerald-500/30 bg-emerald-500/10 p-5 rounded-2xl mb-6">
+          <p className="text-emerald-400 font-medium">{t("feedback.success")}</p>
         </div>
       )}
 
       {error && (
-        <div className="card border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-5 rounded-card mb-6">
-          <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+        <div className="card border-red-500/30 bg-red-500/10 p-5 rounded-2xl mb-6">
+          <p className="text-red-300/90 text-sm">{error}</p>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="card p-5 sm:p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="card p-5 sm:p-6 space-y-4 rounded-2xl">
         <div>
-          <label htmlFor="feedback-name" className="block text-sm font-medium text-ink mb-1">
+          <label htmlFor="feedback-name" className="block text-sm font-medium text-white mb-1">
             {t("feedback.name")}
           </label>
           <input
@@ -67,7 +67,7 @@ export default function FeedbackPage() {
           />
         </div>
         <div>
-          <label htmlFor="feedback-email" className="block text-sm font-medium text-ink mb-1">
+          <label htmlFor="feedback-email" className="block text-sm font-medium text-white mb-1">
             {t("feedback.email")}
           </label>
           <input
@@ -82,7 +82,7 @@ export default function FeedbackPage() {
           />
         </div>
         <div>
-          <label htmlFor="feedback-message" className="block text-sm font-medium text-ink mb-1">
+          <label htmlFor="feedback-message" className="block text-sm font-medium text-white mb-1">
             {t("feedback.message")}
           </label>
           <textarea
@@ -96,7 +96,7 @@ export default function FeedbackPage() {
             rows={5}
             disabled={loading}
           />
-          <p className="text-xs text-ink-muted mt-1">{message.length}/2000</p>
+          <p className="text-xs text-iron-muted mt-1">{message.length}/2000</p>
         </div>
         <button type="submit" className="btn-primary w-full py-3" disabled={loading}>
           {loading ? t("feedback.sending") : t("feedback.submit")}

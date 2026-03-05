@@ -2,95 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Variables CSS pour light/dark (switcher sans rechargement) */
 :root {
-  --brand-50: #eef2ff;
-  --brand-100: #e0e7ff;
-  --brand-200: #c7d2fe;
-  --brand-300: #a5b4fc;
-  --brand-400: #818cf8;
-  --brand-500: #6366f1;
-  --brand-600: #4f46e5;
-  --brand-700: #4338ca;
-  --brand-800: #3730a3;
-  --surface: #f8fafc;
-  --surface-elevated: #ffffff;
-  --surface-muted: #f1f5f9;
-  --ink: #0f172a;
-  --ink-muted: #64748b;
-  --ink-subtle: #94a3b8;
+  --iron-bg: #05070A;
+  --iron-surface: #0A0D12;
+  --iron-primary: #4F8CFF;
+  --iron-secondary: #6CF2FF;
+  --iron-glow: #8B5CF6;
+  --iron-text: #FFFFFF;
+  --iron-muted: #A1A1AA;
+  --surface: #05070A;
+  --surface-elevated: #0A0D12;
+  --surface-muted: #0f1419;
+  --ink: #FFFFFF;
+  --ink-muted: #A1A1AA;
+  --ink-subtle: #71717a;
 }
 
 .dark {
-  --brand-50: #3730a3;
-  --brand-100: #4338ca;
-  --brand-200: #6366f1;
-  --brand-300: #818cf8;
-  --brand-400: #a5b4fc;
-  --brand-500: #818cf8;
-  --brand-600: #6366f1;
-  --brand-700: #4f46e5;
-  --brand-800: #4338ca;
-  --surface: #1e293b;
-  --surface-elevated: #0f172a;
-  --surface-muted: #334155;
-  --ink: #f1f5f9;
-  --ink-muted: #94a3b8;
-  --ink-subtle: #64748b;
+  --surface: #05070A;
+  --surface-elevated: #0A0D12;
+  --surface-muted: #0f1419;
+  --ink: #FFFFFF;
+  --ink-muted: #A1A1AA;
+  --ink-subtle: #71717a;
 }
 
 @layer base {
   html {
     @apply antialiased;
+    scroll-behavior: smooth;
   }
   body {
-    @apply min-h-screen text-ink bg-surface font-sans;
+    @apply min-h-screen bg-iron-bg text-iron-text;
     overscroll-behavior-y: none;
     -webkit-overflow-scrolling: touch;
   }
   :focus-visible {
-    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-surface;
+    @apply outline-none ring-2 ring-iron-primary ring-offset-2 ring-offset-iron-bg;
   }
-  /* iOS: pas de zoom au focus si input font-size >= 16px */
-  input,
-  select,
-  textarea {
+  input, select, textarea {
     font-size: 16px;
   }
   @media (min-width: 768px) {
-    input,
-    select,
-    textarea {
+    input, select, textarea {
       font-size: 14px;
     }
   }
-  /* Réduction du flash au tap sur iOS/Android */
-  a,
-  button {
+  a, button {
     -webkit-tap-highlight-color: transparent;
   }
 }
 
 @layer components {
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+  .glass-card {
+    @apply glass rounded-2xl p-6 transition-all duration-300;
+  }
+  .glass-card:hover {
+    @apply bg-white/[0.07] border-iron-primary/20 shadow-glow;
+  }
+  .glow-border {
+    box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.2), 0 0 30px rgba(79, 140, 255, 0.1);
+  }
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-3 min-h-touch min-w-[120px] rounded-button font-semibold text-white bg-brand-600 hover:bg-brand-700 active:bg-brand-800 shadow-sm transition-all duration-150 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 min-h-touch min-w-[140px] rounded-xl font-semibold text-white bg-iron-primary hover:bg-iron-primary/90 active:scale-[0.98] shadow-lg shadow-iron-primary/25 hover:shadow-iron-primary/40 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-iron-primary focus-visible:ring-offset-2 focus-visible:ring-offset-iron-bg;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-3 min-h-touch min-w-[120px] rounded-button font-medium text-ink border border-slate-200 dark:border-slate-600 bg-surface-elevated hover:bg-surface-muted active:bg-slate-200 dark:active:bg-slate-600 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 min-h-touch min-w-[140px] rounded-xl font-medium text-iron-text border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-iron-primary focus-visible:ring-offset-2 focus-visible:ring-offset-iron-bg;
   }
   .input-base {
-    @apply w-full min-h-touch rounded-input border border-slate-200 dark:border-slate-600 bg-surface-elevated px-3 py-2.5 text-ink placeholder:text-ink-subtle focus:border-brand-500 focus:ring-2 focus:ring-brand-500 focus:ring-opacity-20 outline-none transition-all duration-150;
+    @apply w-full min-h-touch rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-iron-text placeholder:text-iron-muted/60 focus:border-iron-primary/50 focus:ring-2 focus:ring-iron-primary/20 outline-none transition-all duration-200;
   }
   .card {
-    @apply rounded-card bg-surface-elevated border border-slate-100 dark:border-slate-700 shadow-card;
+    @apply rounded-2xl bg-white/5 border border-white/10;
   }
   .card-hover {
-    @apply card transition-all duration-150 hover:shadow-cardHover hover:scale-[1.02] active:scale-[0.99];
+    @apply card transition-all duration-300 hover:bg-white/[0.07] hover:border-iron-primary/20 hover:shadow-glow;
   }
   .touch-target {
     @apply min-h-touch min-w-touch inline-flex items-center justify-center;
   }
-  /* Safe area pour PWA / mobile */
   .safe-bottom {
     padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
   }
@@ -103,4 +96,12 @@
 }
 .animate-shake {
   animation: shake 0.5s ease-in-out;
+}
+
+/* Grid background */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
 }
