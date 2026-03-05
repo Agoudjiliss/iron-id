@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/react";
 import HomePage from "./pages/HomePage";
 import ProtectPage from "./pages/ProtectPage";
 import VerifyPage from "./pages/VerifyPage";
+import FeedbackPage from "./pages/FeedbackPage";
 import { useI18n } from "./i18n";
 
 function NavLink({
@@ -110,6 +111,7 @@ export default function App() {
                 <NavLink to="/">{t("nav.home")}</NavLink>
                 <NavLink to="/protect">{t("nav.protect")}</NavLink>
                 <NavLink to="/verify">{t("nav.verify")}</NavLink>
+                <NavLink to="/feedback">{t("nav.feedback")}</NavLink>
               </nav>
               <div className="w-px h-6 bg-slate-200 dark:bg-slate-600" aria-hidden />
               <div className="flex gap-0.5 rounded-full bg-surface-muted p-0.5" role="group" aria-label="Langue">
@@ -154,6 +156,7 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/protect" element={<ProtectPage />} />
           <Route path="/verify" element={<VerifyPage />} />
+          <Route path="/feedback" element={<FeedbackPage />} />
         </Routes>
       </main>
 
@@ -208,8 +211,11 @@ export default function App() {
       </nav>
 
       <footer className="hidden md:block border-t border-slate-200 dark:border-slate-700 bg-surface-elevated py-6">
-        <div className="max-w-content mx-auto px-page text-center">
+        <div className="max-w-content mx-auto px-page flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center">
           <p className="text-sm text-ink-muted">{t("footer.text")} · © {new Date().getFullYear()}</p>
+          <Link to="/feedback" className="text-sm text-brand-600 hover:text-brand-700 dark:text-brand-400 font-medium">
+            {t("nav.feedback")}
+          </Link>
         </div>
       </footer>
 

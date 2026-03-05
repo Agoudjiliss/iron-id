@@ -103,3 +103,22 @@ export function getDownloadUrl(outputPath: string): string {
   const filename = outputPath.split("/").pop();
   return `${API_BASE}/uploads/${filename}`;
 }
+
+export interface FeedbackPayload {
+  name: string;
+  email: string;
+  message: string;
+}
+
+export async function submitFeedback(payload: FeedbackPayload): Promise<{ ok: boolean; id?: string }> {
+  const res = await fetch(`${API_BASE}/api/feedback`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || res.statusText || "Failed to send feedback");
+  }
+  return data;
+}
