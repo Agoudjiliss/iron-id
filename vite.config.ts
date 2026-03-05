@@ -9,11 +9,11 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["icon.svg"],
       manifest: {
-        name: "iron-id",
-        short_name: "iron-id",
+        name: "Iron-ID",
+        short_name: "Iron-ID",
         description: "Authentification de médias : protection et vérification",
-        theme_color: "#f8fafc",
-        background_color: "#f8fafc",
+        theme_color: "#05070A",
+        background_color: "#05070A",
         display: "standalone",
         orientation: "portrait-primary",
         scope: "/",
@@ -31,9 +31,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        globPatterns: ["**/*.{js,css,html,ico,svg,woff2}"],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
@@ -49,6 +50,17 @@ export default defineConfig({
       devOptions: { enabled: true },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes("framer-motion")) return "framer";
+          if (id.includes("node_modules")) return "vendor";
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
   server: {
     host: "0.0.0.0",
     port: 5173,

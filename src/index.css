@@ -3,28 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --iron-bg: #05070A;
-  --iron-surface: #0A0D12;
-  --iron-primary: #4F8CFF;
-  --iron-secondary: #6CF2FF;
-  --iron-glow: #8B5CF6;
-  --iron-text: #FFFFFF;
-  --iron-muted: #A1A1AA;
-  --surface: #05070A;
-  --surface-elevated: #0A0D12;
+  --iron-black: #050505;
+  --iron-deep: #0F172A;
+  --iron-neon-blue: #3B82F6;
+  --iron-purple: #8B5CF6;
+  --iron-white: #F8FAFC;
+  --surface: #050505;
+  --surface-elevated: #0F172A;
   --surface-muted: #0f1419;
-  --ink: #FFFFFF;
-  --ink-muted: #A1A1AA;
-  --ink-subtle: #71717a;
-}
-
-.dark {
-  --surface: #05070A;
-  --surface-elevated: #0A0D12;
-  --surface-muted: #0f1419;
-  --ink: #FFFFFF;
-  --ink-muted: #A1A1AA;
-  --ink-subtle: #71717a;
+  --ink: #F8FAFC;
+  --ink-muted: #94A3B8;
+  --ink-subtle: #64748b;
 }
 
 @layer base {
@@ -33,12 +22,13 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply min-h-screen bg-iron-bg text-iron-text;
+    @apply min-h-screen text-iron-white font-sans;
+    background-color: #050505;
     overscroll-behavior-y: none;
     -webkit-overflow-scrolling: touch;
   }
   :focus-visible {
-    @apply outline-none ring-2 ring-iron-primary ring-offset-2 ring-offset-iron-bg;
+    @apply outline-none ring-2 ring-iron-neon-blue ring-offset-2 ring-offset-iron-black;
   }
   input, select, textarea {
     font-size: 16px;
@@ -54,32 +44,48 @@
 }
 
 @layer components {
+  .grain {
+    position: relative;
+  }
+  .grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+  }
+  .spotlight {
+    background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(59, 130, 246, 0.12) 0%, transparent 60%);
+  }
   .glass {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+    @apply bg-white/[0.04] backdrop-blur-2xl border border-white/[0.08];
   }
-  .glass-card {
-    @apply glass rounded-2xl p-6 transition-all duration-300;
+  .glass-panel {
+    @apply glass rounded-2xl p-6 transition-all duration-500;
   }
-  .glass-card:hover {
-    @apply bg-white/[0.07] border-iron-primary/20 shadow-glow;
+  .glass-panel:hover {
+    @apply bg-white/[0.06] border-iron-neon-blue/30 shadow-glow;
   }
-  .glow-border {
-    box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.2), 0 0 30px rgba(79, 140, 255, 0.1);
+  .exhibit-frame {
+    @apply relative overflow-hidden rounded-lg border border-white/10 bg-iron-deep/80;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 25px 50px -12px rgba(0,0,0,0.6);
+  }
+  .exhibit-frame:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2), 0 0 40px rgba(59, 130, 246, 0.08), 0 25px 50px -12px rgba(0,0,0,0.5);
   }
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 min-h-touch min-w-[140px] rounded-xl font-semibold text-white bg-iron-primary hover:bg-iron-primary/90 active:scale-[0.98] shadow-lg shadow-iron-primary/25 hover:shadow-iron-primary/40 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-iron-primary focus-visible:ring-offset-2 focus-visible:ring-offset-iron-bg;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3.5 min-h-touch min-w-[160px] rounded-full font-semibold text-white bg-iron-neon-blue hover:bg-iron-neon-blue/90 active:scale-[0.98] shadow-lg shadow-iron-neon-blue/30 hover:shadow-iron-neon-blue/40 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-iron-neon-blue focus-visible:ring-offset-2 focus-visible:ring-offset-iron-black;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 min-h-touch min-w-[140px] rounded-xl font-medium text-iron-text border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-iron-primary focus-visible:ring-offset-2 focus-visible:ring-offset-iron-bg;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3.5 min-h-touch min-w-[160px] rounded-full font-medium text-iron-white border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-iron-neon-blue focus-visible:ring-offset-2 focus-visible:ring-offset-iron-black;
   }
   .input-base {
-    @apply w-full min-h-touch rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-iron-text placeholder:text-iron-muted/60 focus:border-iron-primary/50 focus:ring-2 focus:ring-iron-primary/20 outline-none transition-all duration-200;
+    @apply w-full min-h-touch rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-iron-white placeholder:text-iron-muted/60 focus:border-iron-neon-blue/50 focus:ring-2 focus:ring-iron-neon-blue/20 outline-none transition-all duration-200;
   }
   .card {
     @apply rounded-2xl bg-white/5 border border-white/10;
-  }
-  .card-hover {
-    @apply card transition-all duration-300 hover:bg-white/[0.07] hover:border-iron-primary/20 hover:shadow-glow;
   }
   .touch-target {
     @apply min-h-touch min-w-touch inline-flex items-center justify-center;
@@ -98,7 +104,6 @@
   animation: shake 0.5s ease-in-out;
 }
 
-/* Grid background */
 .grid-bg {
   background-image:
     linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),

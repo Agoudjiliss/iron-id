@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   protectFile,
   connectProgress,
@@ -22,7 +22,17 @@ export default function ProtectPage() {
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
   const { t } = useI18n();
+
+  useEffect(() => {
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
+  }, []);
 
   const onFile = useCallback((f: File | null) => {
     if (!f) return;
@@ -71,6 +81,7 @@ export default function ProtectPage() {
           setProgressMsg((data.message as string) ?? "");
         },
         async (wsResult) => {
+          wsRef.current = null;
           if (wsResult.error) {
             setError(wsResult.error);
             setStep("error");
@@ -85,12 +96,12 @@ export default function ProtectPage() {
           setStep("done");
         },
         (err) => {
+          wsRef.current = null;
           setError(err);
           setStep("error");
         }
       );
-
-      return () => ws.close();
+      wsRef.current = ws;
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
       setStep("error");
@@ -168,7 +179,7 @@ export default function ProtectPage() {
                   <svg className="w-5 h-5 text-iron-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 1.5h-3.75" />
                   </svg>
-                  {t("protect.level")} & options
+                  {t("protect.levelAndOptions")}
                 </summary>
                 <div className="px-4 pb-4 pt-0 space-y-4 border-t border-white/10 pt-4">
                   <div>

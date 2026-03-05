@@ -23,8 +23,8 @@ function NavLink({
       to={to}
       className={`rounded-lg text-sm font-medium transition-all duration-200 min-h-touch inline-flex items-center justify-center px-3 py-2 ${
         active
-          ? "bg-iron-primary/20 text-iron-primary"
-          : "text-iron-muted hover:text-white hover:bg-white/5"
+          ? "bg-iron-neon-blue/20 text-iron-neon-blue"
+          : "text-iron-muted hover:text-iron-white hover:bg-white/5"
       } ${className}`}
       aria-current={active ? "page" : undefined}
     >
@@ -66,7 +66,7 @@ export default function App() {
       root.classList.add("dark");
       localStorage.setItem("theme", "dark");
       const meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute("content", "#05070A");
+      if (meta) meta.setAttribute("content", "#050505");
     } else {
       root.classList.remove("dark");
       localStorage.setItem("theme", "light");
@@ -85,20 +85,20 @@ export default function App() {
   const isHome = pathname === "/";
 
   return (
-    <div className="min-h-screen flex flex-col bg-iron-bg">
+    <div className="min-h-screen flex flex-col bg-iron-black">
       <header
         className={`sticky top-0 z-50 transition-all duration-300 ${
-          isHome ? "bg-iron-bg/80 backdrop-blur-xl border-b border-white/5" : "bg-iron-surface/95 backdrop-blur-xl border-b border-white/10"
+          isHome ? "bg-iron-black/90 backdrop-blur-xl border-b border-white/5" : "bg-iron-deep/95 backdrop-blur-xl border-b border-white/10"
         }`}
         style={{ paddingTop: "max(env(safe-area-inset-top, 0px), 0.75rem)" }}
       >
         <div className="max-w-content mx-auto px-page py-3 flex items-center justify-between">
           <Link
             to="/"
-            className="flex items-center gap-2.5 text-white font-display font-bold text-lg tracking-tight hover:text-iron-primary transition-colors min-h-touch items-center"
+            className="flex items-center gap-2.5 text-iron-white font-display font-bold text-lg tracking-tight hover:text-iron-neon-blue transition-colors min-h-touch items-center"
             aria-label="Iron-ID - Accueil"
           >
-            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-iron-primary text-white shrink-0 shadow-lg shadow-iron-primary/30">
+            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-iron-neon-blue text-white shrink-0 shadow-lg shadow-iron-neon-blue/30">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
@@ -163,7 +163,7 @@ export default function App() {
       </main>
 
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-iron-surface/95 backdrop-blur-xl border-t border-white/10 safe-bottom"
+        className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-iron-deep/95 backdrop-blur-xl border-t border-white/10 safe-bottom"
         style={{
           paddingBottom: "max(env(safe-area-inset-bottom), 0.5rem)",
           paddingLeft: "env(safe-area-inset-left, 0)",
@@ -174,7 +174,7 @@ export default function App() {
         <div className="flex items-center justify-around h-14 max-w-content mx-auto">
           <Link
             to="/"
-            className={`flex flex-col items-center justify-center flex-1 min-h-touch py-2 gap-0.5 ${pathname === "/" ? "text-iron-primary" : "text-iron-muted"}`}
+            className={`flex flex-col items-center justify-center flex-1 min-h-touch py-2 gap-0.5 ${pathname === "/" ? "text-iron-neon-blue" : "text-iron-muted"}`}
             aria-current={pathname === "/" ? "page" : undefined}
           >
             <svg className="w-6 h-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={pathname === "/" ? 2.5 : 1.5} aria-hidden>
@@ -184,7 +184,7 @@ export default function App() {
           </Link>
           <Link
             to="/protect"
-            className={`flex flex-col items-center justify-center flex-1 min-h-touch py-2 gap-0.5 ${pathname === "/protect" ? "text-iron-primary" : "text-iron-muted"}`}
+            className={`flex flex-col items-center justify-center flex-1 min-h-touch py-2 gap-0.5 ${pathname === "/protect" ? "text-iron-neon-blue" : "text-iron-muted"}`}
             aria-current={pathname === "/protect" ? "page" : undefined}
           >
             <svg className="w-6 h-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={pathname === "/protect" ? 2.5 : 1.5} aria-hidden>
@@ -194,7 +194,7 @@ export default function App() {
           </Link>
           <Link
             to="/verify"
-            className={`flex flex-col items-center justify-center flex-1 min-h-touch py-2 gap-0.5 ${pathname === "/verify" ? "text-iron-primary" : "text-iron-muted"}`}
+            className={`flex flex-col items-center justify-center flex-1 min-h-touch py-2 gap-0.5 ${pathname === "/verify" ? "text-iron-neon-blue" : "text-iron-muted"}`}
             aria-current={pathname === "/verify" ? "page" : undefined}
           >
             <svg className="w-6 h-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={pathname === "/verify" ? 2.5 : 1.5} aria-hidden>
@@ -209,7 +209,7 @@ export default function App() {
         <div className="absolute inset-0 grid-bg opacity-30" />
         <div className="relative max-w-content mx-auto px-page flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center">
           <p className="text-sm text-iron-muted">{t("footer.text")} · © {new Date().getFullYear()}</p>
-          <Link to="/feedback" className="text-sm text-iron-primary hover:text-iron-secondary font-medium transition-colors">
+          <Link to="/feedback" className="text-sm text-iron-neon-blue hover:text-iron-electric-purple font-medium transition-colors">
             {t("nav.feedback")}
           </Link>
         </div>
