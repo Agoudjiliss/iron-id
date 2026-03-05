@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, Link, useLocation } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 import HomePage from "./pages/HomePage";
 import ProtectPage from "./pages/ProtectPage";
 import VerifyPage from "./pages/VerifyPage";
@@ -211,6 +212,8 @@ export default function App() {
           <p className="text-sm text-ink-muted">{t("footer.text")} · © {new Date().getFullYear()}</p>
         </div>
       </footer>
+
+      <Analytics />
     </div>
   );
 }
