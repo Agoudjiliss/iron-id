@@ -1,19 +1,35 @@
-import { useRef, useMemo, useEffect, useState } from "react";
+import { useRef, useMemo, useEffect, useState, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { motion, useInView, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { motion, useInView, useScroll, useTransform, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import { useI18n } from "../i18n";
+
+/* ────────────────────────────────────────────────────────
+   Mouse position hook for cursor parallax
+──────────────────────────────────────────────────────── */
+function useMousePosition() {
+  const [pos, setPos] = useState({ x: 0.5, y: 0.5 });
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      setPos({ x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight });
+    };
+    window.addEventListener("mousemove", handler, { passive: true });
+    return () => window.removeEventListener("mousemove", handler);
+  }, []);
+  return pos;
+}
 
 /* ────────────────────────────────────────────────────────
    Deterministic particle field (no random on render)
 ──────────────────────────────────────────────────────── */
-const PARTICLE_DATA = Array.from({ length: 32 }, (_, i) => ({
+const PARTICLE_DATA = Array.from({ length: 40 }, (_, i) => ({
   id: i,
   x: Number(((i * 137.508 + 11.5) % 100).toFixed(2)),
   y: Number(((i * 73.21 + 33.1) % 100).toFixed(2)),
-  size: Number((((i * 7.33) % 1.8) + 0.5).toFixed(2)),
+  size: Number((((i * 7.33) % 2.2) + 0.4).toFixed(2)),
   duration: Number((((i * 5.7) % 22) + 12).toFixed(1)),
   delay: Number((((i * 3.14) % 9)).toFixed(1)),
   purple: i % 3 === 0,
+  opacity: Number((((i * 0.17) % 0.45) + 0.25).toFixed(2)),
 }));
 
 function ParticleField() {
@@ -29,13 +45,153 @@ function ParticleField() {
             width: `${p.size}px`,
             height: `${p.size}px`,
             backgroundColor: p.purple
-              ? "rgba(139, 92, 246, 0.55)"
-              : "rgba(59, 130, 246, 0.5)",
+              ? `rgba(139, 92, 246, ${p.opacity})`
+              : `rgba(59, 130, 246, ${p.opacity})`,
           }}
-          animate={{ y: [0, -55, 0], opacity: [0, 0.75, 0] }}
+          animate={{ y: [0, -60, 0], opacity: [0, p.opacity, 0] }}
           transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: "easeInOut" }}
         />
       ))}
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────
+   Floating Artifacts — small geometric decorative elements
+──────────────────────────────────────────────────────── */
+const ARTIFACT_DATA = Array.from({ length: 18 }, (_, i) => ({
+  id: i,
+  x: Number(((i * 53.3 + 7.1) % 90 + 5).toFixed(1)),
+  y: Number(((i * 79.2 + 15.4) % 80 + 10).toFixed(1)),
+  size: Number((((i * 11.7) % 18) + 8).toFixed(0)),
+  duration: Number((((i * 4.9) % 10) + 7).toFixed(1)),
+  delay: Number((((i * 2.77) % 6)).toFixed(1)),
+  type: ["triangle", "circle", "diamond", "cross", "square"][i % 5] as string,
+  opacity: Number((((i * 0.09) % 0.06) + 0.04).toFixed(2)),
+  blue: i % 2 === 0,
+}));
+
+function FloatingArtifacts({ revealed = false }: { revealed?: boolean }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+      {ARTIFACT_DATA.map((a) => {
+        const strokeOpacity = revealed ? Math.min(a.opacity * 4, 0.35) : a.opacity;
+        const strokeColor = a.blue
+          ? `rgba(59,130,246,${strokeOpacity})`
+          : `rgba(139,92,246,${strokeOpacity})`;
+        return (
+          <motion.div
+            key={a.id}
+            className="absolute"
+            style={{ left: `${a.x}%`, top: `${a.y}%` }}
+            animate={{ y: [0, -12, 4, -8, 0], x: [0, 4, -3, 6, 0], rotate: [0, 5, -3, 4, 0] }}
+            transition={{ duration: a.duration, delay: a.delay, repeat: Infinity, ease: "easeInOut" }}
+          >
+            {a.type === "triangle" && (
+              <svg width={a.size} height={a.size} viewBox="0 0 24 24" fill="none">
+                <polygon points="12,2 22,22 2,22" stroke={strokeColor} strokeWidth="1.5" fill="none" />
+              </svg>
+            )}
+            {a.type === "circle" && (
+              <svg width={a.size} height={a.size} viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="9" stroke={strokeColor} strokeWidth="1" fill="none" />
+                <circle cx="12" cy="12" r="3" stroke={a.blue ? `rgba(59,130,246,${strokeOpacity * 0.6})` : `rgba(139,92,246,${strokeOpacity * 0.6})`} strokeWidth="0.8" fill="none" />
+              </svg>
+            )}
+            {a.type === "diamond" && (
+              <svg width={a.size} height={a.size} viewBox="0 0 24 24" fill="none">
+                <polygon points="12,2 22,12 12,22 2,12" stroke={strokeColor} strokeWidth="1.2" fill="none" />
+              </svg>
+            )}
+            {a.type === "cross" && (
+              <svg width={a.size} height={a.size} viewBox="0 0 24 24" fill="none">
+                <line x1="12" y1="2" x2="12" y2="22" stroke={strokeColor} strokeWidth="1" />
+                <line x1="2" y1="12" x2="22" y2="12" stroke={strokeColor} strokeWidth="1" />
+              </svg>
+            )}
+            {a.type === "square" && (
+              <svg width={a.size} height={a.size} viewBox="0 0 24 24" fill="none">
+                <rect x="4" y="4" width="16" height="16" stroke={strokeColor} strokeWidth="1.2" fill="none" />
+              </svg>
+            )}
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────
+   Renaissance Scientific Sketches — da Vinci notebook style
+──────────────────────────────────────────────────────── */
+function RenaissanceSketches({ revealed = false }: { revealed?: boolean }) {
+  const opacity = revealed ? 0.11 : 0.03;
+  const c = `rgba(147,197,253,${opacity})`;
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none select-none" aria-hidden="true">
+      {/* Golden spiral construction — top right */}
+      <svg className="absolute" style={{ top: "4%", right: "1%", width: "320px", height: "320px", opacity }} viewBox="0 0 320 320" fill="none">
+        <circle cx="160" cy="160" r="150" stroke={c} strokeWidth="0.5" />
+        <circle cx="160" cy="160" r="100" stroke={c} strokeWidth="0.5" />
+        <circle cx="160" cy="160" r="60" stroke={c} strokeWidth="0.5" />
+        <circle cx="160" cy="160" r="25" stroke={c} strokeWidth="0.5" />
+        <line x1="10" y1="160" x2="310" y2="160" stroke={c} strokeWidth="0.4" />
+        <line x1="160" y1="10" x2="160" y2="310" stroke={c} strokeWidth="0.4" />
+        <line x1="54" y1="54" x2="266" y2="266" stroke={c} strokeWidth="0.3" />
+        <line x1="266" y1="54" x2="54" y2="266" stroke={c} strokeWidth="0.3" />
+        <line x1="60" y1="156" x2="60" y2="164" stroke={c} strokeWidth="0.5" />
+        <line x1="100" y1="156" x2="100" y2="164" stroke={c} strokeWidth="0.5" />
+        <line x1="200" y1="156" x2="200" y2="164" stroke={c} strokeWidth="0.5" />
+        <line x1="260" y1="156" x2="260" y2="164" stroke={c} strokeWidth="0.5" />
+        <text x="220" y="152" fontSize="7" fill={c} fontFamily="serif">r₁</text>
+        <text x="258" y="152" fontSize="7" fill={c} fontFamily="serif">r₂</text>
+      </svg>
+      {/* Perspective grid — bottom left */}
+      <svg className="absolute" style={{ bottom: "6%", left: "2%", width: "260px", height: "180px", opacity: opacity * 0.85 }} viewBox="0 0 260 180" fill="none">
+        {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+          <line key={i} x1={i * 36 + 16} y1="160" x2="130" y2="18" stroke={c} strokeWidth="0.4" />
+        ))}
+        {[0, 1, 2, 3].map((i) => {
+          const t = i / 3;
+          const x1 = 16 + t * 90;
+          const x2 = 244 - t * 90;
+          const y = 160 - t * 142;
+          return <line key={i} x1={x1} y1={y} x2={x2} y2={y} stroke={c} strokeWidth="0.3" />;
+        })}
+        <text x="112" y="12" fontSize="6" fill={c} fontFamily="serif">VP</text>
+      </svg>
+      {/* Proportion system — left side */}
+      <svg className="absolute" style={{ top: "32%", left: "0.5%", width: "190px", height: "260px", opacity: opacity * 0.9 }} viewBox="0 0 190 260" fill="none">
+        <rect x="28" y="10" width="134" height="190" stroke={c} strokeWidth="0.5" />
+        <circle cx="95" cy="105" r="76" stroke={c} strokeWidth="0.4" />
+        <line x1="95" y1="29" x2="95" y2="200" stroke={c} strokeWidth="0.3" />
+        <line x1="19" y1="105" x2="171" y2="105" stroke={c} strokeWidth="0.3" />
+        <line x1="28" y1="56" x2="38" y2="56" stroke={c} strokeWidth="0.5" />
+        <line x1="28" y1="105" x2="38" y2="105" stroke={c} strokeWidth="0.5" />
+        <line x1="28" y1="154" x2="38" y2="154" stroke={c} strokeWidth="0.5" />
+        <text x="5" y="58" fontSize="5.5" fill={c} fontFamily="serif">A</text>
+        <text x="5" y="107" fontSize="5.5" fill={c} fontFamily="serif">B</text>
+        <text x="5" y="156" fontSize="5.5" fill={c} fontFamily="serif">C</text>
+        <text x="35" y="228" fontSize="5" fill={c} fontFamily="serif" letterSpacing="1">PROPORTIO · AUREA</text>
+      </svg>
+      {/* Hash grid — right side lower */}
+      <svg className="absolute" style={{ top: "58%", right: "3%", width: "170px", height: "130px", opacity: opacity * 0.7 }} viewBox="0 0 170 130" fill="none">
+        {[18, 56, 94, 132].map((x) => (
+          <line key={`v${x}`} x1={x} y1="10" x2={x} y2="120" stroke={c} strokeWidth="0.4" />
+        ))}
+        {[20, 48, 76, 104].map((y) => (
+          <line key={`h${y}`} x1="8" y1={y} x2="162" y2={y} stroke={c} strokeWidth="0.4" />
+        ))}
+        <text x="8" y="8" fontSize="5" fill={c} fontFamily="monospace" letterSpacing="0.5">0xA4F2·C9B1·7E3D</text>
+        <text x="8" y="130" fontSize="5" fill={c} fontFamily="monospace" letterSpacing="0.5">SHA-256 · VERIFIED</text>
+      </svg>
+      {/* Harmony circles — center top */}
+      <svg className="absolute" style={{ top: "12%", left: "33%", width: "150px", height: "150px", opacity: opacity * 0.65 }} viewBox="0 0 150 150" fill="none">
+        <circle cx="55" cy="75" r="45" stroke={c} strokeWidth="0.4" />
+        <circle cx="95" cy="75" r="45" stroke={c} strokeWidth="0.4" />
+        <circle cx="75" cy="75" r="45" stroke={c} strokeWidth="0.3" strokeDasharray="2 4" />
+        <line x1="30" y1="75" x2="120" y2="75" stroke={c} strokeWidth="0.3" />
+      </svg>
     </div>
   );
 }
@@ -65,47 +221,112 @@ function MuseumCorners({ color = "rgba(59,130,246,0.5)" }: { color?: string }) {
 }
 
 /* ────────────────────────────────────────────────────────
-   HERO — cinematic artwork with scan + verified stamp
+   REVEAL THE TRUTH — floating interactive button
 ──────────────────────────────────────────────────────── */
-function HeroSection() {
+function RevealTruthButton({ onReveal, revealed }: { onReveal: () => void; revealed: boolean }) {
+  const { t } = useI18n();
+  return (
+    <motion.div
+      className="fixed bottom-24 md:bottom-8 right-6 z-40"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 4, duration: 0.8 }}
+    >
+      <motion.button
+        type="button"
+        onClick={onReveal}
+        className="group relative flex items-center gap-2 px-4 py-2.5 rounded-full border text-xs font-mono font-medium tracking-widest uppercase overflow-hidden transition-colors duration-500"
+        style={{
+          borderColor: revealed ? "rgba(59,130,246,0.7)" : "rgba(255,255,255,0.15)",
+          color: revealed ? "rgba(147,197,253,0.95)" : "rgba(148,163,184,0.8)",
+          background: revealed ? "rgba(59,130,246,0.12)" : "rgba(15,23,42,0.85)",
+          backdropFilter: "blur(12px)",
+        }}
+        animate={revealed ? {
+          boxShadow: ["0 0 24px rgba(59,130,246,0.3)", "0 0 40px rgba(59,130,246,0.5)", "0 0 24px rgba(59,130,246,0.3)"],
+        } : { boxShadow: "none" }}
+        transition={{ duration: 2, repeat: Infinity }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.96 }}
+        aria-label={t("home.reveal.button")}
+      >
+        {/* Scanning shimmer */}
+        <motion.div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.12), transparent)" }}
+          animate={{ x: ["-100%", "200%"] }}
+          transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5 }}
+        />
+        <svg className="w-3.5 h-3.5 shrink-0 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          {revealed
+            ? <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            : <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+          }
+        </svg>
+        <span className="relative z-10">{revealed ? t("home.reveal.hint") : t("home.reveal.button")}</span>
+      </motion.button>
+    </motion.div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────
+   HERO — cinematic artwork with scan + verified stamp + parallax
+──────────────────────────────────────────────────────── */
+function HeroSection({ revealed }: { revealed: boolean }) {
   const { t } = useI18n();
   const [stampDone, setStampDone] = useState(false);
+  const mouse = useMousePosition();
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const springX = useSpring(mx, { stiffness: 50, damping: 20 });
+  const springY = useSpring(my, { stiffness: 50, damping: 20 });
+
+  useEffect(() => {
+    mx.set((mouse.x - 0.5) * 18);
+    my.set((mouse.y - 0.5) * 12);
+  }, [mouse, mx, my]);
 
   return (
     <section className="relative min-h-[100vh] flex flex-col items-center justify-center px-page overflow-hidden grain">
       {/* Deep atmospheric background */}
       <div className="absolute inset-0 bg-gradient-to-b from-iron-deep/15 via-iron-black to-iron-black" />
 
-      {/* Gallery ceiling spotlight */}
-      <div
+      {/* Gallery ceiling spotlight with parallax */}
+      <motion.div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] pointer-events-none"
         style={{
-          background:
-            "radial-gradient(ellipse 60% 55% at 50% 0%, rgba(59,130,246,0.14) 0%, rgba(59,130,246,0.04) 55%, transparent 75%)",
+          background: "radial-gradient(ellipse 60% 55% at 50% 0%, rgba(59,130,246,0.14) 0%, rgba(59,130,246,0.04) 55%, transparent 75%)",
+          x: springX,
         }}
         aria-hidden="true"
       />
 
+      {/* Renaissance sketches */}
+      <RenaissanceSketches revealed={revealed} />
+
       {/* Floating particles */}
       <ParticleField />
+
+      {/* Floating artifacts */}
+      <FloatingArtifacts revealed={revealed} />
 
       {/* Bottom fade into next section */}
       <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-b from-transparent to-iron-black z-[2] pointer-events-none" />
 
-      {/* ── Artwork frame ──────────────────────────────── */}
+      {/* ── Artwork frame with cursor parallax ──────────────── */}
       <motion.div
         className="relative z-10 w-full max-w-4xl mx-auto mb-12"
+        style={{ x: springX, y: springY }}
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1.3, ease: [0.22, 1, 0.36, 1] }}
       >
         {/* Ambient outer glow */}
-        <div
+        <motion.div
           className="absolute -inset-6 rounded-3xl pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse 80% 70% at 50% 50%, rgba(59,130,246,0.07) 0%, transparent 70%)",
-          }}
+          style={{ background: "radial-gradient(ellipse 80% 70% at 50% 50%, rgba(59,130,246,0.07) 0%, transparent 70%)" }}
+          animate={{ opacity: [0.6, 1, 0.6] }}
+          transition={{ duration: 4, repeat: Infinity }}
           aria-hidden="true"
         />
 
@@ -120,10 +341,7 @@ function HeroSection() {
           {/* Inner atmospheric light */}
           <div
             className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(ellipse 50% 60% at 30% 40%, rgba(59,130,246,0.06) 0%, transparent 60%)",
-            }}
+            style={{ background: "radial-gradient(ellipse 50% 60% at 30% 40%, rgba(59,130,246,0.06) 0%, transparent 60%)" }}
           />
 
           {/* Vignette */}
@@ -242,8 +460,109 @@ function TaglineSection() {
 }
 
 /* ────────────────────────────────────────────────────────
-   ARTIST SHOWCASE — museum exhibit cards
+   ARTIST SHOWCASE — museum exhibit cards with 3D tilt
 ──────────────────────────────────────────────────────── */
+type ExhibitItem = { id: number; gradient: string; title: string; artist: string; meta: string; num: string };
+
+function ExhibitCard({ ex, delay }: { ex: ExhibitItem; delay: number }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [hovered, setHovered] = useState(false);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    setTilt({ x: ((cy / rect.height) - 0.5) * -14, y: ((cx / rect.width) - 0.5) * 14 });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTilt({ x: 0, y: 0 });
+    setHovered(false);
+  }, []);
+
+  // Decorative hash: deterministic pseudo-hash for exhibit authenticity visual
+  const hashHex = ((ex.id * 0x3f4a9b + 0xc2a01) & 0xffffffff).toString(16).toUpperCase().padStart(8, "0");
+
+  return (
+    <motion.div
+      ref={cardRef}
+      className="group cursor-default"
+      style={{ perspective: "1000px" }}
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={handleMouseLeave}
+    >
+      <motion.div
+        className="rounded-xl overflow-hidden border border-white/10 bg-iron-deep/80"
+        animate={{ rotateX: tilt.x, rotateY: tilt.y }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        style={{
+          transformStyle: "preserve-3d",
+          boxShadow: hovered
+            ? "0 0 0 1px rgba(59,130,246,0.35), 0 0 60px rgba(59,130,246,0.14), 0 30px 60px -12px rgba(0,0,0,0.7)"
+            : "0 0 0 1px rgba(255,255,255,0.08), 0 25px 50px -12px rgba(0,0,0,0.7)",
+          transition: "box-shadow 0.4s ease",
+        }}
+      >
+        {/* Artwork area */}
+        <div className={`aspect-[4/5] ${ex.gradient} relative overflow-hidden`}>
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 50% at 40% 30%, rgba(255,255,255,0.04) 0%, transparent 70%)" }} />
+          <MuseumCorners color={hovered ? "rgba(59,130,246,0.6)" : "rgba(59,130,246,0.3)"} />
+          {/* Artwork zoom layer */}
+          <motion.div
+            className={`absolute inset-0 ${ex.gradient}`}
+            animate={{ scale: hovered ? 1.05 : 1 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          />
+          {/* Frame glow on hover */}
+          <AnimatePresence>
+            {hovered && (
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                style={{ background: "radial-gradient(ellipse 70% 50% at 50% 30%, rgba(59,130,246,0.08) 0%, transparent 60%)" }}
+              />
+            )}
+          </AnimatePresence>
+          {/* Scan line on hover */}
+          <AnimatePresence>
+            {hovered && (
+              <motion.div
+                className="absolute top-0 bottom-0 w-16 pointer-events-none"
+                style={{ background: "linear-gradient(90deg, transparent, rgba(147,197,253,0.2), transparent)" }}
+                initial={{ x: "-100%" }}
+                animate={{ x: "400%" }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.2, ease: "easeInOut" }}
+              />
+            )}
+          </AnimatePresence>
+          {/* Hover metadata overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-iron-black/95 via-iron-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-5">
+            <p className="font-mono text-[10px] text-iron-neon-blue/70 tracking-[0.3em] uppercase mb-2">Exhibit · {ex.num}</p>
+            <p className="font-display font-semibold text-lg text-iron-white leading-tight">{ex.title}</p>
+            <p className="text-xs text-iron-muted mt-0.5">{ex.artist}</p>
+            <div className="mt-3 flex items-center gap-2">
+              <div className="h-px flex-1 bg-iron-neon-blue/40" />
+              <p className="text-[10px] text-iron-neon-blue font-mono tracking-wide">{ex.meta}</p>
+            </div>
+            <p className="text-[9px] font-mono text-iron-neon-blue/45 mt-1.5 tracking-wider">0x{hashHex} · Iron-ID</p>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function ArtistShowcaseSection() {
   const { t } = useI18n();
   const ref = useRef(null);
@@ -251,107 +570,145 @@ function ArtistShowcaseSection() {
 
   const exhibits = useMemo(
     () => [
-      {
-        id: 1,
-        gradient: "bg-art-1",
-        title: "Untitled No. 1",
-        artist: "Ana M. · 2025",
-        meta: "C2PA · Watermark · Verified",
-        num: "01",
-      },
-      {
-        id: 2,
-        gradient: "bg-art-2",
-        title: "Untitled No. 2",
-        artist: "Dev R. · 2025",
-        meta: "Signature verified · Tamper-proof",
-        num: "02",
-      },
-      {
-        id: 3,
-        gradient: "bg-art-3",
-        title: "Untitled No. 3",
-        artist: "Sofia K. · 2025",
-        meta: "Authentic · AI-protected",
-        num: "03",
-      },
+      { id: 1, gradient: "bg-art-1", title: "Untitled No. 1", artist: "Ana M. · 2025", meta: "C2PA · Watermark · Verified", num: "01" },
+      { id: 2, gradient: "bg-art-2", title: "Untitled No. 2", artist: "Dev R. · 2025", meta: "Signature verified · Tamper-proof", num: "02" },
+      { id: 3, gradient: "bg-art-3", title: "Untitled No. 3", artist: "Sofia K. · 2025", meta: "Authentic · AI-protected", num: "03" },
     ],
     []
   );
 
   return (
     <section ref={ref} className="py-section px-page relative">
-      {/* Ambient glow */}
-      <div
-        className="absolute top-0 left-0 right-0 h-px pointer-events-none"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.2), transparent)" }}
-        aria-hidden="true"
-      />
+      <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.2), transparent)" }} aria-hidden="true" />
       <div className="max-w-6xl mx-auto">
-        <motion.h2
-          className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-iron-white text-center mb-3"
-          initial={{ opacity: 0, y: 22 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7 }}
-        >
+        <motion.h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-iron-white text-center mb-3" initial={{ opacity: 0, y: 22 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7 }}>
           {t("home.showcase.title")}
         </motion.h2>
-        <motion.p
-          className="text-iron-muted text-center mb-14"
-          initial={{ opacity: 0, y: 16 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, delay: 0.1 }}
-        >
+        <motion.p className="text-iron-muted text-center mb-14" initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7, delay: 0.1 }}>
           {t("home.showcase.subtitle")}
         </motion.p>
-
         <div className="grid md:grid-cols-3 gap-6 md:gap-8">
           {exhibits.map((ex, i) => (
-            <motion.div
-              key={ex.id}
-              className="group exhibit-frame cursor-default"
-              initial={{ opacity: 0, y: 50 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.7, delay: 0.15 * i, ease: [0.22, 1, 0.36, 1] }}
-            >
-              {/* Artwork area — overflow hidden clips the zoom effect */}
-              <div className={`aspect-[4/5] ${ex.gradient} relative overflow-hidden`}>
-                {/* Inner ambient light */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background:
-                      "radial-gradient(ellipse 60% 50% at 40% 30%, rgba(255,255,255,0.04) 0%, transparent 70%)",
-                  }}
-                />
-
-                {/* Museum corner brackets (always visible, glow on hover) */}
-                <MuseumCorners color="rgba(59,130,246,0.3)" />
-
-                {/* Artwork zoom layer (sits behind overlays) */}
-                <motion.div
-                  className={`absolute inset-0 ${ex.gradient}`}
-                  whileHover={{ scale: 1.04 }}
-                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                />
-
-                {/* Hover metadata overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-iron-black/95 via-iron-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-5">
-                  {/* Exhibit number */}
-                  <p className="font-mono text-[10px] text-iron-neon-blue/70 tracking-[0.3em] uppercase mb-2">
-                    Exhibit · {ex.num}
-                  </p>
-                  <p className="font-display font-semibold text-lg text-iron-white leading-tight">{ex.title}</p>
-                  <p className="text-xs text-iron-muted mt-0.5">{ex.artist}</p>
-                  <div className="mt-3 flex items-center gap-2">
-                    <div className="h-px flex-1 bg-iron-neon-blue/40" />
-                    <p className="text-[10px] text-iron-neon-blue font-mono tracking-wide">{ex.meta}</p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+            <ExhibitCard key={ex.id} ex={ex} delay={0.15 * i} />
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* ────────────────────────────────────────────────────────
+   AI CORRUPTION ANIMATION — cinematic sequence
+──────────────────────────────────────────────────────── */
+function AICorruptionSection() {
+  const { t } = useI18n();
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-100px" });
+  const [phase, setPhase] = useState<0 | 1 | 2>(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    const t1 = setTimeout(() => setPhase(1), 1800);
+    const t2 = setTimeout(() => setPhase(2), 4200);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [inView]);
+
+  const phaseLabels = [t("home.corruption.original"), t("home.corruption.distorted"), t("home.corruption.restored")];
+  const phaseColors = ["rgba(255,255,255,0.15)", "rgba(239,68,68,0.4)", "rgba(59,130,246,0.5)"];
+
+  return (
+    <section ref={ref} className="py-section px-page relative grain overflow-hidden">
+      <div className="absolute inset-0 spotlight-purple opacity-30 pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.2), transparent)" }} aria-hidden="true" />
+      <div className="max-w-5xl mx-auto">
+        <motion.h2 className="font-display text-3xl sm:text-4xl font-bold text-iron-white text-center mb-3" initial={{ opacity: 0, y: 22 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7 }}>
+          {t("home.corruption.title")}
+        </motion.h2>
+        <motion.p className="text-iron-muted text-center mb-12" initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7, delay: 0.1 }}>
+          {t("home.corruption.subtitle")}
+        </motion.p>
+        {/* Phase selector */}
+        <div className="flex justify-center gap-3 mb-8 flex-wrap">
+          {([0, 1, 2] as const).map((i) => {
+            const phaseTextColors = ["rgb(248,250,252)", "rgb(252,165,165)", "rgb(147,197,253)"];
+            const phaseBgColors = ["rgba(255,255,255,0.04)", "rgba(239,68,68,0.08)", "rgba(59,130,246,0.08)"];
+            const isActive = phase === i;
+            return (
+              <motion.button
+                key={i}
+                type="button"
+                onClick={() => setPhase(i)}
+                className="px-4 py-2 rounded-full text-xs font-mono tracking-widest uppercase border transition-all duration-300"
+                style={{
+                  borderColor: isActive ? phaseColors[i] : "rgba(255,255,255,0.08)",
+                  color: isActive ? phaseTextColors[i] : "rgba(148,163,184,0.7)",
+                  background: isActive ? phaseBgColors[i] : "transparent",
+                }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+              >
+                <span className="mr-2 opacity-60">{String(i + 1).padStart(2, "0")}</span>
+                {phaseLabels[i]}
+              </motion.button>
+            );
+          })}
+        </div>
+        {/* Animation frame */}
+        <motion.div
+          className="relative aspect-video rounded-2xl overflow-hidden border"
+          style={{ borderColor: phaseColors[phase] }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.7, delay: 0.2 }}
+        >
+          <div className="absolute inset-0 bg-art-hero" />
+          <AnimatePresence mode="wait">
+            {phase === 0 && (
+              <motion.div key="original" className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
+                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 70% 70% at 40% 40%, rgba(30,58,95,0.5) 0%, transparent 70%)" }} />
+                <MuseumCorners color="rgba(255,255,255,0.25)" />
+                <div className="absolute bottom-5 left-5 px-3 py-1.5 rounded-lg bg-white/[0.08] border border-white/15 backdrop-blur-sm">
+                  <p className="text-xs font-mono text-iron-white/80 tracking-widest uppercase">Original · Unmodified</p>
+                </div>
+                <motion.div className="absolute top-5 right-5 w-8 h-8 rounded-full border border-white/30 flex items-center justify-center" animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity }}>
+                  <div className="w-2 h-2 rounded-full bg-white/70" />
+                </motion.div>
+              </motion.div>
+            )}
+            {phase === 1 && (
+              <motion.div key="corrupted" className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(120,0,0,0.3) 0%, transparent 50%, rgba(0,40,80,0.25) 100%)", mixBlendMode: "overlay" }} />
+                <div className="absolute inset-0" style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,0,80,0.05) 3px, rgba(255,0,80,0.05) 4px)" }} />
+                {[15, 32, 55, 72, 88].map((top, idx) => (
+                  <motion.div key={idx} className="absolute h-[2px]" style={{ top: `${top}%`, left: `${10 + idx * 12}%`, width: `${20 + idx * 8}%`, background: `rgba(${idx % 2 === 0 ? "255,50,50" : "50,100,255"},0.4)` }} animate={{ x: [0, -5, 8, -3, 0], opacity: [0.8, 0.4, 0.9, 0.5, 0.8] }} transition={{ duration: 0.4, repeat: Infinity, delay: idx * 0.1 }} />
+                ))}
+                {[0, 1, 2].map((idx) => (
+                  <motion.div key={idx} className="absolute" style={{ top: `${20 + idx * 25}%`, left: `${15 + idx * 22}%`, width: `${30 + idx * 10}%`, height: "8%", background: "rgba(255,0,80,0.06)", mixBlendMode: "screen" }} animate={{ opacity: [0, 0.8, 0] }} transition={{ duration: 0.3, repeat: Infinity, delay: idx * 0.15, repeatDelay: 0.4 }} />
+                ))}
+                <div className="absolute top-5 right-5 px-3 py-1.5 rounded-lg bg-red-500/20 border border-red-500/45 backdrop-blur-sm">
+                  <p className="text-xs font-mono text-red-300 tracking-widest uppercase">⚠ AI Modified</p>
+                </div>
+                <div className="absolute bottom-5 left-5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/25 backdrop-blur-sm">
+                  <p className="text-xs font-mono text-red-400/80 tracking-wide">Deepfake detected · Authenticity compromised</p>
+                </div>
+                <MuseumCorners color="rgba(239,68,68,0.5)" />
+              </motion.div>
+            )}
+            {phase === 2 && (
+              <motion.div key="restored" className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
+                <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(59,130,246,0.08) 0%, transparent 70%)" }} />
+                <motion.div className="absolute top-0 bottom-0" style={{ width: "40%", background: "linear-gradient(90deg, transparent, rgba(147,197,253,0.25), transparent)" }} initial={{ x: "-50%" }} animate={{ x: "200%" }} transition={{ duration: 1.4, ease: "easeInOut" }} />
+                <motion.div className="absolute inset-0 flex items-center justify-center" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.8, duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}>
+                  <div className="px-8 py-4 rounded-xl border-2 border-iron-neon-blue/80 bg-iron-neon-blue/10 backdrop-blur-md stamp-glow">
+                    <span className="font-display font-bold text-xl tracking-[0.18em] text-iron-neon-blue">{t("home.verified.stamp")}</span>
+                    <p className="text-[10px] tracking-widest text-iron-neon-blue/60 font-mono text-center mt-1 uppercase">Iron-ID · Cryptographic Proof</p>
+                  </div>
+                </motion.div>
+                <MuseumCorners color="rgba(59,130,246,0.6)" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
     </section>
   );
@@ -659,13 +1016,226 @@ function FeaturesSection() {
 }
 
 /* ────────────────────────────────────────────────────────
+   CONSTELLATION OF AUTHENTICITY
+──────────────────────────────────────────────────────── */
+const CONSTELLATION_NODES = Array.from({ length: 24 }, (_, i) => ({
+  id: i,
+  x: Number(((i * 41.3 + 8.7) % 88 + 6).toFixed(1)),
+  y: Number(((i * 67.9 + 15.2) % 80 + 10).toFixed(1)),
+  size: Number((((i * 3.7) % 3) + 3).toFixed(1)),
+  delay: Number((((i * 1.9) % 5)).toFixed(1)),
+  duration: Number((((i * 2.3) % 3) + 2).toFixed(1)),
+  purple: i % 4 === 0,
+}));
+
+const CONSTELLATION_LINES: [number, number][] = [
+  [0, 3], [3, 7], [7, 12], [12, 18], [18, 23],
+  [0, 5], [5, 11], [11, 17], [17, 22],
+  [1, 6], [6, 13], [13, 20],
+  [2, 8], [8, 14], [14, 21],
+  [4, 9], [9, 15], [15, 19],
+  [0, 1], [1, 2], [2, 4],
+  [18, 20], [20, 22], [22, 23],
+];
+
+function ConstellationSection() {
+  const { t } = useI18n();
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <section ref={ref} className="py-section px-page relative overflow-hidden grain">
+      <div className="absolute inset-0 spotlight opacity-30 pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.2), transparent)" }} aria-hidden="true" />
+      <div className="max-w-6xl mx-auto">
+        <motion.h2 className="font-display text-3xl sm:text-4xl font-bold text-iron-white text-center mb-3" initial={{ opacity: 0, y: 22 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7 }}>
+          {t("home.constellation.title")}
+        </motion.h2>
+        <motion.p className="text-iron-muted text-center mb-12" initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7, delay: 0.1 }}>
+          {t("home.constellation.subtitle")}
+        </motion.p>
+        {/* Constellation canvas */}
+        <motion.div
+          className="relative w-full rounded-3xl overflow-hidden border border-white/5 bg-iron-deep/30"
+          style={{ height: "360px" }}
+          initial={{ opacity: 0 }}
+          animate={inView ? { opacity: 1 } : {}}
+          transition={{ duration: 1, delay: 0.3 }}
+        >
+          <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(59,130,246,0.04) 0%, transparent 70%)" }} />
+          {/* SVG lines */}
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            {inView && CONSTELLATION_LINES.map(([a, b], idx) => {
+              const nA = CONSTELLATION_NODES[a];
+              const nB = CONSTELLATION_NODES[b];
+              if (!nA || !nB) return null;
+              return (
+                <motion.line
+                  key={idx}
+                  x1={nA.x} y1={nA.y} x2={nB.x} y2={nB.y}
+                  stroke="rgba(59,130,246,0.2)"
+                  strokeWidth="0.15"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 1 }}
+                  transition={{ duration: 1.5, delay: 0.5 + idx * 0.06, ease: "easeOut" }}
+                />
+              );
+            })}
+          </svg>
+          {/* Nodes */}
+          {CONSTELLATION_NODES.map((node) => (
+            <motion.div
+              key={node.id}
+              className="absolute rounded-full"
+              style={{
+                left: `${node.x}%`,
+                top: `${node.y}%`,
+                width: `${node.size * 3.5}px`,
+                height: `${node.size * 3.5}px`,
+                transform: "translate(-50%, -50%)",
+                backgroundColor: node.purple ? "rgba(139,92,246,0.7)" : "rgba(59,130,246,0.7)",
+                boxShadow: node.purple
+                  ? "0 0 6px rgba(139,92,246,0.5), 0 0 12px rgba(139,92,246,0.25)"
+                  : "0 0 6px rgba(59,130,246,0.5), 0 0 12px rgba(59,130,246,0.25)",
+              }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={inView ? { scale: [0, 1.3, 1], opacity: [0, 1] } : {}}
+              transition={{ duration: 0.6, delay: 0.3 + node.id * 0.04 }}
+            >
+              <motion.div
+                className="absolute rounded-full"
+                style={{
+                  inset: "-4px",
+                  border: `1px solid ${node.purple ? "rgba(139,92,246,0.3)" : "rgba(59,130,246,0.3)"}`,
+                }}
+                animate={{ scale: [1, 1.8, 1], opacity: [0.4, 0, 0.4] }}
+                transition={{ duration: node.duration + 2, delay: node.delay, repeat: Infinity }}
+              />
+            </motion.div>
+          ))}
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center pointer-events-none">
+            <motion.p className="text-xs font-mono text-iron-neon-blue/50 tracking-widest uppercase" initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} transition={{ delay: 2.5 }}>
+              {CONSTELLATION_NODES.length} Verified Works · Global Trust Network
+            </motion.p>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* ────────────────────────────────────────────────────────
+   TRUTH FRAGMENT EXPERIENCE — scroll assembly
+──────────────────────────────────────────────────────── */
+const FRAGMENT_DATA = Array.from({ length: 16 }, (_, i) => {
+  const col = i % 4;
+  const row = Math.floor(i / 4);
+  return {
+    id: i,
+    col,
+    row,
+    startX: Number((((i * 47.3 + 13) % 140) - 70).toFixed(1)),
+    startY: Number((((i * 61.7 + 22) % 120) - 60).toFixed(1)),
+    startRotate: Number((((i * 23.5) % 80) - 40).toFixed(1)),
+    delay: Number(((i * 0.08)).toFixed(2)),
+  };
+});
+
+function TruthFragmentSection() {
+  const { t } = useI18n();
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const assemblyProgress = useTransform(scrollYProgress, [0.1, 0.7], [0, 1]);
+  const sealOpacity = useTransform(scrollYProgress, [0.6, 0.8], [0, 1]);
+  const scrollHintOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
+  const [fragPositions, setFragPositions] = useState<number[]>(FRAGMENT_DATA.map(() => 0));
+
+  useEffect(() => {
+    const unsub = assemblyProgress.onChange((v) => {
+      setFragPositions(FRAGMENT_DATA.map(() => v));
+    });
+    return unsub;
+  }, [assemblyProgress]);
+
+  return (
+    <section ref={ref} className="py-section px-page relative" style={{ minHeight: "140vh" }}>
+      <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.2), transparent)" }} aria-hidden="true" />
+      <div className="sticky top-0 h-screen flex flex-col items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-iron-black/95 pointer-events-none" />
+        <div className="absolute inset-0 spotlight opacity-20 pointer-events-none" />
+        <div className="relative z-10 text-center max-w-2xl mx-auto mb-8 px-6">
+          <h2 className="font-display text-3xl sm:text-4xl font-bold text-iron-white mb-3">{t("home.fragments.title")}</h2>
+          <p className="text-iron-muted">{t("home.fragments.subtitle")}</p>
+        </div>
+        <div className="relative w-64 h-64 sm:w-72 sm:h-72" style={{ transformStyle: "preserve-3d" }}>
+          {/* Assembled glow */}
+          <motion.div
+            className="absolute -inset-8 rounded-2xl pointer-events-none"
+            style={{ opacity: sealOpacity, background: "radial-gradient(ellipse 80% 80% at 50% 50%, rgba(59,130,246,0.15) 0%, transparent 70%)" }}
+          />
+          {FRAGMENT_DATA.map((frag, idx) => {
+            const progress = fragPositions[idx] ?? 0;
+            const x = frag.startX * (1 - progress);
+            const y = frag.startY * (1 - progress);
+            const rotate = frag.startRotate * (1 - progress);
+            const opacity = Math.min(progress * 8, 1);
+            return (
+              <motion.div
+                key={frag.id}
+                className="absolute overflow-hidden"
+                style={{
+                  left: `${frag.col * 25}%`,
+                  top: `${frag.row * 25}%`,
+                  width: "25%",
+                  height: "25%",
+                  x,
+                  y,
+                  rotate,
+                  opacity,
+                }}
+              >
+                <div
+                  className="w-full h-full border border-iron-neon-blue/20"
+                  style={{
+                    background: `radial-gradient(ellipse ${60 + frag.col * 10}% ${60 + frag.row * 10}% at ${frag.col * 25 + 50}% ${frag.row * 25 + 50}%, rgba(${frag.col % 2 === 0 ? "59,130,246" : "139,92,246"},0.4) 0%, rgba(15,23,42,0.8) 100%)`,
+                  }}
+                />
+              </motion.div>
+            );
+          })}
+          {/* Iron-ID seal when assembled */}
+          <motion.div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: sealOpacity }}>
+            <div className="px-5 py-2.5 rounded-xl border-2 border-iron-neon-blue/80 bg-iron-neon-blue/10 backdrop-blur-md stamp-glow">
+              <span className="font-display font-bold text-sm tracking-[0.15em] text-iron-neon-blue">Iron-ID ✓</span>
+            </div>
+          </motion.div>
+        </div>
+        {/* Scroll hint */}
+        <motion.div
+          className="absolute bottom-8 left-0 right-0 flex justify-center"
+          style={{ opacity: scrollHintOpacity }}
+        >
+          <div className="flex flex-col items-center gap-2 text-iron-muted/50">
+            <p className="text-xs font-mono tracking-widest uppercase">Scroll to assemble</p>
+            <motion.svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} animate={{ y: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </motion.svg>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* ────────────────────────────────────────────────────────
    FINAL CTA
 ──────────────────────────────────────────────────────── */
-function FinalCTASection() {
+function FinalCTASection({ revealed }: { revealed: boolean }) {
   const { t } = useI18n();
   return (
     <section className="py-section px-page relative grain overflow-hidden">
       <div className="absolute inset-0 spotlight opacity-40 pointer-events-none" />
+      <RenaissanceSketches revealed={revealed} />
       <motion.div
         className="max-w-4xl mx-auto glass rounded-3xl p-12 sm:p-20 text-center border border-white/10 relative overflow-hidden"
         initial={{ opacity: 0, y: 40 }}
@@ -673,17 +1243,16 @@ function FinalCTASection() {
         viewport={{ once: true }}
         transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
       >
-        {/* Background mesh */}
         <div className="absolute inset-0 bg-gradient-mesh opacity-80 pointer-events-none" />
-        {/* Spotlight overlay */}
         <div className="absolute inset-0 spotlight opacity-60 pointer-events-none" />
-        {/* Horizontal top accent */}
-        <div
-          className="absolute top-0 left-0 right-0 h-px pointer-events-none"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.5), transparent)" }}
-          aria-hidden="true"
-        />
-
+        <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.5), transparent)" }} aria-hidden="true" />
+        {/* Rotating seal decorations */}
+        <motion.div className="absolute top-8 right-8 w-16 h-16 rounded-full border border-iron-neon-blue/20 flex items-center justify-center" animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }}>
+          <div className="w-10 h-10 rounded-full border border-iron-neon-blue/30" />
+        </motion.div>
+        <motion.div className="absolute bottom-8 left-8 w-12 h-12 rounded-full border border-iron-electric-purple/20 flex items-center justify-center" animate={{ rotate: -360 }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }}>
+          <div className="w-6 h-6 rounded-full border border-iron-electric-purple/30" />
+        </motion.div>
         <div className="relative z-10">
           <p className="font-display text-xl sm:text-2xl text-iron-white/90 mb-5 italic">
             &ldquo;{t("home.tagline")}&rdquo;
@@ -693,12 +1262,8 @@ function FinalCTASection() {
           </h2>
           <p className="text-iron-muted mb-10 max-w-xl mx-auto leading-relaxed">{t("home.section.cta.subtitle")}</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/protect" className="btn-primary">
-              {t("home.cta.work")}
-            </Link>
-            <Link to="/verify" className="btn-secondary">
-              {t("home.verify.cta")}
-            </Link>
+            <Link to="/protect" className="btn-primary">{t("home.cta.work")}</Link>
+            <Link to="/verify" className="btn-secondary">{t("home.verify.cta")}</Link>
           </div>
         </div>
       </motion.div>
@@ -711,6 +1276,9 @@ function FinalCTASection() {
 ──────────────────────────────────────────────────────── */
 export default function HomePage() {
   const location = useLocation();
+  const [revealed, setRevealed] = useState(false);
+
+  const handleReveal = useCallback(() => setRevealed((prev) => !prev), []);
 
   useEffect(() => {
     const hash = location.hash;
@@ -721,13 +1289,17 @@ export default function HomePage() {
   }, [location.hash]);
 
   return (
-    <div className="min-h-screen bg-iron-black">
-      <HeroSection />
+    <div className="min-h-screen bg-iron-black relative">
+      <HeroSection revealed={revealed} />
       <TaglineSection />
       <ArtistShowcaseSection />
+      <AICorruptionSection />
       <ComparisonSection />
       <FeaturesSection />
-      <FinalCTASection />
+      <ConstellationSection />
+      <TruthFragmentSection />
+      <FinalCTASection revealed={revealed} />
+      <RevealTruthButton onReveal={handleReveal} revealed={revealed} />
     </div>
   );
 }
