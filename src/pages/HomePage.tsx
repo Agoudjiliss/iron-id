@@ -52,8 +52,8 @@ function useMagneticEffect(strength = 0.35) {
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const springX = useSpring(x, { stiffness: 200, damping: 20 });
-  const springY = useSpring(y, { stiffness: 200, damping: 20 });
+  const springX = useSpring(x, { stiffness: 80, damping: 25 });
+  const springY = useSpring(y, { stiffness: 80, damping: 25 });
 
   useEffect(() => {
     const el = ref.current;
@@ -300,6 +300,318 @@ function MuseumCorners({ color = "rgba(59,130,246,0.5)" }: { color?: string }) {
       <div style={{ ...base, bottom: 10, left: 10, borderWidth: "0 0 2px 2px", borderRadius: "0 0 0 1px" }} />
       <div style={{ ...base, bottom: 10, right: 10, borderWidth: "0 2px 2px 0", borderRadius: "0 0 1px 0" }} />
     </>
+  );
+}
+
+/* ────────────────────────────────────────────────────────
+   SEAL OF TRUTH — SVG signature that draws on hover
+──────────────────────────────────────────────────────── */
+function SealOfTruth({ active }: { active: boolean }) {
+  return (
+    <motion.div
+      className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: active ? 1 : 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <svg viewBox="0 0 100 100" className="w-28 h-28" aria-hidden="true">
+        {/* Outer seal circle */}
+        <motion.circle
+          cx="50" cy="50" r="38"
+          fill="rgba(5,5,5,0.55)"
+          stroke="rgba(59,130,246,0.75)"
+          strokeWidth="0.8"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: active ? 1 : 0, opacity: active ? 1 : 0 }}
+          transition={{ duration: 1.3, ease: "easeInOut" }}
+        />
+        {/* Inner ring */}
+        <motion.circle
+          cx="50" cy="50" r="30"
+          fill="none"
+          stroke="rgba(59,130,246,0.35)"
+          strokeWidth="0.5"
+          strokeDasharray="4 3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: active ? 1 : 0, rotate: active ? 360 : 0 }}
+          transition={{ opacity: { duration: 0.5, delay: 0.6 }, rotate: { duration: 12, repeat: Infinity, ease: "linear" } }}
+          style={{ transformOrigin: "50px 50px" }}
+        />
+        {/* Checkmark — draws itself */}
+        <motion.path
+          d="M 36 50 L 45 60 L 66 38"
+          fill="none"
+          stroke="rgba(147,197,253,0.95)"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: active ? 1 : 0 }}
+          transition={{ duration: 0.55, delay: active ? 0.95 : 0, ease: "easeOut" }}
+        />
+        {/* Label */}
+        <motion.text
+          x="50" y="82"
+          textAnchor="middle"
+          fontSize="5"
+          fill="rgba(59,130,246,0.75)"
+          fontFamily="monospace"
+          letterSpacing="0.08em"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: active ? 1 : 0 }}
+          transition={{ delay: active ? 1.5 : 0, duration: 0.4 }}
+        >
+          Iron-ID · Verified
+        </motion.text>
+      </svg>
+    </motion.div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────
+   WAVEFORM — interactive audio visualiser
+──────────────────────────────────────────────────────── */
+const WAVEFORM_BARS = Array.from({ length: 36 }, (_, i) => ({
+  id: i,
+  height: Math.abs(Math.sin(i * 0.65) * 55 + Math.sin(i * 1.4) * 25) + 8,
+  delay: i * 0.018,
+}));
+
+function WaveformVisual({ active }: { active: boolean }) {
+  return (
+    <div className="flex items-center justify-center h-full gap-[2px] px-4" aria-hidden="true">
+      {WAVEFORM_BARS.map((bar) => (
+        <motion.div
+          key={bar.id}
+          className="rounded-full"
+          style={{
+            width: 3,
+            background: "rgba(59,130,246,0.7)",
+            minHeight: 4,
+          }}
+          animate={
+            active
+              ? {
+                  height: [`${bar.height * 0.4}%`, `${bar.height}%`, `${bar.height * 0.55}%`],
+                  opacity: [0.55, 1, 0.65],
+                }
+              : { height: `${bar.height * 0.25}%`, opacity: 0.3 }
+          }
+          transition={
+            active
+              ? { duration: 1.4, delay: bar.delay, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }
+              : { duration: 0.5 }
+          }
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────
+   MULTIMODAL GALLERY — Visual / Cinema / Sound
+──────────────────────────────────────────────────────── */
+function MultimodalCard({
+  type,
+  title,
+  desc,
+  delay,
+}: {
+  type: "visual" | "cinema" | "sound";
+  title: string;
+  desc: string;
+  delay: number;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  const gradients = {
+    visual: "bg-art-1",
+    cinema: "bg-art-2",
+    sound: "bg-art-3",
+  };
+
+  const monoLabels = {
+    visual: "C2PA · SHA-256 · Watermark",
+    cinema: "Frame-hash · Signature · Proof",
+    sound: "Audio-DNA · Waveform · Seal",
+  };
+
+  const typeIcons = {
+    visual: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+      </svg>
+    ),
+    cinema: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h1.5C5.496 19.5 6 18.996 6 18.375m-3.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-1.5A1.125 1.125 0 0118 18.375M20.625 4.5H3.375m17.25 0c.621 0 1.125.504 1.125 1.125M20.625 4.5h-1.5C18.504 4.5 18 5.004 18 5.625m3.75 0v1.5c0 .621-.504 1.125-1.125 1.125M3.375 4.5c-.621 0-1.125.504-1.125 1.125M3.375 4.5h1.5C5.496 4.5 6 5.004 6 5.625m-3.75 0v1.5c0 .621.504 1.125 1.125 1.125m0 0h1.5m-1.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m1.5-3.75C5.496 8.25 6 8.754 6 9.375v1.5m0-5.25v5.25m0-5.25C6 5.004 6.504 4.5 7.125 4.5h9.75c.621 0 1.125.504 1.125 1.125m1.125 2.625h1.5m-1.5 0A1.125 1.125 0 0118 7.875v1.5m1.5-3.75C19.496 5.004 19 4.5 18.375 4.5m1.25 3.75h-1.5M18 7.875v1.5c0 .621.504 1.125 1.125 1.125M6 9.375v1.5m0 0c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125m-12 0v1.5m12-3v3" />
+      </svg>
+    ),
+    sound: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
+      </svg>
+    ),
+  };
+
+  return (
+    <motion.div
+      className="group cursor-default"
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <motion.div
+        className={`relative rounded-2xl overflow-hidden border border-white/10 ${gradients[type]}`}
+        animate={{
+          boxShadow: hovered
+            ? "0 0 0 1px rgba(59,130,246,0.4), 0 0 60px rgba(59,130,246,0.14), 0 30px 60px -12px rgba(0,0,0,0.8)"
+            : "0 0 0 1px rgba(255,255,255,0.08), 0 25px 50px -12px rgba(0,0,0,0.7)",
+        }}
+        transition={{ duration: 0.5 }}
+        style={{ minHeight: type === "sound" ? 260 : 320 }}
+      >
+        {/* Canvas texture grain */}
+        <div className="absolute inset-0 canvas-texture" />
+        {/* Vignette */}
+        <div className="absolute inset-0 bg-gradient-to-t from-iron-black/80 via-transparent to-iron-black/30 pointer-events-none" />
+        {/* Museum corners */}
+        <MuseumCorners color={hovered ? "rgba(59,130,246,0.65)" : "rgba(59,130,246,0.25)"} />
+
+        {/* Sound card — waveform in centre */}
+        {type === "sound" && (
+          <div className="absolute inset-0 flex items-center">
+            <WaveformVisual active={hovered} />
+          </div>
+        )}
+
+        {/* Cinema card — play button overlay */}
+        {type === "cinema" && (
+          <AnimatePresence>
+            {!hovered && (
+              <motion.div
+                key="play"
+                className="absolute inset-0 flex items-center justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="w-14 h-14 rounded-full border border-white/30 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+                  <svg className="w-6 h-6 text-white/70 ml-1" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
+
+        {/* Scan sweep on hover */}
+        <AnimatePresence>
+          {hovered && (
+            <motion.div
+              key="scan"
+              className="absolute top-0 bottom-0 w-20 pointer-events-none"
+              style={{
+                background: "linear-gradient(90deg, transparent, rgba(147,197,253,0.18), transparent)",
+              }}
+              initial={{ x: "-100%" }}
+              animate={{ x: "500%" }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.1, ease: "easeInOut" }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Seal of Truth */}
+        <SealOfTruth active={hovered} />
+
+        {/* Bottom info panel */}
+        <div className="absolute bottom-0 left-0 right-0 p-5">
+          <div className="flex items-start gap-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: "rgba(59,130,246,0.15)", color: "rgba(147,197,253,0.9)" }}
+            >
+              {typeIcons[type]}
+            </div>
+            <div className="min-w-0">
+              <p className="font-mono text-[9px] tracking-[0.25em] text-iron-neon-blue/60 uppercase mb-1">
+                {monoLabels[type]}
+              </p>
+              <h3 className="font-serif italic font-semibold text-lg text-iron-white leading-tight">{title}</h3>
+              <p className="text-iron-muted text-xs mt-1 leading-relaxed">{desc}</p>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function MultimodalGallerySection() {
+  const { t } = useI18n();
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+
+  return (
+    <section ref={ref} id="gallery" className="py-section px-page relative">
+      <div
+        className="absolute top-0 left-0 right-0 h-px pointer-events-none"
+        style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.2), transparent)" }}
+        aria-hidden="true"
+      />
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-14 text-center">
+          <motion.p
+            className="font-mono text-xs tracking-[0.3em] text-iron-neon-blue/50 uppercase mb-3"
+            initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} transition={{ duration: 0.5 }}
+          >
+            Galerie · Protection Multimodale
+          </motion.p>
+          <motion.h2
+            className="font-serif italic text-4xl sm:text-5xl md:text-6xl font-semibold text-iron-white"
+            initial={{ opacity: 0, y: 22 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7 }}
+          >
+            {t("home.multimodal.title")}
+          </motion.h2>
+          <motion.p
+            className="text-iron-muted mt-3 max-w-lg mx-auto"
+            initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7, delay: 0.1 }}
+          >
+            {t("home.multimodal.subtitle")}
+          </motion.p>
+        </div>
+
+        {/* 3 cards grid */}
+        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+          <MultimodalCard
+            type="visual"
+            title={t("home.multimodal.visual.title")}
+            desc={t("home.multimodal.visual.desc")}
+            delay={0}
+          />
+          <MultimodalCard
+            type="cinema"
+            title={t("home.multimodal.cinema.title")}
+            desc={t("home.multimodal.cinema.desc")}
+            delay={0.12}
+          />
+          <MultimodalCard
+            type="sound"
+            title={t("home.multimodal.sound.title")}
+            desc={t("home.multimodal.sound.desc")}
+            delay={0.24}
+          />
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -601,505 +913,6 @@ function TaglineSection() {
         >
           &ldquo;{t("home.tagline")}&rdquo;
         </motion.p>
-      </div>
-    </section>
-  );
-}
-
-/* ────────────────────────────────────────────────────────
-   ARTIST SHOWCASE — museum exhibit cards with 3D tilt
-──────────────────────────────────────────────────────── */
-type ExhibitItem = { id: number; gradient: string; title: string; artist: string; meta: string; num: string };
-
-function ExhibitCard({ ex, delay }: { ex: ExhibitItem; delay: number }) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [hovered, setHovered] = useState(false);
-  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
-  const { ref: magRef, springX: magX, springY: magY } = useMagneticEffect(0.22);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const cx = e.clientX - rect.left;
-    const cy = e.clientY - rect.top;
-    setTilt({ x: ((cy / rect.height) - 0.5) * -14, y: ((cx / rect.width) - 0.5) * 14 });
-    setMousePos({ x: cx / rect.width, y: cy / rect.height });
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setTilt({ x: 0, y: 0 });
-    setHovered(false);
-  }, []);
-
-  // Deterministic pseudo-hash for exhibit authenticity visual
-  // Uses prime multipliers for good bit distribution across small ID range
-  const HASH_MULTIPLIER_A = 0x3f4a9b;
-  const HASH_MULTIPLIER_B = 0x7ab3c1;
-  const HASH_MASK_32 = 0xffffffff;
-  const HASH_MASK_24 = 0xffffff;
-  const hashHex = ((ex.id * HASH_MULTIPLIER_A + 0xc2a01) & HASH_MASK_32).toString(16).toUpperCase().padStart(8, "0");
-  const hashFull = `0x${hashHex}${((ex.id * HASH_MULTIPLIER_B) & HASH_MASK_24).toString(16).toUpperCase().padStart(6, "0")}`;
-
-  return (
-    <motion.div
-      ref={magRef as React.RefObject<HTMLDivElement>}
-      style={{ x: magX, y: magY }}
-    >
-      <motion.div
-        ref={cardRef}
-        className="group cursor-default"
-        style={{ perspective: "1000px" }}
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-80px" }}
-        transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
-        onMouseMove={handleMouseMove}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={handleMouseLeave}
-      >
-        <motion.div
-          className="rounded-xl overflow-hidden border border-white/10 bg-iron-deep/80"
-          animate={{ rotateX: tilt.x, rotateY: tilt.y }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          style={{
-            transformStyle: "preserve-3d",
-            boxShadow: hovered
-              ? "0 0 0 1px rgba(59,130,246,0.35), 0 0 60px rgba(59,130,246,0.14), 0 30px 60px -12px rgba(0,0,0,0.7)"
-              : "0 0 0 1px rgba(255,255,255,0.08), 0 25px 50px -12px rgba(0,0,0,0.7)",
-            transition: "box-shadow 0.4s ease",
-          }}
-        >
-          {/* Artwork area */}
-          <div className={`aspect-[4/5] ${ex.gradient} relative overflow-hidden`}>
-            <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 50% at 40% 30%, rgba(255,255,255,0.04) 0%, transparent 70%)" }} />
-            <MuseumCorners color={hovered ? "rgba(59,130,246,0.6)" : "rgba(59,130,246,0.3)"} />
-            {/* Artwork zoom layer */}
-            <motion.div
-              className={`absolute inset-0 ${ex.gradient}`}
-              animate={{ scale: hovered ? 1.05 : 1 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            />
-            {/* Frame glow on hover */}
-            <AnimatePresence>
-              {hovered && (
-                <motion.div
-                  className="absolute inset-0 pointer-events-none"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  style={{ background: "radial-gradient(ellipse 70% 50% at 50% 30%, rgba(59,130,246,0.08) 0%, transparent 60%)" }}
-                />
-              )}
-            </AnimatePresence>
-            {/* Scan line on hover */}
-            <AnimatePresence>
-              {hovered && (
-                <motion.div
-                  className="absolute top-0 bottom-0 w-16 pointer-events-none"
-                  style={{ background: "linear-gradient(90deg, transparent, rgba(147,197,253,0.2), transparent)" }}
-                  initial={{ x: "-100%" }}
-                  animate={{ x: "400%" }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 1.2, ease: "easeInOut" }}
-                />
-              )}
-            </AnimatePresence>
-
-            {/* ── LOUPE / X-RAY scanner overlay on hover ── */}
-            <AnimatePresence>
-              {hovered && (
-                <motion.div
-                  className="absolute pointer-events-none rounded-full overflow-hidden border border-iron-neon-blue/60"
-                  style={{
-                    width: 120,
-                    height: 120,
-                    left: `calc(${mousePos.x * 100}% - 60px)`,
-                    top: `calc(${mousePos.y * 100}% - 60px)`,
-                    boxShadow: "0 0 0 9999px rgba(0,0,0,0.45), inset 0 0 30px rgba(59,130,246,0.2)",
-                  }}
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.5 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {/* X-ray interior — metadata */}
-                  <div className="absolute inset-0 bg-iron-deep/90 backdrop-blur-sm flex flex-col items-center justify-center gap-1 p-2">
-                    <p className="font-mono text-[7px] text-iron-neon-blue/80 tracking-[0.15em] uppercase text-center leading-tight">
-                      METADATA
-                    </p>
-                    <div className="w-8 h-px bg-iron-neon-blue/30" />
-                    <p className="font-mono text-[6.5px] text-iron-neon-blue/60 text-center leading-tight">{hashFull.slice(0, 10)}</p>
-                    <p className="font-mono text-[6.5px] text-iron-neon-blue/50 text-center leading-tight">{ex.meta.split(" · ")[0]}</p>
-                    <p className="font-mono text-[6px] text-iron-white/30 text-center leading-tight">C2PA·SHA-256</p>
-                  </div>
-                  {/* Crosshair lines */}
-                  <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute top-1/2 left-0 right-0 h-px bg-iron-neon-blue/20" />
-                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-iron-neon-blue/20" />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Hover metadata overlay (bottom gradient) */}
-            <div className="absolute inset-0 bg-gradient-to-t from-iron-black/95 via-iron-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-5">
-              <p className="font-mono text-[10px] text-iron-neon-blue/70 tracking-[0.3em] uppercase mb-2">Exhibit · {ex.num}</p>
-              <p className="font-serif italic font-semibold text-lg text-iron-white leading-tight">{ex.title}</p>
-              <p className="font-mono text-[10px] text-iron-muted mt-0.5 tracking-wide">{ex.artist}</p>
-              <div className="mt-3 flex items-center gap-2">
-                <div className="h-px flex-1 bg-iron-neon-blue/40" />
-                <p className="text-[10px] text-iron-neon-blue font-mono tracking-wide">{ex.meta}</p>
-              </div>
-              <p className="text-[9px] font-mono text-iron-neon-blue/45 mt-1.5 tracking-wider">{hashFull.slice(0, 16)} · Iron-ID</p>
-            </div>
-          </div>
-        </motion.div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-function ArtistShowcaseSection() {
-  const { t } = useI18n();
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
-
-  const exhibits = useMemo(
-    () => [
-      { id: 1, gradient: "bg-art-1", title: "Untitled No. 1", artist: "Ana M. · 2025", meta: "C2PA · Watermark · Verified", num: "01" },
-      { id: 2, gradient: "bg-art-2", title: "Untitled No. 2", artist: "Dev R. · 2025", meta: "Signature verified · Tamper-proof", num: "02" },
-      { id: 3, gradient: "bg-art-3", title: "Untitled No. 3", artist: "Sofia K. · 2025", meta: "Authentic · AI-protected", num: "03" },
-    ],
-    []
-  );
-
-  return (
-    <section ref={ref} className="py-section px-page relative">
-      <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.2), transparent)" }} aria-hidden="true" />
-      <div className="max-w-7xl mx-auto">
-        {/* Editorial asymmetric header — text right-aligned */}
-        <div className="mb-14 flex flex-col items-end text-right">
-          <motion.p
-            className="font-mono text-xs tracking-[0.3em] text-iron-neon-blue/50 uppercase mb-2"
-            initial={{ opacity: 0, x: 20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ duration: 0.5 }}
-          >
-            Galerie · {exhibits.length} œuvres
-          </motion.p>
-          <motion.h2
-            className="font-serif italic text-4xl sm:text-5xl md:text-6xl font-semibold text-iron-white max-w-xl leading-tight"
-            initial={{ opacity: 0, x: 30 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ duration: 0.7, delay: 0.05 }}
-          >
-            {t("home.showcase.title")}
-          </motion.h2>
-          <motion.p
-            className="text-iron-muted mt-3 max-w-sm"
-            initial={{ opacity: 0, x: 20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ duration: 0.7, delay: 0.1 }}
-          >
-            {t("home.showcase.subtitle")}
-          </motion.p>
-        </div>
-        <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-          {exhibits.map((ex, i) => (
-            <ExhibitCard key={ex.id} ex={ex} delay={0.15 * i} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ────────────────────────────────────────────────────────
-   AI CORRUPTION ANIMATION — cinematic sequence
-──────────────────────────────────────────────────────── */
-function AICorruptionSection() {
-  const { t } = useI18n();
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-100px" });
-  const [phase, setPhase] = useState<0 | 1 | 2>(0);
-
-  useEffect(() => {
-    if (!inView) return;
-    const t1 = setTimeout(() => setPhase(1), 1800);
-    const t2 = setTimeout(() => setPhase(2), 4200);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [inView]);
-
-  const phaseLabels = [t("home.corruption.original"), t("home.corruption.distorted"), t("home.corruption.restored")];
-  const phaseColors = ["rgba(255,255,255,0.15)", "rgba(239,68,68,0.4)", "rgba(59,130,246,0.5)"];
-
-  return (
-    <section ref={ref} className="py-section px-page relative grain overflow-hidden">
-      <div className="absolute inset-0 spotlight-purple opacity-30 pointer-events-none" />
-      <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.2), transparent)" }} aria-hidden="true" />
-      <div className="max-w-5xl mx-auto">
-        <motion.h2 className="font-display text-3xl sm:text-4xl font-bold text-iron-white text-center mb-3" initial={{ opacity: 0, y: 22 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7 }}>
-          {t("home.corruption.title")}
-        </motion.h2>
-        <motion.p className="text-iron-muted text-center mb-12" initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7, delay: 0.1 }}>
-          {t("home.corruption.subtitle")}
-        </motion.p>
-        {/* Phase selector */}
-        <div className="flex justify-center gap-3 mb-8 flex-wrap">
-          {([0, 1, 2] as const).map((i) => {
-            const phaseTextColors = ["rgb(248,250,252)", "rgb(252,165,165)", "rgb(147,197,253)"];
-            const phaseBgColors = ["rgba(255,255,255,0.04)", "rgba(239,68,68,0.08)", "rgba(59,130,246,0.08)"];
-            const isActive = phase === i;
-            return (
-              <motion.button
-                key={i}
-                type="button"
-                onClick={() => setPhase(i)}
-                className="px-4 py-2 rounded-full text-xs font-mono tracking-widest uppercase border transition-all duration-300"
-                style={{
-                  borderColor: isActive ? phaseColors[i] : "rgba(255,255,255,0.08)",
-                  color: isActive ? phaseTextColors[i] : "rgba(148,163,184,0.7)",
-                  background: isActive ? phaseBgColors[i] : "transparent",
-                }}
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-              >
-                <span className="mr-2 opacity-60">{String(i + 1).padStart(2, "0")}</span>
-                {phaseLabels[i]}
-              </motion.button>
-            );
-          })}
-        </div>
-        {/* Animation frame */}
-        <motion.div
-          className="relative aspect-video rounded-2xl overflow-hidden border"
-          style={{ borderColor: phaseColors[phase] }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, delay: 0.2 }}
-        >
-          <div className="absolute inset-0 bg-art-hero" />
-          <AnimatePresence mode="wait">
-            {phase === 0 && (
-              <motion.div key="original" className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-                <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 70% 70% at 40% 40%, rgba(30,58,95,0.5) 0%, transparent 70%)" }} />
-                <MuseumCorners color="rgba(255,255,255,0.25)" />
-                <div className="absolute bottom-5 left-5 px-3 py-1.5 rounded-lg bg-white/[0.08] border border-white/15 backdrop-blur-sm">
-                  <p className="text-xs font-mono text-iron-white/80 tracking-widest uppercase">Original · Unmodified</p>
-                </div>
-                <motion.div className="absolute top-5 right-5 w-8 h-8 rounded-full border border-white/30 flex items-center justify-center" animate={{ opacity: [0.5, 1, 0.5] }} transition={{ duration: 2, repeat: Infinity }}>
-                  <div className="w-2 h-2 rounded-full bg-white/70" />
-                </motion.div>
-              </motion.div>
-            )}
-            {phase === 1 && (
-              <motion.div key="corrupted" className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-                <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(120,0,0,0.3) 0%, transparent 50%, rgba(0,40,80,0.25) 100%)", mixBlendMode: "overlay" }} />
-                <div className="absolute inset-0" style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,0,80,0.05) 3px, rgba(255,0,80,0.05) 4px)" }} />
-                {[15, 32, 55, 72, 88].map((top, idx) => (
-                  <motion.div key={idx} className="absolute h-[2px]" style={{ top: `${top}%`, left: `${10 + idx * 12}%`, width: `${20 + idx * 8}%`, background: `rgba(${idx % 2 === 0 ? "255,50,50" : "50,100,255"},0.4)` }} animate={{ x: [0, -5, 8, -3, 0], opacity: [0.8, 0.4, 0.9, 0.5, 0.8] }} transition={{ duration: 0.4, repeat: Infinity, delay: idx * 0.1 }} />
-                ))}
-                {[0, 1, 2].map((idx) => (
-                  <motion.div key={idx} className="absolute" style={{ top: `${20 + idx * 25}%`, left: `${15 + idx * 22}%`, width: `${30 + idx * 10}%`, height: "8%", background: "rgba(255,0,80,0.06)", mixBlendMode: "screen" }} animate={{ opacity: [0, 0.8, 0] }} transition={{ duration: 0.3, repeat: Infinity, delay: idx * 0.15, repeatDelay: 0.4 }} />
-                ))}
-                <div className="absolute top-5 right-5 px-3 py-1.5 rounded-lg bg-red-500/20 border border-red-500/45 backdrop-blur-sm">
-                  <p className="text-xs font-mono text-red-300 tracking-widest uppercase">⚠ AI Modified</p>
-                </div>
-                <div className="absolute bottom-5 left-5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/25 backdrop-blur-sm">
-                  <p className="text-xs font-mono text-red-400/80 tracking-wide">Deepfake detected · Authenticity compromised</p>
-                </div>
-                <MuseumCorners color="rgba(239,68,68,0.5)" />
-              </motion.div>
-            )}
-            {phase === 2 && (
-              <motion.div key="restored" className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-                <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(59,130,246,0.08) 0%, transparent 70%)" }} />
-                <motion.div className="absolute top-0 bottom-0" style={{ width: "40%", background: "linear-gradient(90deg, transparent, rgba(147,197,253,0.25), transparent)" }} initial={{ x: "-50%" }} animate={{ x: "200%" }} transition={{ duration: 1.4, ease: "easeInOut" }} />
-                <motion.div className="absolute inset-0 flex items-center justify-center" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.8, duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}>
-                  <div className="px-8 py-4 rounded-xl border-2 border-iron-neon-blue/80 bg-iron-neon-blue/10 backdrop-blur-md stamp-glow">
-                    <span className="font-display font-bold text-xl tracking-[0.18em] text-iron-neon-blue">{t("home.verified.stamp")}</span>
-                    <p className="text-[10px] tracking-widest text-iron-neon-blue/60 font-mono text-center mt-1 uppercase">Iron-ID · Cryptographic Proof</p>
-                  </div>
-                </motion.div>
-                <MuseumCorners color="rgba(59,130,246,0.6)" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-/* ────────────────────────────────────────────────────────
-   COMPARISON — original / AI / verified
-──────────────────────────────────────────────────────── */
-function ComparisonSection() {
-  const { t } = useI18n();
-  const [slide, setSlide] = useState<0 | 1 | 2>(0);
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
-  const labels = [t("home.comparison.original"), t("home.comparison.manipulated"), t("home.comparison.verified")];
-
-  const stateColors = ["border-white/20", "border-red-500/50", "border-iron-neon-blue/60"];
-  const stateGlow = ["", "0 0 40px rgba(239,68,68,0.15)", "0 0 50px rgba(59,130,246,0.2)"];
-
-  return (
-    <section id="comparison" ref={ref} className="py-section px-page relative grain">
-      {/* Section divider glow */}
-      <div
-        className="absolute top-0 left-0 right-0 h-px pointer-events-none"
-        style={{ background: "linear-gradient(90deg, transparent, rgba(139,92,246,0.25), transparent)" }}
-        aria-hidden="true"
-      />
-      <div className="max-w-5xl mx-auto">
-        <motion.h2
-          className="font-display text-3xl sm:text-4xl font-bold text-iron-white text-center mb-3"
-          initial={{ opacity: 0, y: 22 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7 }}
-        >
-          {t("home.comparison.title")}
-        </motion.h2>
-        <motion.p
-          className="text-iron-muted text-center mb-10"
-          initial={{ opacity: 0, y: 16 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, delay: 0.1 }}
-        >
-          {t("home.comparison.subtitle")}
-        </motion.p>
-
-        {/* State selector */}
-        <div className="flex gap-2 justify-center mb-8 flex-wrap">
-          {([0, 1, 2] as const).map((i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setSlide(i)}
-              className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 border ${
-                slide === i
-                  ? i === 0
-                    ? "bg-white/10 text-iron-white border-white/30"
-                    : i === 1
-                    ? "bg-red-500/15 text-red-300 border-red-500/40"
-                    : "bg-iron-neon-blue/15 text-iron-neon-blue border-iron-neon-blue/40"
-                  : "bg-white/[0.04] text-iron-muted border-white/10 hover:bg-white/[0.08] hover:text-iron-white"
-              }`}
-            >
-              {labels[i]}
-            </button>
-          ))}
-        </div>
-
-        {/* Comparison frame */}
-        <motion.div
-          className={`relative aspect-video rounded-2xl overflow-hidden border shadow-exhibit transition-all duration-500 ${stateColors[slide]}`}
-          style={{ boxShadow: stateGlow[slide] || undefined }}
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.7, delay: 0.2 }}
-        >
-          {/* Base artwork */}
-          <div className="absolute inset-0 bg-art-hero" />
-
-          <AnimatePresence mode="wait">
-            {slide === 0 && (
-              <motion.div
-                key="original"
-                className="absolute inset-0"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    background: "radial-gradient(ellipse 70% 70% at 40% 40%, rgba(30,58,95,0.5) 0%, transparent 70%)",
-                  }}
-                />
-                <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-lg bg-white/8 border border-white/15 backdrop-blur-sm">
-                  <p className="text-xs font-mono text-iron-white/80 tracking-widest uppercase">
-                    Original · Unmodified
-                  </p>
-                </div>
-                <MuseumCorners color="rgba(255,255,255,0.3)" />
-              </motion.div>
-            )}
-
-            {slide === 1 && (
-              <motion.div
-                key="ai"
-                className="absolute inset-0"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-              >
-                {/* Colour distortion */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(120,0,0,0.25) 0%, transparent 50%, rgba(0,40,80,0.2) 100%)",
-                    mixBlendMode: "overlay",
-                  }}
-                />
-                {/* Horizontal glitch lines */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    backgroundImage:
-                      "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,0,80,0.04) 3px, rgba(255,0,80,0.04) 4px)",
-                  }}
-                />
-                <div className="absolute top-6 right-6 px-3 py-1.5 rounded-lg bg-red-500/20 border border-red-500/45 backdrop-blur-sm">
-                  <p className="text-xs font-mono text-red-300 tracking-widest uppercase">
-                    ⚠ AI Modified
-                  </p>
-                </div>
-                <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/25 backdrop-blur-sm">
-                  <p className="text-xs font-mono text-red-400/80 tracking-wide">
-                    Deepfake detected · Authenticity compromised
-                  </p>
-                </div>
-                <MuseumCorners color="rgba(239,68,68,0.5)" />
-              </motion.div>
-            )}
-
-            {slide === 2 && (
-              <motion.div
-                key="verified"
-                className="absolute inset-0"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-              >
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(59,130,246,0.06) 0%, transparent 70%)",
-                  }}
-                />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <motion.div
-                    className="px-8 py-4 rounded-xl border-2 border-iron-neon-blue/80 bg-iron-neon-blue/10 backdrop-blur-md stamp-glow"
-                    initial={{ scale: 0.7, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.15, duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
-                  >
-                    <span className="font-display font-bold text-xl tracking-[0.18em] text-iron-neon-blue">
-                      {t("home.verified.stamp")}
-                    </span>
-                    <p className="text-[10px] tracking-widest text-iron-neon-blue/60 font-mono text-center mt-1 uppercase">
-                      Iron-ID · Cryptographic Proof
-                    </p>
-                  </motion.div>
-                </div>
-                <MuseumCorners color="rgba(59,130,246,0.55)" />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
       </div>
     </section>
   );
@@ -1500,117 +1313,16 @@ function ConstellationSection() {
 }
 
 /* ────────────────────────────────────────────────────────
-   TRUTH FRAGMENT EXPERIENCE — scroll assembly
+   CONTACT — final section
 ──────────────────────────────────────────────────────── */
-const FRAGMENT_DATA = Array.from({ length: 16 }, (_, i) => {
-  const col = i % 4;
-  const row = Math.floor(i / 4);
-  return {
-    id: i,
-    col,
-    row,
-    startX: Number((((i * 47.3 + 13) % 140) - 70).toFixed(1)),
-    startY: Number((((i * 61.7 + 22) % 120) - 60).toFixed(1)),
-    startRotate: Number((((i * 23.5) % 80) - 40).toFixed(1)),
-    delay: Number(((i * 0.08)).toFixed(2)),
-  };
-});
-
-function TruthFragmentSection() {
-  const { t } = useI18n();
-  const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const assemblyProgress = useTransform(scrollYProgress, [0.1, 0.7], [0, 1]);
-  const sealOpacity = useTransform(scrollYProgress, [0.6, 0.8], [0, 1]);
-  const scrollHintOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
-  const [fragPositions, setFragPositions] = useState<number[]>(FRAGMENT_DATA.map(() => 0));
-
-  useEffect(() => {
-    const unsub = assemblyProgress.onChange((v) => {
-      setFragPositions(FRAGMENT_DATA.map(() => v));
-    });
-    return unsub;
-  }, [assemblyProgress]);
-
-  return (
-    <section ref={ref} className="py-section px-page relative" style={{ minHeight: "140vh" }}>
-      <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.2), transparent)" }} aria-hidden="true" />
-      <div className="sticky top-0 h-screen flex flex-col items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-iron-black/95 pointer-events-none" />
-        <div className="absolute inset-0 spotlight opacity-20 pointer-events-none" />
-        <div className="relative z-10 text-center max-w-2xl mx-auto mb-8 px-6">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-iron-white mb-3">{t("home.fragments.title")}</h2>
-          <p className="text-iron-muted">{t("home.fragments.subtitle")}</p>
-        </div>
-        <div className="relative w-64 h-64 sm:w-72 sm:h-72" style={{ transformStyle: "preserve-3d" }}>
-          {/* Assembled glow */}
-          <motion.div
-            className="absolute -inset-8 rounded-2xl pointer-events-none"
-            style={{ opacity: sealOpacity, background: "radial-gradient(ellipse 80% 80% at 50% 50%, rgba(59,130,246,0.15) 0%, transparent 70%)" }}
-          />
-          {FRAGMENT_DATA.map((frag, idx) => {
-            const progress = fragPositions[idx] ?? 0;
-            const x = frag.startX * (1 - progress);
-            const y = frag.startY * (1 - progress);
-            const rotate = frag.startRotate * (1 - progress);
-            const opacity = Math.min(progress * 8, 1);
-            return (
-              <motion.div
-                key={frag.id}
-                className="absolute overflow-hidden"
-                style={{
-                  left: `${frag.col * 25}%`,
-                  top: `${frag.row * 25}%`,
-                  width: "25%",
-                  height: "25%",
-                  x,
-                  y,
-                  rotate,
-                  opacity,
-                }}
-              >
-                <div
-                  className="w-full h-full border border-iron-neon-blue/20"
-                  style={{
-                    background: `radial-gradient(ellipse ${60 + frag.col * 10}% ${60 + frag.row * 10}% at ${frag.col * 25 + 50}% ${frag.row * 25 + 50}%, rgba(${frag.col % 2 === 0 ? "59,130,246" : "139,92,246"},0.4) 0%, rgba(15,23,42,0.8) 100%)`,
-                  }}
-                />
-              </motion.div>
-            );
-          })}
-          {/* Iron-ID seal when assembled */}
-          <motion.div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ opacity: sealOpacity }}>
-            <div className="px-5 py-2.5 rounded-xl border-2 border-iron-neon-blue/80 bg-iron-neon-blue/10 backdrop-blur-md stamp-glow">
-              <span className="font-display font-bold text-sm tracking-[0.15em] text-iron-neon-blue">Iron-ID ✓</span>
-            </div>
-          </motion.div>
-        </div>
-        {/* Scroll hint */}
-        <motion.div
-          className="absolute bottom-8 left-0 right-0 flex justify-center"
-          style={{ opacity: scrollHintOpacity }}
-        >
-          <div className="flex flex-col items-center gap-2 text-iron-muted/50">
-            <p className="text-xs font-mono tracking-widest uppercase">Scroll to assemble</p>
-            <motion.svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} animate={{ y: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-            </motion.svg>
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-/* ────────────────────────────────────────────────────────
-   FINAL CTA
-──────────────────────────────────────────────────────── */
-function FinalCTASection({ revealed }: { revealed: boolean }) {
+function ContactSection({ revealed }: { revealed: boolean }) {
   const { t } = useI18n();
   const { ref: btnRef1, springX: b1x, springY: b1y } = useMagneticEffect(0.4);
   const { ref: btnRef2, springX: b2x, springY: b2y } = useMagneticEffect(0.4);
+  const { ref: btnRef3, springX: b3x, springY: b3y } = useMagneticEffect(0.4);
+
   return (
-    <section className="py-section px-page relative grain overflow-hidden">
+    <section id="contact" className="py-section px-page relative grain overflow-hidden">
       <div className="absolute inset-0 spotlight opacity-40 pointer-events-none" />
       <RenaissanceSketches revealed={revealed} />
       <motion.div
@@ -1624,10 +1336,18 @@ function FinalCTASection({ revealed }: { revealed: boolean }) {
         <div className="absolute inset-0 spotlight opacity-60 pointer-events-none" />
         <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.5), transparent)" }} aria-hidden="true" />
         {/* Rotating seal decorations */}
-        <motion.div className="absolute top-8 right-8 w-16 h-16 rounded-full border border-iron-neon-blue/20 flex items-center justify-center" animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }}>
+        <motion.div
+          className="absolute top-8 right-8 w-16 h-16 rounded-full border border-iron-neon-blue/20 flex items-center justify-center"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        >
           <div className="w-10 h-10 rounded-full border border-iron-neon-blue/30" />
         </motion.div>
-        <motion.div className="absolute bottom-8 left-8 w-12 h-12 rounded-full border border-iron-electric-purple/20 flex items-center justify-center" animate={{ rotate: -360 }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }}>
+        <motion.div
+          className="absolute bottom-8 left-8 w-12 h-12 rounded-full border border-iron-electric-purple/20 flex items-center justify-center"
+          animate={{ rotate: -360 }}
+          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+        >
           <div className="w-6 h-6 rounded-full border border-iron-electric-purple/30" />
         </motion.div>
         <div className="relative z-10">
@@ -1635,18 +1355,23 @@ function FinalCTASection({ revealed }: { revealed: boolean }) {
             &ldquo;{t("home.tagline")}&rdquo;
           </p>
           <h2 className="font-serif italic font-semibold text-3xl sm:text-4xl md:text-5xl text-iron-white mb-4 leading-tight">
-            {t("home.section.cta.title")}
+            {t("home.contact.title")}
           </h2>
           <p className="font-mono text-xs tracking-[0.2em] text-iron-neon-blue/60 uppercase mb-3">
-            Preuve Cryptographique · Watermark · C2PA
+            C2PA · SHA-256 · Watermark · Audio-DNA
           </p>
-          <p className="text-iron-muted mb-10 max-w-xl mx-auto leading-relaxed">{t("home.section.cta.subtitle")}</p>
+          <p className="text-iron-muted mb-10 max-w-xl mx-auto leading-relaxed">
+            {t("home.contact.subtitle")}
+          </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <motion.div ref={btnRef1 as React.RefObject<HTMLDivElement>} style={{ x: b1x, y: b1y }}>
               <Link to="/protect" className="btn-primary">{t("home.cta.work")}</Link>
             </motion.div>
             <motion.div ref={btnRef2 as React.RefObject<HTMLDivElement>} style={{ x: b2x, y: b2y }}>
               <Link to="/verify" className="btn-secondary">{t("home.verify.cta")}</Link>
+            </motion.div>
+            <motion.div ref={btnRef3 as React.RefObject<HTMLDivElement>} style={{ x: b3x, y: b3y }}>
+              <Link to="/feedback" className="btn-secondary">{t("home.contact.cta")}</Link>
             </motion.div>
           </div>
         </div>
@@ -1666,7 +1391,7 @@ export default function HomePage() {
 
   useEffect(() => {
     const hash = location.hash;
-    if (hash === "#technology" || hash === "#comparison") {
+    if (hash === "#technology" || hash === "#gallery" || hash === "#contact") {
       const el = document.getElementById(hash.slice(1));
       if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     }
@@ -1677,15 +1402,17 @@ export default function HomePage() {
       {/* Animated mesh gradient nebula background */}
       <MeshGradientBg />
       <div className="relative z-[1]">
+        {/* Hero */}
         <HeroSection revealed={revealed} />
+        {/* Manifeste */}
         <TaglineSection />
-        <ArtistShowcaseSection />
-        <AICorruptionSection />
-        <ComparisonSection />
+        {/* Galerie Multimodale */}
+        <MultimodalGallerySection />
+        {/* Technologie */}
         <FeaturesSection />
         <ConstellationSection />
-        <TruthFragmentSection />
-        <FinalCTASection revealed={revealed} />
+        {/* Contact */}
+        <ContactSection revealed={revealed} />
         <RevealTruthButton onReveal={handleReveal} revealed={revealed} />
       </div>
     </div>

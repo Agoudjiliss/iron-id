@@ -4,6 +4,15 @@ export type Lang = "fr" | "en" | "ar";
 
 type Translations = Record<string, string>;
 
+function detectInitialLang(): Lang {
+  try {
+    const nav = navigator.language.toLowerCase().split("-")[0];
+    if (nav === "ar") return "ar";
+    if (nav === "fr") return "fr";
+  } catch {}
+  return "fr";
+}
+
 const messages: Record<Lang, Translations> = {
   fr: {
     "nav.home": "Accueil",
@@ -102,6 +111,18 @@ const messages: Record<Lang, Translations> = {
     "home.corruption.restored": "Authenticité restaurée",
     "home.reveal.button": "Révéler la vérité",
     "home.reveal.hint": "Découvrez les symboles cachés",
+    "home.multimodal.title": "Galerie des Créateurs",
+    "home.multimodal.subtitle": "Survolez une œuvre pour voir sa signature numérique.",
+    "home.multimodal.visual.title": "Photographie",
+    "home.multimodal.visual.desc": "Vos clichés, certifiés authentiques et inviolables.",
+    "home.multimodal.cinema.title": "Cinéma",
+    "home.multimodal.cinema.desc": "Chaque plan protégé, chaque image signée.",
+    "home.multimodal.sound.title": "Musique & Podcast",
+    "home.multimodal.sound.desc": "Protégez vos créations sonores contre le plagiat.",
+    "home.multimodal.seal": "Signature vérifiée",
+    "home.contact.title": "Protégez votre vision",
+    "home.contact.subtitle": "Rejoignez les photographes, cinéastes et musiciens qui font confiance à Iron-ID.",
+    "home.contact.cta": "Nous contacter",
     "footer.text": "iron-id",
     "nav.feedback": "Feedback",
     "feedback.title": "Feedback & commentaires",
@@ -239,6 +260,18 @@ const messages: Record<Lang, Translations> = {
     "home.corruption.restored": "Authenticity Restored",
     "home.reveal.button": "Reveal the Truth",
     "home.reveal.hint": "Discover the hidden symbols",
+    "home.multimodal.title": "Creators Gallery",
+    "home.multimodal.subtitle": "Hover over a work to see its digital signature.",
+    "home.multimodal.visual.title": "Photography",
+    "home.multimodal.visual.desc": "Your shots, certified authentic and tamper-proof.",
+    "home.multimodal.cinema.title": "Cinema",
+    "home.multimodal.cinema.desc": "Every frame protected, every image signed.",
+    "home.multimodal.sound.title": "Music & Podcast",
+    "home.multimodal.sound.desc": "Protect your audio creations from plagiarism.",
+    "home.multimodal.seal": "Verified Signature",
+    "home.contact.title": "Protect Your Vision",
+    "home.contact.subtitle": "Join photographers, filmmakers and musicians who trust Iron-ID.",
+    "home.contact.cta": "Contact Us",
     "lang.fr": "FR",
     "lang.en": "EN",
     "lang.ar": "AR",
@@ -347,6 +380,29 @@ const messages: Record<Lang, Translations> = {
     "feedback.success": "شكراً، تم إرسال رسالتك.",
     "feedback.error": "تعذر إرسال الرسالة. حاول لاحقاً.",
     "footer.text": "iron-id",
+    "home.constellation.title": "شبكة الحقيقة",
+    "home.constellation.subtitle": "كل عمل موثق ينضم إلى شبكة عالمية من الأصالة.",
+    "home.fragments.title": "إستعادة الحقيقة",
+    "home.fragments.subtitle": "إعادة بناء الأصل من فوضى التلاعب.",
+    "home.corruption.title": "المشكلة التي نحلها",
+    "home.corruption.subtitle": "الذكاء الاصطناعي يمكنه تشويه أي شيء — Iron-ID يثبت الحقيقة.",
+    "home.corruption.original": "العمل الأصلي",
+    "home.corruption.distorted": "مُشوَّه بالذكاء الاصطناعي",
+    "home.corruption.restored": "الأصالة مُستعادة",
+    "home.reveal.button": "اكشف الحقيقة",
+    "home.reveal.hint": "اكتشف الرموز المخفية",
+    "home.multimodal.title": "معرض المبدعين",
+    "home.multimodal.subtitle": "مرر على العمل لرؤية توقيعه الرقمي.",
+    "home.multimodal.visual.title": "التصوير الفوتوغرافي",
+    "home.multimodal.visual.desc": "صورك موثقة وأصيلة ومحمية من التلاعب.",
+    "home.multimodal.cinema.title": "السينما",
+    "home.multimodal.cinema.desc": "كل لقطة محمية، كل صورة موقعة.",
+    "home.multimodal.sound.title": "الموسيقى والبودكاست",
+    "home.multimodal.sound.desc": "احمِ إبداعاتك الصوتية من السرقة.",
+    "home.multimodal.seal": "توقيع موثق",
+    "home.contact.title": "احمِ رؤيتك",
+    "home.contact.subtitle": "انضم للمصورين والمخرجين والموسيقيين الذين يثقون بـ Iron-ID.",
+    "home.contact.cta": "اتصل بنا",
     "lang.fr": "فر",
     "lang.en": "إن",
     "lang.ar": "عر",
@@ -362,11 +418,13 @@ interface I18nContextValue {
 const I18nContext = createContext<I18nContextValue | undefined>(undefined);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Lang>("fr");
+  const [lang, setLang] = useState<Lang>(detectInitialLang);
 
   const t = (key: string) => {
-    const dict = messages[lang] || messages.en;
-    return dict[key] ?? messages.en[key] ?? key;
+    const dict = messages[lang];
+    if (dict && dict[key] !== undefined) return dict[key];
+    // Only fall back to English for non-localised technical keys; never mix languages
+    return messages.en[key] ?? key;
   };
 
   return (
