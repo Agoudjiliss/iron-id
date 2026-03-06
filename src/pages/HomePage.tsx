@@ -371,8 +371,12 @@ function SealOfTruth({ active }: { active: boolean }) {
 /* ────────────────────────────────────────────────────────
    WAVEFORM — interactive audio visualiser
 ──────────────────────────────────────────────────────── */
+// Waveform bars: heights are computed using two overlapping sine waves to mimic
+// a natural audio frequency distribution. Delays are staggered per-bar (0.018s)
+// so the animation ripples across the bar chart rather than pulsing all at once.
 const WAVEFORM_BARS = Array.from({ length: 36 }, (_, i) => ({
   id: i,
+  // Two-frequency mix: dominant low-freq (0.65 rad/bar) + harmonic (1.4 rad/bar)
   height: Math.abs(Math.sin(i * 0.65) * 55 + Math.sin(i * 1.4) * 25) + 8,
   delay: i * 0.018,
 }));
@@ -1358,7 +1362,7 @@ function ContactSection({ revealed }: { revealed: boolean }) {
             {t("home.contact.title")}
           </h2>
           <p className="font-mono text-xs tracking-[0.2em] text-iron-neon-blue/60 uppercase mb-3">
-            C2PA · SHA-256 · Watermark · Audio-DNA
+            {t("home.contact.tech")}
           </p>
           <p className="text-iron-muted mb-10 max-w-xl mx-auto leading-relaxed">
             {t("home.contact.subtitle")}

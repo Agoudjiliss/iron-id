@@ -9,7 +9,10 @@ function detectInitialLang(): Lang {
     const nav = navigator.language.toLowerCase().split("-")[0];
     if (nav === "ar") return "ar";
     if (nav === "fr") return "fr";
-  } catch {}
+  } catch {
+    // navigator.language may be unavailable in some environments (SSR, old browsers).
+    // Fall back to French silently — the user can always change language via the UI.
+  }
   return "fr";
 }
 
@@ -120,6 +123,7 @@ const messages: Record<Lang, Translations> = {
     "home.multimodal.sound.title": "Musique & Podcast",
     "home.multimodal.sound.desc": "Protégez vos créations sonores contre le plagiat.",
     "home.multimodal.seal": "Signature vérifiée",
+    "home.contact.tech": "C2PA · SHA-256 · Watermark · Audio-DNA",
     "home.contact.title": "Protégez votre vision",
     "home.contact.subtitle": "Rejoignez les photographes, cinéastes et musiciens qui font confiance à Iron-ID.",
     "home.contact.cta": "Nous contacter",
@@ -269,6 +273,7 @@ const messages: Record<Lang, Translations> = {
     "home.multimodal.sound.title": "Music & Podcast",
     "home.multimodal.sound.desc": "Protect your audio creations from plagiarism.",
     "home.multimodal.seal": "Verified Signature",
+    "home.contact.tech": "C2PA · SHA-256 · Watermark · Audio-DNA",
     "home.contact.title": "Protect Your Vision",
     "home.contact.subtitle": "Join photographers, filmmakers and musicians who trust Iron-ID.",
     "home.contact.cta": "Contact Us",
@@ -400,6 +405,7 @@ const messages: Record<Lang, Translations> = {
     "home.multimodal.sound.title": "الموسيقى والبودكاست",
     "home.multimodal.sound.desc": "احمِ إبداعاتك الصوتية من السرقة.",
     "home.multimodal.seal": "توقيع موثق",
+    "home.contact.tech": "C2PA · SHA-256 · علامة مائية · DNA صوتي",
     "home.contact.title": "احمِ رؤيتك",
     "home.contact.subtitle": "انضم للمصورين والمخرجين والموسيقيين الذين يثقون بـ Iron-ID.",
     "home.contact.cta": "اتصل بنا",
