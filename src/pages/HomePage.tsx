@@ -4,6 +4,89 @@ import { motion, useInView, useScroll, useTransform, AnimatePresence, useMotionV
 import { useI18n } from "../i18n";
 
 /* ────────────────────────────────────────────────────────
+   Animated mesh-gradient nebula background
+──────────────────────────────────────────────────────── */
+function MeshGradientBg() {
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }} aria-hidden="true">
+      {/* Charcoal base */}
+      <div className="absolute inset-0" style={{ background: "#050505" }} />
+      {/* Blob 1 — midnight blue */}
+      <div
+        className="mesh-blob-1 absolute rounded-full"
+        style={{
+          width: "80vw", height: "80vw",
+          top: "-20vw", left: "-15vw",
+          background: "radial-gradient(ellipse at center, rgba(10,20,60,0.55) 0%, transparent 70%)",
+          filter: "blur(48px)",
+        }}
+      />
+      {/* Blob 2 — deep purple */}
+      <div
+        className="mesh-blob-2 absolute rounded-full"
+        style={{
+          width: "70vw", height: "70vw",
+          bottom: "-15vw", right: "-10vw",
+          background: "radial-gradient(ellipse at center, rgba(30,8,60,0.5) 0%, transparent 70%)",
+          filter: "blur(56px)",
+        }}
+      />
+      {/* Blob 3 — neon blue accent */}
+      <div
+        className="mesh-blob-3 absolute rounded-full"
+        style={{
+          width: "50vw", height: "50vw",
+          top: "35%", left: "25%",
+          background: "radial-gradient(ellipse at center, rgba(20,50,100,0.28) 0%, transparent 65%)",
+          filter: "blur(60px)",
+        }}
+      />
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────
+   Magnetic cursor hook — attaches spring transform
+──────────────────────────────────────────────────────── */
+function useMagneticEffect(strength = 0.35) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 200, damping: 20 });
+  const springY = useSpring(y, { stiffness: 200, damping: 20 });
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const handleMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = e.clientX - cx;
+      const dy = e.clientY - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const threshold = Math.max(rect.width, rect.height) * 1.2;
+      if (dist < threshold) {
+        x.set(dx * strength);
+        y.set(dy * strength);
+      } else {
+        x.set(0);
+        y.set(0);
+      }
+    };
+    const handleLeave = () => { x.set(0); y.set(0); };
+    window.addEventListener("mousemove", handleMove, { passive: true });
+    el.addEventListener("mouseleave", handleLeave);
+    return () => {
+      window.removeEventListener("mousemove", handleMove);
+      el.removeEventListener("mouseleave", handleLeave);
+    };
+  }, [x, y, strength]);
+
+  return { ref, springX, springY };
+}
+
+/* ────────────────────────────────────────────────────────
    Mouse position hook for cursor parallax
 ──────────────────────────────────────────────────────── */
 function useMousePosition() {
@@ -280,6 +363,8 @@ function HeroSection({ revealed }: { revealed: boolean }) {
   const my = useMotionValue(0);
   const springX = useSpring(mx, { stiffness: 50, damping: 20 });
   const springY = useSpring(my, { stiffness: 50, damping: 20 });
+  const { ref: btnRef, springX: btnX, springY: btnY } = useMagneticEffect(0.4);
+  const { ref: btn2Ref, springX: btn2X, springY: btn2Y } = useMagneticEffect(0.4);
 
   useEffect(() => {
     mx.set((mouse.x - 0.5) * 18);
@@ -313,131 +398,180 @@ function HeroSection({ revealed }: { revealed: boolean }) {
       {/* Bottom fade into next section */}
       <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-b from-transparent to-iron-black z-[2] pointer-events-none" />
 
-      {/* ── Artwork frame with cursor parallax ──────────────── */}
-      <motion.div
-        className="relative z-10 w-full max-w-4xl mx-auto mb-12"
-        style={{ x: springX, y: springY }}
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1.3, ease: [0.22, 1, 0.36, 1] }}
-      >
-        {/* Ambient outer glow */}
+      {/* ── EDITORIAL LAYOUT: asymmetric two-column ──── */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto grid lg:grid-cols-[1fr_1.1fr] gap-12 items-center px-4 sm:px-8">
+
+        {/* LEFT: hero text — editorial, left-aligned */}
         <motion.div
-          className="absolute -inset-6 rounded-3xl pointer-events-none"
-          style={{ background: "radial-gradient(ellipse 80% 70% at 50% 50%, rgba(59,130,246,0.07) 0%, transparent 70%)" }}
-          animate={{ opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 4, repeat: Infinity }}
-          aria-hidden="true"
-        />
-
-        {/* Main frame */}
-        <div
-          className="relative aspect-[16/9] max-h-[56vh] rounded-2xl overflow-hidden border border-white/10 bg-iron-deep shadow-exhibit"
-          style={{ transition: "box-shadow 0.5s ease" }}
+          className="lg:pl-4 xl:pl-8"
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
         >
-          {/* Rich artwork background */}
-          <div className="absolute inset-0 bg-art-hero" />
+          {/* Mixed-typography headline */}
+          <h1 className="mb-6 leading-[1.04]">
+            <span
+              className="block font-serif italic text-5xl sm:text-6xl md:text-7xl font-semibold"
+              style={{ color: "rgba(248,250,252,0.95)", letterSpacing: "-0.01em" }}
+            >
+              Protégez votre
+            </span>
+            <span
+              className="block font-serif italic text-6xl sm:text-7xl md:text-8xl font-bold text-gradient-blue"
+              style={{ letterSpacing: "-0.02em" }}
+            >
+              art
+            </span>
+            <span
+              className="block font-mono text-sm sm:text-base tracking-[0.22em] uppercase mt-2"
+              style={{ color: "rgba(59,130,246,0.75)" }}
+            >
+              avec la&nbsp;
+              <span className="text-iron-white/60">cryptographie</span>
+            </span>
+          </h1>
 
-          {/* Inner atmospheric light */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse 50% 60% at 30% 40%, rgba(59,130,246,0.06) 0%, transparent 60%)" }}
+          <p className="text-lg sm:text-xl text-iron-muted max-w-lg mb-10 leading-relaxed">
+            {t("home.hero.art.subtitle")}
+          </p>
+
+          {/* Mixed-type tagline */}
+          <p className="mb-10 text-sm">
+            <span className="font-serif italic text-iron-white/70 text-lg">Authenticité</span>
+            <span className="font-mono text-iron-neon-blue/50 mx-2 text-xs">·</span>
+            <span className="font-mono text-xs tracking-widest text-iron-muted/60 uppercase">Signature Cryptographique</span>
+            <span className="font-mono text-iron-neon-blue/50 mx-2 text-xs">·</span>
+            <span className="font-serif italic text-iron-white/70 text-lg">Narration Visuelle</span>
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <motion.div ref={btnRef} style={{ x: btnX, y: btnY }}>
+              <Link to="/protect" className="btn-primary group">
+                {t("home.cta.work")}
+                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+              </Link>
+            </motion.div>
+            <motion.div ref={btn2Ref} style={{ x: btn2X, y: btn2Y }}>
+              <a href="#technology" className="btn-secondary">
+                {t("home.cta.tech")}
+              </a>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* RIGHT: artwork frame with cursor parallax */}
+        <motion.div
+          className="relative w-full"
+          style={{ x: springX, y: springY }}
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.3, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {/* Ambient outer glow */}
+          <motion.div
+            className="absolute -inset-6 rounded-3xl pointer-events-none"
+            style={{ background: "radial-gradient(ellipse 80% 70% at 50% 50%, rgba(59,130,246,0.07) 0%, transparent 70%)" }}
+            animate={{ opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            aria-hidden="true"
           />
 
-          {/* Vignette */}
-          <div className="absolute inset-0 bg-gradient-to-t from-iron-black/60 via-transparent to-iron-black/25 pointer-events-none" />
+          {/* Main frame */}
+          <div
+            className="relative aspect-[16/9] max-h-[56vh] rounded-2xl overflow-hidden border border-white/10 bg-iron-deep shadow-exhibit"
+            style={{ transition: "box-shadow 0.5s ease" }}
+          >
+            {/* Rich artwork background */}
+            <div className="absolute inset-0 bg-art-hero" />
 
-          {/* Museum corner markers */}
-          <MuseumCorners />
-
-          {/* Scanning beam */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <motion.div
-              className="absolute top-0 bottom-0 w-48"
-              style={{
-                background:
-                  "linear-gradient(90deg, transparent 0%, rgba(59,130,246,0.08) 30%, rgba(147,197,253,0.35) 50%, rgba(59,130,246,0.08) 70%, transparent 100%)",
-              }}
-              initial={{ x: "-100%" }}
-              animate={{ x: "160%" }}
-              transition={{ duration: 2.6, delay: 0.9, ease: "easeInOut" }}
+            {/* Inner atmospheric light */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ background: "radial-gradient(ellipse 50% 60% at 30% 40%, rgba(59,130,246,0.06) 0%, transparent 60%)" }}
             />
+
+            {/* Vignette */}
+            <div className="absolute inset-0 bg-gradient-to-t from-iron-black/60 via-transparent to-iron-black/25 pointer-events-none" />
+
+            {/* Museum corner markers */}
+            <MuseumCorners />
+
+            {/* Scanning beam */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <motion.div
+                className="absolute top-0 bottom-0 w-48"
+                style={{
+                  background:
+                    "linear-gradient(90deg, transparent 0%, rgba(59,130,246,0.08) 30%, rgba(147,197,253,0.35) 50%, rgba(59,130,246,0.08) 70%, transparent 100%)",
+                }}
+                initial={{ x: "-100%" }}
+                animate={{ x: "160%" }}
+                transition={{ duration: 2.6, delay: 0.9, ease: "easeInOut" }}
+              />
+            </div>
+
+            {/* Analysis grid flash during scan */}
+            <motion.div
+              className="absolute inset-0 grid-bg pointer-events-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.06, 0] }}
+              transition={{ duration: 2.4, delay: 0.9 }}
+            />
+
+            {/* "Verified Authentic" stamp */}
+            <motion.div
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              initial={{ opacity: 0, scale: 0.45 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.75, delay: 2.9, ease: [0.34, 1.56, 0.64, 1] }}
+              onAnimationComplete={() => setStampDone(true)}
+            >
+              <div
+                className={`px-8 py-4 rounded-xl border-2 border-iron-neon-blue/80 bg-iron-neon-blue/10 backdrop-blur-md ${stampDone ? "stamp-glow" : ""}`}
+              >
+                <span className="font-serif italic font-semibold text-xl sm:text-2xl tracking-[0.08em] text-iron-neon-blue">
+                  {t("home.verified.stamp")}
+                </span>
+                <p className="text-xs tracking-widest text-iron-neon-blue/60 font-mono text-center mt-1 uppercase">
+                  Iron-ID · Cryptographic Proof
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Exhibit label — bottom-left */}
+            <motion.div
+              className="absolute bottom-4 left-4 pointer-events-none"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.4, duration: 0.6 }}
+            >
+              <p className="text-[10px] font-mono text-iron-muted/70 tracking-widest uppercase">
+                Original · 2025 · Watermark Applied
+              </p>
+            </motion.div>
           </div>
 
-          {/* Analysis grid flash during scan */}
+          {/* Floating badge with inverse parallax — moves faster than scroll */}
           <motion.div
-            className="absolute inset-0 grid-bg pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 0.06, 0] }}
-            transition={{ duration: 2.4, delay: 0.9 }}
-          />
-
-          {/* "Verified Authentic" stamp */}
-          <motion.div
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-            initial={{ opacity: 0, scale: 0.45 }}
+            className="absolute -bottom-4 -right-4 sm:-right-8 glass rounded-xl px-4 py-2.5 border border-iron-neon-blue/25 shadow-glow-sm"
+            style={{ y: useTransform(useScroll().scrollY, [0, 600], [0, -30]) }}
+            initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.75, delay: 2.9, ease: [0.34, 1.56, 0.64, 1] }}
-            onAnimationComplete={() => setStampDone(true)}
+            transition={{ delay: 3.5, duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
           >
-            <div
-              className={`px-8 py-4 rounded-xl border-2 border-iron-neon-blue/80 bg-iron-neon-blue/10 backdrop-blur-md ${stampDone ? "stamp-glow" : ""}`}
-            >
-              <span className="font-display font-bold text-xl sm:text-2xl tracking-[0.18em] text-iron-neon-blue">
-                {t("home.verified.stamp")}
-              </span>
-              <p className="text-xs tracking-widest text-iron-neon-blue/60 font-mono text-center mt-1 uppercase">
-                Iron-ID · Cryptographic Proof
-              </p>
-            </div>
+            <p className="text-[10px] font-mono text-iron-neon-blue/80 tracking-[0.25em] uppercase">C2PA · SHA-256</p>
+            <p className="font-serif italic text-iron-white/80 text-sm mt-0.5">Preuve vérifiée</p>
           </motion.div>
-
-          {/* Exhibit label — bottom-left */}
-          <motion.div
-            className="absolute bottom-4 left-4 pointer-events-none"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.4, duration: 0.6 }}
-          >
-            <p className="text-[10px] font-mono text-iron-muted/70 tracking-widest uppercase">
-              Original · 2025 · Watermark Applied
-            </p>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* ── Hero text ──────────────────────────────────── */}
-      <motion.div
-        className="relative z-10 text-center max-w-3xl mx-auto"
-        initial={{ opacity: 0, y: 28 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.9, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-5 leading-[1.08]">
-          <span className="text-iron-white">{t("home.hero.art.title").split(" ").slice(0, -3).join(" ")} </span>
-          <span className="text-gradient-blue">{t("home.hero.art.title").split(" ").slice(-3).join(" ")}</span>
-        </h1>
-        <p className="text-lg sm:text-xl text-iron-muted max-w-2xl mx-auto mb-10 leading-relaxed">
-          {t("home.hero.art.subtitle")}
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link to="/protect" className="btn-primary group">
-            {t("home.cta.work")}
-            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </Link>
-          <a href="#technology" className="btn-secondary">
-            {t("home.cta.tech")}
-          </a>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </section>
   );
 }
 
 /* ────────────────────────────────────────────────────────
-   TAGLINE — centred italic quote
+   TAGLINE — editorial left-aligned italic quote
 ──────────────────────────────────────────────────────── */
 function TaglineSection() {
   const { t } = useI18n();
@@ -446,15 +580,28 @@ function TaglineSection() {
   return (
     <section ref={ref} className="py-16 sm:py-24 px-page relative grain overflow-hidden">
       <div className="absolute inset-0 spotlight-purple opacity-60 pointer-events-none" />
-      <motion.p
-        className="font-display text-2xl sm:text-3xl md:text-4xl font-medium text-center max-w-3xl mx-auto italic leading-snug"
-        style={{ color: "rgba(248,250,252,0.92)" }}
-        initial={{ opacity: 0, y: 24 }}
-        animate={inView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-      >
-        &ldquo;{t("home.tagline")}&rdquo;
-      </motion.p>
+      <div className="max-w-7xl mx-auto grid lg:grid-cols-[1fr_2fr] gap-8 items-center">
+        {/* Left: label */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={inView ? { opacity: 1, x: 0 } : {}}
+          transition={{ duration: 0.7 }}
+          className="hidden lg:block"
+        >
+          <p className="font-mono text-xs tracking-[0.3em] text-iron-neon-blue/50 uppercase">Manifeste</p>
+          <div className="mt-3 w-12 h-px bg-iron-neon-blue/30" />
+        </motion.div>
+        {/* Right: quote */}
+        <motion.p
+          className="font-serif text-3xl sm:text-4xl md:text-5xl font-medium italic leading-snug"
+          style={{ color: "rgba(248,250,252,0.92)" }}
+          initial={{ opacity: 0, y: 24 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+        >
+          &ldquo;{t("home.tagline")}&rdquo;
+        </motion.p>
+      </div>
     </section>
   );
 }
@@ -468,6 +615,8 @@ function ExhibitCard({ ex, delay }: { ex: ExhibitItem; delay: number }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [hovered, setHovered] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
+  const { ref: magRef, springX: magX, springY: magY } = useMagneticEffect(0.22);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -475,6 +624,7 @@ function ExhibitCard({ ex, delay }: { ex: ExhibitItem; delay: number }) {
     const cx = e.clientX - rect.left;
     const cy = e.clientY - rect.top;
     setTilt({ x: ((cy / rect.height) - 0.5) * -14, y: ((cx / rect.width) - 0.5) * 14 });
+    setMousePos({ x: cx / rect.width, y: cy / rect.height });
   }, []);
 
   const handleMouseLeave = useCallback(() => {
@@ -482,82 +632,130 @@ function ExhibitCard({ ex, delay }: { ex: ExhibitItem; delay: number }) {
     setHovered(false);
   }, []);
 
-  // Decorative hash: deterministic pseudo-hash for exhibit authenticity visual
-  const hashHex = ((ex.id * 0x3f4a9b + 0xc2a01) & 0xffffffff).toString(16).toUpperCase().padStart(8, "0");
+  // Deterministic pseudo-hash for exhibit authenticity visual
+  // Uses prime multipliers for good bit distribution across small ID range
+  const HASH_MULTIPLIER_A = 0x3f4a9b;
+  const HASH_MULTIPLIER_B = 0x7ab3c1;
+  const HASH_MASK_32 = 0xffffffff;
+  const HASH_MASK_24 = 0xffffff;
+  const hashHex = ((ex.id * HASH_MULTIPLIER_A + 0xc2a01) & HASH_MASK_32).toString(16).toUpperCase().padStart(8, "0");
+  const hashFull = `0x${hashHex}${((ex.id * HASH_MULTIPLIER_B) & HASH_MASK_24).toString(16).toUpperCase().padStart(6, "0")}`;
 
   return (
     <motion.div
-      ref={cardRef}
-      className="group cursor-default"
-      style={{ perspective: "1000px" }}
-      initial={{ opacity: 0, y: 50 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={handleMouseLeave}
+      ref={magRef as React.RefObject<HTMLDivElement>}
+      style={{ x: magX, y: magY }}
     >
       <motion.div
-        className="rounded-xl overflow-hidden border border-white/10 bg-iron-deep/80"
-        animate={{ rotateX: tilt.x, rotateY: tilt.y }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        style={{
-          transformStyle: "preserve-3d",
-          boxShadow: hovered
-            ? "0 0 0 1px rgba(59,130,246,0.35), 0 0 60px rgba(59,130,246,0.14), 0 30px 60px -12px rgba(0,0,0,0.7)"
-            : "0 0 0 1px rgba(255,255,255,0.08), 0 25px 50px -12px rgba(0,0,0,0.7)",
-          transition: "box-shadow 0.4s ease",
-        }}
+        ref={cardRef}
+        className="group cursor-default"
+        style={{ perspective: "1000px" }}
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={handleMouseLeave}
       >
-        {/* Artwork area */}
-        <div className={`aspect-[4/5] ${ex.gradient} relative overflow-hidden`}>
-          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 50% at 40% 30%, rgba(255,255,255,0.04) 0%, transparent 70%)" }} />
-          <MuseumCorners color={hovered ? "rgba(59,130,246,0.6)" : "rgba(59,130,246,0.3)"} />
-          {/* Artwork zoom layer */}
-          <motion.div
-            className={`absolute inset-0 ${ex.gradient}`}
-            animate={{ scale: hovered ? 1.05 : 1 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          />
-          {/* Frame glow on hover */}
-          <AnimatePresence>
-            {hovered && (
-              <motion.div
-                className="absolute inset-0 pointer-events-none"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                style={{ background: "radial-gradient(ellipse 70% 50% at 50% 30%, rgba(59,130,246,0.08) 0%, transparent 60%)" }}
-              />
-            )}
-          </AnimatePresence>
-          {/* Scan line on hover */}
-          <AnimatePresence>
-            {hovered && (
-              <motion.div
-                className="absolute top-0 bottom-0 w-16 pointer-events-none"
-                style={{ background: "linear-gradient(90deg, transparent, rgba(147,197,253,0.2), transparent)" }}
-                initial={{ x: "-100%" }}
-                animate={{ x: "400%" }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 1.2, ease: "easeInOut" }}
-              />
-            )}
-          </AnimatePresence>
-          {/* Hover metadata overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-iron-black/95 via-iron-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-5">
-            <p className="font-mono text-[10px] text-iron-neon-blue/70 tracking-[0.3em] uppercase mb-2">Exhibit · {ex.num}</p>
-            <p className="font-display font-semibold text-lg text-iron-white leading-tight">{ex.title}</p>
-            <p className="text-xs text-iron-muted mt-0.5">{ex.artist}</p>
-            <div className="mt-3 flex items-center gap-2">
-              <div className="h-px flex-1 bg-iron-neon-blue/40" />
-              <p className="text-[10px] text-iron-neon-blue font-mono tracking-wide">{ex.meta}</p>
+        <motion.div
+          className="rounded-xl overflow-hidden border border-white/10 bg-iron-deep/80"
+          animate={{ rotateX: tilt.x, rotateY: tilt.y }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          style={{
+            transformStyle: "preserve-3d",
+            boxShadow: hovered
+              ? "0 0 0 1px rgba(59,130,246,0.35), 0 0 60px rgba(59,130,246,0.14), 0 30px 60px -12px rgba(0,0,0,0.7)"
+              : "0 0 0 1px rgba(255,255,255,0.08), 0 25px 50px -12px rgba(0,0,0,0.7)",
+            transition: "box-shadow 0.4s ease",
+          }}
+        >
+          {/* Artwork area */}
+          <div className={`aspect-[4/5] ${ex.gradient} relative overflow-hidden`}>
+            <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 50% at 40% 30%, rgba(255,255,255,0.04) 0%, transparent 70%)" }} />
+            <MuseumCorners color={hovered ? "rgba(59,130,246,0.6)" : "rgba(59,130,246,0.3)"} />
+            {/* Artwork zoom layer */}
+            <motion.div
+              className={`absolute inset-0 ${ex.gradient}`}
+              animate={{ scale: hovered ? 1.05 : 1 }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            />
+            {/* Frame glow on hover */}
+            <AnimatePresence>
+              {hovered && (
+                <motion.div
+                  className="absolute inset-0 pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ background: "radial-gradient(ellipse 70% 50% at 50% 30%, rgba(59,130,246,0.08) 0%, transparent 60%)" }}
+                />
+              )}
+            </AnimatePresence>
+            {/* Scan line on hover */}
+            <AnimatePresence>
+              {hovered && (
+                <motion.div
+                  className="absolute top-0 bottom-0 w-16 pointer-events-none"
+                  style={{ background: "linear-gradient(90deg, transparent, rgba(147,197,253,0.2), transparent)" }}
+                  initial={{ x: "-100%" }}
+                  animate={{ x: "400%" }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 1.2, ease: "easeInOut" }}
+                />
+              )}
+            </AnimatePresence>
+
+            {/* ── LOUPE / X-RAY scanner overlay on hover ── */}
+            <AnimatePresence>
+              {hovered && (
+                <motion.div
+                  className="absolute pointer-events-none rounded-full overflow-hidden border border-iron-neon-blue/60"
+                  style={{
+                    width: 120,
+                    height: 120,
+                    left: `calc(${mousePos.x * 100}% - 60px)`,
+                    top: `calc(${mousePos.y * 100}% - 60px)`,
+                    boxShadow: "0 0 0 9999px rgba(0,0,0,0.45), inset 0 0 30px rgba(59,130,246,0.2)",
+                  }}
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {/* X-ray interior — metadata */}
+                  <div className="absolute inset-0 bg-iron-deep/90 backdrop-blur-sm flex flex-col items-center justify-center gap-1 p-2">
+                    <p className="font-mono text-[7px] text-iron-neon-blue/80 tracking-[0.15em] uppercase text-center leading-tight">
+                      METADATA
+                    </p>
+                    <div className="w-8 h-px bg-iron-neon-blue/30" />
+                    <p className="font-mono text-[6.5px] text-iron-neon-blue/60 text-center leading-tight">{hashFull.slice(0, 10)}</p>
+                    <p className="font-mono text-[6.5px] text-iron-neon-blue/50 text-center leading-tight">{ex.meta.split(" · ")[0]}</p>
+                    <p className="font-mono text-[6px] text-iron-white/30 text-center leading-tight">C2PA·SHA-256</p>
+                  </div>
+                  {/* Crosshair lines */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-1/2 left-0 right-0 h-px bg-iron-neon-blue/20" />
+                    <div className="absolute left-1/2 top-0 bottom-0 w-px bg-iron-neon-blue/20" />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Hover metadata overlay (bottom gradient) */}
+            <div className="absolute inset-0 bg-gradient-to-t from-iron-black/95 via-iron-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-5">
+              <p className="font-mono text-[10px] text-iron-neon-blue/70 tracking-[0.3em] uppercase mb-2">Exhibit · {ex.num}</p>
+              <p className="font-serif italic font-semibold text-lg text-iron-white leading-tight">{ex.title}</p>
+              <p className="font-mono text-[10px] text-iron-muted mt-0.5 tracking-wide">{ex.artist}</p>
+              <div className="mt-3 flex items-center gap-2">
+                <div className="h-px flex-1 bg-iron-neon-blue/40" />
+                <p className="text-[10px] text-iron-neon-blue font-mono tracking-wide">{ex.meta}</p>
+              </div>
+              <p className="text-[9px] font-mono text-iron-neon-blue/45 mt-1.5 tracking-wider">{hashFull.slice(0, 16)} · Iron-ID</p>
             </div>
-            <p className="text-[9px] font-mono text-iron-neon-blue/45 mt-1.5 tracking-wider">0x{hashHex} · Iron-ID</p>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
     </motion.div>
   );
@@ -580,13 +778,28 @@ function ArtistShowcaseSection() {
   return (
     <section ref={ref} className="py-section px-page relative">
       <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.2), transparent)" }} aria-hidden="true" />
-      <div className="max-w-6xl mx-auto">
-        <motion.h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-iron-white text-center mb-3" initial={{ opacity: 0, y: 22 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7 }}>
-          {t("home.showcase.title")}
-        </motion.h2>
-        <motion.p className="text-iron-muted text-center mb-14" initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7, delay: 0.1 }}>
-          {t("home.showcase.subtitle")}
-        </motion.p>
+      <div className="max-w-7xl mx-auto">
+        {/* Editorial asymmetric header — text right-aligned */}
+        <div className="mb-14 flex flex-col items-end text-right">
+          <motion.p
+            className="font-mono text-xs tracking-[0.3em] text-iron-neon-blue/50 uppercase mb-2"
+            initial={{ opacity: 0, x: 20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ duration: 0.5 }}
+          >
+            Galerie · {exhibits.length} œuvres
+          </motion.p>
+          <motion.h2
+            className="font-serif italic text-4xl sm:text-5xl md:text-6xl font-semibold text-iron-white max-w-xl leading-tight"
+            initial={{ opacity: 0, x: 30 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ duration: 0.7, delay: 0.05 }}
+          >
+            {t("home.showcase.title")}
+          </motion.h2>
+          <motion.p
+            className="text-iron-muted mt-3 max-w-sm"
+            initial={{ opacity: 0, x: 20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ duration: 0.7, delay: 0.1 }}
+          >
+            {t("home.showcase.subtitle")}
+          </motion.p>
+        </div>
         <div className="grid md:grid-cols-3 gap-6 md:gap-8">
           {exhibits.map((ex, i) => (
             <ExhibitCard key={ex.id} ex={ex} delay={0.15 * i} />
@@ -893,7 +1106,7 @@ function ComparisonSection() {
 }
 
 /* ────────────────────────────────────────────────────────
-   FEATURES — floating glass panels
+   FEATURES — floating glass panels with editorial header
 ──────────────────────────────────────────────────────── */
 function FeaturesSection() {
   const { t } = useI18n();
@@ -908,10 +1121,12 @@ function FeaturesSection() {
     {
       key: "authenticity",
       title: t("home.features.authenticity"),
+      titleSerif: "Authenticité",
       desc: t("home.feature1.desc"),
       y: y1,
       color: "rgba(59,130,246,0.75)",
       glowColor: "rgba(59,130,246,0.2)",
+      monoTag: "C2PA · SHA-256",
       icon: (
         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
@@ -921,10 +1136,12 @@ function FeaturesSection() {
     {
       key: "detection",
       title: t("home.features.detection"),
+      titleSerif: "Détection",
       desc: t("home.feature2.desc"),
       y: y2,
       color: "rgba(139,92,246,0.75)",
       glowColor: "rgba(139,92,246,0.2)",
+      monoTag: "DeepFake · AI-Proof",
       icon: (
         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -934,10 +1151,12 @@ function FeaturesSection() {
     {
       key: "signature",
       title: t("home.features.signature"),
+      titleSerif: "Signature",
       desc: t("home.feature3.desc"),
       y: y3,
       color: "rgba(59,130,246,0.75)",
       glowColor: "rgba(59,130,246,0.2)",
+      monoTag: "ECDSA · Blockchain",
       icon: (
         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
@@ -956,57 +1175,37 @@ function FeaturesSection() {
         aria-hidden="true"
       />
 
-      <div className="max-w-6xl mx-auto">
-        <motion.h2
-          className="font-display text-3xl sm:text-4xl font-bold text-iron-white text-center mb-4"
-          initial={{ opacity: 0, y: 22 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7 }}
-        >
-          {t("home.section.features.title")}
-        </motion.h2>
-        <motion.p
-          className="text-iron-muted text-center max-w-2xl mx-auto mb-16"
-          initial={{ opacity: 0, y: 16 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, delay: 0.1 }}
-        >
-          {t("home.section.features.subtitle")}
-        </motion.p>
+      <div className="max-w-7xl mx-auto">
+        {/* Editorial centered header with mixed typography */}
+        <div className="text-center mb-16">
+          <motion.p
+            className="font-mono text-xs tracking-[0.3em] text-iron-neon-blue/50 uppercase mb-3"
+            initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} transition={{ duration: 0.5 }}
+          >
+            Technologie
+          </motion.p>
+          <motion.h2
+            className="font-serif italic text-4xl sm:text-5xl font-semibold text-iron-white mb-3"
+            initial={{ opacity: 0, y: 22 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7 }}
+          >
+            {t("home.section.features.title")}
+          </motion.h2>
+          <motion.p
+            className="text-iron-muted max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 16 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7, delay: 0.1 }}
+          >
+            {t("home.section.features.subtitle")}
+          </motion.p>
+        </div>
 
         <div className="grid md:grid-cols-3 gap-8">
           {features.map((f, i) => (
-            <motion.div
-              key={f.key}
-              className="glass-panel group"
-              style={{ y: f.y }}
-              initial={{ opacity: 0, y: 30 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.7, delay: 0.15 * i }}
-            >
-              {/* Animated icon container */}
-              <motion.div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 relative animate-float"
-                style={{
-                  backgroundColor: f.glowColor,
-                  color: f.color,
-                  boxShadow: `0 0 0 1px ${f.glowColor}`,
-                  animationDelay: `${i * 0.4}s`,
-                  animationDuration: `${4 + i * 0.7}s`,
-                }}
-                whileHover={{ scale: 1.08, rotate: 3 }}
-              >
-                {f.icon}
-              </motion.div>
-
-              <h3 className="font-display font-semibold text-xl text-iron-white mb-3">{f.title}</h3>
-              <p className="text-iron-muted leading-relaxed text-sm">{f.desc}</p>
-
-              {/* Bottom accent line */}
-              <div
-                className="mt-5 h-px w-10 transition-all duration-500 group-hover:w-full"
-                style={{ background: `linear-gradient(90deg, ${f.color}, transparent)` }}
-              />
+            <motion.div key={f.key} style={{ y: f.y }}>
+              <FeatureCard f={f} i={i} inView={inView} />
             </motion.div>
           ))}
         </div>
@@ -1015,8 +1214,66 @@ function FeaturesSection() {
   );
 }
 
+/* Named type for feature items */
+type FeatureItem = {
+  key: string;
+  title: string;
+  titleSerif: string;
+  desc: string;
+  y: import("framer-motion").MotionValue<number>;
+  color: string;
+  glowColor: string;
+  monoTag: string;
+  icon: React.ReactNode;
+};
+
+function FeatureCard({ f, i, inView }: { f: FeatureItem; i: number; inView: boolean }) {
+  const { ref: magRef, springX, springY } = useMagneticEffect(0.18);
+  return (
+    <motion.div
+      ref={magRef as React.RefObject<HTMLDivElement>}
+      style={{ y: springY, x: springX }}
+    >
+      <motion.div
+        className="glass-panel group h-full"
+        initial={{ opacity: 0, y: 30 }}
+        animate={inView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.7, delay: 0.15 * i }}
+      >
+        {/* Animated icon container */}
+        <motion.div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 relative animate-float"
+          style={{
+            backgroundColor: f.glowColor,
+            color: f.color,
+            boxShadow: `0 0 0 1px ${f.glowColor}`,
+            animationDelay: `${i * 0.4}s`,
+            animationDuration: `${4 + i * 0.7}s`,
+          }}
+          whileHover={{ scale: 1.08, rotate: 3 }}
+        >
+          {f.icon}
+        </motion.div>
+
+        {/* Mixed-type title: serif for concept + mono for tech tag */}
+        <p className="font-mono text-[10px] tracking-[0.25em] uppercase mb-1" style={{ color: f.color, opacity: 0.7 }}>
+          {f.monoTag}
+        </p>
+        <h3 className="font-serif italic font-semibold text-xl text-iron-white mb-3">{f.titleSerif}</h3>
+        <p className="text-iron-muted leading-relaxed text-sm">{f.desc}</p>
+
+        {/* Bottom accent line */}
+        <div
+          className="mt-5 h-px w-10 transition-all duration-500 group-hover:w-full"
+          style={{ background: `linear-gradient(90deg, ${f.color}, transparent)` }}
+        />
+      </motion.div>
+    </motion.div>
+  );
+}
+
 /* ────────────────────────────────────────────────────────
-   CONSTELLATION OF AUTHENTICITY
+   CONSTELLATION OF AUTHENTICITY — Canvas WebGL-like
 ──────────────────────────────────────────────────────── */
 const CONSTELLATION_NODES = Array.from({ length: 24 }, (_, i) => ({
   id: i,
@@ -1038,6 +1295,155 @@ const CONSTELLATION_LINES: [number, number][] = [
   [18, 20], [20, 22], [22, 23],
 ];
 
+/** ms between spawning each new light pulse */
+const PULSE_SPAWN_INTERVAL_MS = 400;
+/** maximum light pulses travelling simultaneously */
+const MAX_CONCURRENT_PULSES = 8;
+/** how far nodes move away from cursor (in CSS pixels, scaled by dpr) */
+const REPEL_STRENGTH_MULTIPLIER = 18;
+
+function InteractiveConstellation() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mouseRef = useRef({ x: -9999, y: -9999 });
+  const animRef = useRef<number>(0);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Pulse state per line
+    const pulses: { line: number; t: number; speed: number }[] = [];
+    let lastPulse = 0;
+
+    const resize = () => {
+      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseRef.current = {
+        x: (e.clientX - rect.left) / rect.width,
+        y: (e.clientY - rect.top) / rect.height,
+      };
+    };
+    canvas.addEventListener("mousemove", handleMouseMove);
+
+    const draw = (ts: number) => {
+      const W = canvas.width;
+      const H = canvas.height;
+      const dpr = window.devicePixelRatio;
+      const mx = mouseRef.current.x * W;
+      const my = mouseRef.current.y * H;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // Spawn new pulses
+      if (ts - lastPulse > PULSE_SPAWN_INTERVAL_MS && pulses.length < MAX_CONCURRENT_PULSES) {
+        const li = Math.floor(Math.random() * CONSTELLATION_LINES.length);
+        pulses.push({ line: li, t: 0, speed: 0.006 + Math.random() * 0.004 });
+        lastPulse = ts;
+      }
+
+      // Compute node screen positions (with mouse repulsion)
+      const nodePositions = CONSTELLATION_NODES.map((n) => {
+        const nx = (n.x / 100) * W;
+        const ny = (n.y / 100) * H;
+        const dx = nx - mx;
+        const dy = ny - my;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const repelRadius = 80 * dpr;
+        const repelStrength = dist < repelRadius ? ((repelRadius - dist) / repelRadius) * REPEL_STRENGTH_MULTIPLIER * dpr : 0;
+        return {
+          x: nx + (dist > 0 ? (dx / dist) * repelStrength : 0),
+          y: ny + (dist > 0 ? (dy / dist) * repelStrength : 0),
+          illuminated: dist < repelRadius * 1.5,
+        };
+      });
+
+      // Draw lines
+      CONSTELLATION_LINES.forEach(([a, b], idx) => {
+        const pA = nodePositions[a];
+        const pB = nodePositions[b];
+        if (!pA || !pB) return;
+        ctx.beginPath();
+        ctx.moveTo(pA.x, pA.y);
+        ctx.lineTo(pB.x, pB.y);
+        const lit = pA.illuminated || pB.illuminated;
+        ctx.strokeStyle = lit ? "rgba(59,130,246,0.45)" : "rgba(59,130,246,0.12)";
+        ctx.lineWidth = lit ? 1.2 * dpr : 0.6 * dpr;
+        ctx.stroke();
+
+        // Pulse along this line
+        const linePulses = pulses.filter((p) => p.line === idx);
+        linePulses.forEach((p) => {
+          const px = pA.x + (pB.x - pA.x) * p.t;
+          const py = pA.y + (pB.y - pA.y) * p.t;
+          const grad = ctx.createRadialGradient(px, py, 0, px, py, 8 * dpr);
+          grad.addColorStop(0, "rgba(147,197,253,0.9)");
+          grad.addColorStop(1, "rgba(59,130,246,0)");
+          ctx.beginPath();
+          ctx.arc(px, py, 8 * dpr, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+        });
+      });
+
+      // Advance pulses
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        pulses[i].t += pulses[i].speed;
+        if (pulses[i].t >= 1) pulses.splice(i, 1);
+      }
+
+      // Draw nodes
+      nodePositions.forEach((pos, i) => {
+        const n = CONSTELLATION_NODES[i];
+        const r = n.size * 1.8 * dpr;
+        const color = n.purple ? "139,92,246" : "59,130,246";
+        const glow = pos.illuminated ? 2.2 : 1;
+
+        // Outer ring pulse
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, r * 2.5 * glow, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${color},${pos.illuminated ? 0.35 : 0.12})`;
+        ctx.lineWidth = 0.8 * dpr;
+        ctx.stroke();
+
+        // Node fill
+        const g = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, r * glow);
+        g.addColorStop(0, `rgba(${color},${pos.illuminated ? 1 : 0.85})`);
+        g.addColorStop(1, `rgba(${color},0)`);
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, r * glow, 0, Math.PI * 2);
+        ctx.fillStyle = g;
+        ctx.fill();
+      });
+
+      animRef.current = requestAnimationFrame(draw);
+    };
+
+    animRef.current = requestAnimationFrame(draw);
+    return () => {
+      cancelAnimationFrame(animRef.current);
+      canvas.removeEventListener("mousemove", handleMouseMove);
+      ro.disconnect();
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full"
+      style={{ cursor: "crosshair" }}
+    />
+  );
+}
+
 function ConstellationSection() {
   const { t } = useI18n();
   const ref = useRef(null);
@@ -1047,75 +1453,44 @@ function ConstellationSection() {
     <section ref={ref} className="py-section px-page relative overflow-hidden grain">
       <div className="absolute inset-0 spotlight opacity-30 pointer-events-none" />
       <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.2), transparent)" }} aria-hidden="true" />
-      <div className="max-w-6xl mx-auto">
-        <motion.h2 className="font-display text-3xl sm:text-4xl font-bold text-iron-white text-center mb-3" initial={{ opacity: 0, y: 22 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7 }}>
-          {t("home.constellation.title")}
-        </motion.h2>
-        <motion.p className="text-iron-muted text-center mb-12" initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7, delay: 0.1 }}>
-          {t("home.constellation.subtitle")}
-        </motion.p>
-        {/* Constellation canvas */}
+      <div className="max-w-7xl mx-auto">
+        {/* Editorial header — left-aligned */}
+        <div className="mb-12">
+          <motion.p
+            className="font-mono text-xs tracking-[0.3em] text-iron-neon-blue/50 uppercase mb-3"
+            initial={{ opacity: 0, x: -20 }} animate={inView ? { opacity: 1, x: 0 } : {}} transition={{ duration: 0.5 }}
+          >
+            Réseau · Vérification globale
+          </motion.p>
+          <motion.h2
+            className="font-serif italic text-4xl sm:text-5xl font-semibold text-iron-white"
+            initial={{ opacity: 0, y: 22 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7 }}
+          >
+            {t("home.constellation.title")}
+          </motion.h2>
+          <motion.p
+            className="text-iron-muted mt-3 max-w-lg"
+            initial={{ opacity: 0, y: 16 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.7, delay: 0.1 }}
+          >
+            {t("home.constellation.subtitle")}
+          </motion.p>
+        </div>
+        {/* Interactive Canvas constellation */}
         <motion.div
           className="relative w-full rounded-3xl overflow-hidden border border-white/5 bg-iron-deep/30"
-          style={{ height: "360px" }}
+          style={{ height: "400px" }}
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
           transition={{ duration: 1, delay: 0.3 }}
         >
           <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(59,130,246,0.04) 0%, transparent 70%)" }} />
-          {/* SVG lines */}
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            {inView && CONSTELLATION_LINES.map(([a, b], idx) => {
-              const nA = CONSTELLATION_NODES[a];
-              const nB = CONSTELLATION_NODES[b];
-              if (!nA || !nB) return null;
-              return (
-                <motion.line
-                  key={idx}
-                  x1={nA.x} y1={nA.y} x2={nB.x} y2={nB.y}
-                  stroke="rgba(59,130,246,0.2)"
-                  strokeWidth="0.15"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{ duration: 1.5, delay: 0.5 + idx * 0.06, ease: "easeOut" }}
-                />
-              );
-            })}
-          </svg>
-          {/* Nodes */}
-          {CONSTELLATION_NODES.map((node) => (
-            <motion.div
-              key={node.id}
-              className="absolute rounded-full"
-              style={{
-                left: `${node.x}%`,
-                top: `${node.y}%`,
-                width: `${node.size * 3.5}px`,
-                height: `${node.size * 3.5}px`,
-                transform: "translate(-50%, -50%)",
-                backgroundColor: node.purple ? "rgba(139,92,246,0.7)" : "rgba(59,130,246,0.7)",
-                boxShadow: node.purple
-                  ? "0 0 6px rgba(139,92,246,0.5), 0 0 12px rgba(139,92,246,0.25)"
-                  : "0 0 6px rgba(59,130,246,0.5), 0 0 12px rgba(59,130,246,0.25)",
-              }}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={inView ? { scale: [0, 1.3, 1], opacity: [0, 1] } : {}}
-              transition={{ duration: 0.6, delay: 0.3 + node.id * 0.04 }}
-            >
-              <motion.div
-                className="absolute rounded-full"
-                style={{
-                  inset: "-4px",
-                  border: `1px solid ${node.purple ? "rgba(139,92,246,0.3)" : "rgba(59,130,246,0.3)"}`,
-                }}
-                animate={{ scale: [1, 1.8, 1], opacity: [0.4, 0, 0.4] }}
-                transition={{ duration: node.duration + 2, delay: node.delay, repeat: Infinity }}
-              />
-            </motion.div>
-          ))}
+          {inView && <InteractiveConstellation />}
           <div className="absolute bottom-4 left-0 right-0 flex justify-center pointer-events-none">
-            <motion.p className="text-xs font-mono text-iron-neon-blue/50 tracking-widest uppercase" initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} transition={{ delay: 2.5 }}>
-              {CONSTELLATION_NODES.length} Verified Works · Global Trust Network
+            <motion.p
+              className="text-xs font-mono text-iron-neon-blue/50 tracking-widest uppercase"
+              initial={{ opacity: 0 }} animate={inView ? { opacity: 1 } : {}} transition={{ delay: 2 }}
+            >
+              {CONSTELLATION_NODES.length} Verified Works · Global Trust Network · Hover to interact
             </motion.p>
           </div>
         </motion.div>
@@ -1232,6 +1607,8 @@ function TruthFragmentSection() {
 ──────────────────────────────────────────────────────── */
 function FinalCTASection({ revealed }: { revealed: boolean }) {
   const { t } = useI18n();
+  const { ref: btnRef1, springX: b1x, springY: b1y } = useMagneticEffect(0.4);
+  const { ref: btnRef2, springX: b2x, springY: b2y } = useMagneticEffect(0.4);
   return (
     <section className="py-section px-page relative grain overflow-hidden">
       <div className="absolute inset-0 spotlight opacity-40 pointer-events-none" />
@@ -1254,16 +1631,23 @@ function FinalCTASection({ revealed }: { revealed: boolean }) {
           <div className="w-6 h-6 rounded-full border border-iron-electric-purple/30" />
         </motion.div>
         <div className="relative z-10">
-          <p className="font-display text-xl sm:text-2xl text-iron-white/90 mb-5 italic">
+          <p className="font-serif text-xl sm:text-2xl text-iron-white/90 mb-5 italic">
             &ldquo;{t("home.tagline")}&rdquo;
           </p>
-          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-iron-white mb-6">
+          <h2 className="font-serif italic font-semibold text-3xl sm:text-4xl md:text-5xl text-iron-white mb-4 leading-tight">
             {t("home.section.cta.title")}
           </h2>
+          <p className="font-mono text-xs tracking-[0.2em] text-iron-neon-blue/60 uppercase mb-3">
+            Preuve Cryptographique · Watermark · C2PA
+          </p>
           <p className="text-iron-muted mb-10 max-w-xl mx-auto leading-relaxed">{t("home.section.cta.subtitle")}</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/protect" className="btn-primary">{t("home.cta.work")}</Link>
-            <Link to="/verify" className="btn-secondary">{t("home.verify.cta")}</Link>
+            <motion.div ref={btnRef1 as React.RefObject<HTMLDivElement>} style={{ x: b1x, y: b1y }}>
+              <Link to="/protect" className="btn-primary">{t("home.cta.work")}</Link>
+            </motion.div>
+            <motion.div ref={btnRef2 as React.RefObject<HTMLDivElement>} style={{ x: b2x, y: b2y }}>
+              <Link to="/verify" className="btn-secondary">{t("home.verify.cta")}</Link>
+            </motion.div>
           </div>
         </div>
       </motion.div>
@@ -1289,17 +1673,21 @@ export default function HomePage() {
   }, [location.hash]);
 
   return (
-    <div className="min-h-screen bg-iron-black relative">
-      <HeroSection revealed={revealed} />
-      <TaglineSection />
-      <ArtistShowcaseSection />
-      <AICorruptionSection />
-      <ComparisonSection />
-      <FeaturesSection />
-      <ConstellationSection />
-      <TruthFragmentSection />
-      <FinalCTASection revealed={revealed} />
-      <RevealTruthButton onReveal={handleReveal} revealed={revealed} />
+    <div className="min-h-screen bg-iron-black relative grain-film">
+      {/* Animated mesh gradient nebula background */}
+      <MeshGradientBg />
+      <div className="relative z-[1]">
+        <HeroSection revealed={revealed} />
+        <TaglineSection />
+        <ArtistShowcaseSection />
+        <AICorruptionSection />
+        <ComparisonSection />
+        <FeaturesSection />
+        <ConstellationSection />
+        <TruthFragmentSection />
+        <FinalCTASection revealed={revealed} />
+        <RevealTruthButton onReveal={handleReveal} revealed={revealed} />
+      </div>
     </div>
   );
 }
