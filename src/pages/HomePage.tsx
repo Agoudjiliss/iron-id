@@ -65,7 +65,7 @@ function useMagneticEffect(strength = 0.35) {
       const dx = e.clientX - cx;
       const dy = e.clientY - cy;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      const threshold = Math.max(rect.width, rect.height) * 1.2;
+      const threshold = Math.max(rect.width, rect.height) * 0.55;
       if (dist < threshold) {
         x.set(dx * strength);
         y.set(dy * strength);
@@ -413,6 +413,170 @@ function WaveformVisual({ active }: { active: boolean }) {
 }
 
 /* ────────────────────────────────────────────────────────
+   APERTURE VISUAL — animated camera lens for photography card
+──────────────────────────────────────────────────────── */
+function ApertureVisual({ active }: { active: boolean }) {
+  const blades = Array.from({ length: 8 }, (_, i) => i);
+  return (
+    <svg viewBox="0 0 160 160" className="w-36 h-36 opacity-80" aria-hidden="true">
+      {/* Outer ring */}
+      <motion.circle
+        cx="80" cy="80" r="68"
+        fill="none"
+        stroke="rgba(59,130,246,0.35)"
+        strokeWidth="1"
+        strokeDasharray="8 5"
+        animate={{ rotate: active ? 360 : 0 }}
+        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+        style={{ transformOrigin: "80px 80px" }}
+      />
+      {/* Mid ring */}
+      <motion.circle
+        cx="80" cy="80" r="52"
+        fill="none"
+        stroke="rgba(59,130,246,0.25)"
+        strokeWidth="0.8"
+        animate={{ rotate: active ? -360 : 0 }}
+        transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+        style={{ transformOrigin: "80px 80px" }}
+      />
+      {/* Aperture blades */}
+      {blades.map((i) => {
+        const angle = (i / blades.length) * 360;
+        return (
+          <motion.ellipse
+            key={i}
+            cx="80" cy="80"
+            rx={active ? 6 : 10}
+            ry="28"
+            fill="rgba(59,130,246,0.18)"
+            stroke="rgba(59,130,246,0.45)"
+            strokeWidth="0.6"
+            style={{ transformOrigin: "80px 80px" }}
+            transform={`rotate(${angle} 80 80) translate(0 -22)`}
+            animate={{ rx: active ? 6 : 10, opacity: active ? 0.9 : 0.5 }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
+          />
+        );
+      })}
+      {/* Inner lens */}
+      <motion.circle
+        cx="80" cy="80" r="18"
+        fill="rgba(15,30,80,0.7)"
+        stroke="rgba(147,197,253,0.7)"
+        strokeWidth="1.2"
+        animate={{ r: active ? 14 : 18, opacity: active ? 1 : 0.65 }}
+        transition={{ duration: 0.6, ease: "easeInOut" }}
+      />
+      {/* Centre dot */}
+      <motion.circle
+        cx="80" cy="80" r="4"
+        fill="rgba(147,197,253,0.9)"
+        animate={{ scale: active ? 1.4 : 1, opacity: active ? 1 : 0.6 }}
+        transition={{ duration: 0.4 }}
+        style={{ transformOrigin: "80px 80px" }}
+      />
+      {/* Focus crosshairs */}
+      {([
+        { x1: 80, y1: 58, x2: 80, y2: 66 },
+        { x1: 80, y1: 94, x2: 80, y2: 102 },
+        { x1: 58, y1: 80, x2: 66, y2: 80 },
+        { x1: 94, y1: 80, x2: 102, y2: 80 },
+      ] as const).map((coords, idx) => (
+        <motion.line
+          key={idx}
+          {...coords}
+          stroke="rgba(147,197,253,0.6)"
+          strokeWidth="1"
+          animate={{ opacity: active ? 1 : 0.3 }}
+          transition={{ duration: 0.4 }}
+        />
+      ))}
+    </svg>
+  );
+}
+
+/* ────────────────────────────────────────────────────────
+   FILM STRIP VISUAL — animated cinema reel for cinema card
+──────────────────────────────────────────────────────── */
+const FILM_FRAMES = Array.from({ length: 5 }, (_, i) => i);
+
+function FilmStripVisual({ active }: { active: boolean }) {
+  return (
+    <div className="flex flex-col items-center gap-2" aria-hidden="true">
+      {/* Film strip top perforations */}
+      <div className="flex gap-3">
+        {Array.from({ length: 7 }, (_, i) => (
+          <motion.div
+            key={i}
+            className="w-3 h-2 rounded-sm"
+            style={{ background: "rgba(139,92,246,0.5)", border: "1px solid rgba(139,92,246,0.35)" }}
+            animate={{ opacity: active ? [0.5, 1, 0.5] : 0.3 }}
+            transition={{ duration: 1.2, delay: i * 0.08, repeat: active ? Infinity : 0, repeatType: "reverse" }}
+          />
+        ))}
+      </div>
+      {/* Film frames row */}
+      <div className="flex gap-2 items-center">
+        {FILM_FRAMES.map((i) => (
+          <motion.div
+            key={i}
+            className="rounded-sm overflow-hidden relative"
+            style={{
+              width: i === 2 ? 56 : 36,
+              height: i === 2 ? 42 : 28,
+              background: i === 2
+                ? "radial-gradient(ellipse 80% 70% at 50% 50%, rgba(60,40,120,0.8) 0%, rgba(10,10,30,0.95) 100%)"
+                : "rgba(10,10,30,0.85)",
+              border: `1px solid ${i === 2 ? "rgba(139,92,246,0.7)" : "rgba(139,92,246,0.25)"}`,
+              boxShadow: i === 2 && active ? "0 0 18px rgba(139,92,246,0.45)" : "none",
+            }}
+            animate={{ scale: active && i === 2 ? 1.07 : 1, opacity: active ? 1 : i === 2 ? 0.8 : 0.4 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+          >
+            {/* Play icon on centre frame */}
+            {i === 2 && (
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center"
+                animate={{ opacity: active ? 0 : 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="w-8 h-8 rounded-full border border-white/40 flex items-center justify-center bg-black/40">
+                  <svg className="w-3.5 h-3.5 text-white/80 ml-0.5" fill="currentColor" viewBox="0 0 24 24" aria-label="Play">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+              </motion.div>
+            )}
+            {/* Scan line on hover */}
+            {i === 2 && active && (
+              <motion.div
+                className="absolute inset-0 w-full"
+                style={{ background: "linear-gradient(0deg, transparent, rgba(147,197,253,0.18), transparent)", height: "30%" }}
+                animate={{ y: ["-100%", "400%"] }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+              />
+            )}
+          </motion.div>
+        ))}
+      </div>
+      {/* Film strip bottom perforations */}
+      <div className="flex gap-3">
+        {Array.from({ length: 7 }, (_, i) => (
+          <motion.div
+            key={i}
+            className="w-3 h-2 rounded-sm"
+            style={{ background: "rgba(139,92,246,0.5)", border: "1px solid rgba(139,92,246,0.35)" }}
+            animate={{ opacity: active ? [0.5, 1, 0.5] : 0.3 }}
+            transition={{ duration: 1.2, delay: i * 0.08 + 0.6, repeat: active ? Infinity : 0, repeatType: "reverse" }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ────────────────────────────────────────────────────────
    MULTIMODAL GALLERY — Visual / Cinema / Sound
 ──────────────────────────────────────────────────────── */
 function MultimodalCard({
@@ -493,26 +657,18 @@ function MultimodalCard({
           </div>
         )}
 
-        {/* Cinema card — play button overlay */}
+        {/* Visual card — animated camera aperture */}
+        {type === "visual" && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
+            <ApertureVisual active={hovered} />
+          </div>
+        )}
+
+        {/* Cinema card — film strip + play button */}
         {type === "cinema" && (
-          <AnimatePresence>
-            {!hovered && (
-              <motion.div
-                key="play"
-                className="absolute inset-0 flex items-center justify-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="w-14 h-14 rounded-full border border-white/30 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-                  <svg className="w-6 h-6 text-white/70 ml-1" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
+            <FilmStripVisual active={hovered} />
+          </div>
         )}
 
         {/* Scan sweep on hover */}
@@ -679,8 +835,8 @@ function HeroSection({ revealed }: { revealed: boolean }) {
   const my = useMotionValue(0);
   const springX = useSpring(mx, { stiffness: 50, damping: 20 });
   const springY = useSpring(my, { stiffness: 50, damping: 20 });
-  const { ref: btnRef, springX: btnX, springY: btnY } = useMagneticEffect(0.4);
-  const { ref: btn2Ref, springX: btn2X, springY: btn2Y } = useMagneticEffect(0.4);
+  const { ref: btnRef, springX: btnX, springY: btnY } = useMagneticEffect(0.15);
+  const { ref: btn2Ref, springX: btn2X, springY: btn2Y } = useMagneticEffect(0.15);
 
   useEffect(() => {
     mx.set((mouse.x - 0.5) * 18);
@@ -1045,7 +1201,7 @@ type FeatureItem = {
 };
 
 function FeatureCard({ f, i, inView }: { f: FeatureItem; i: number; inView: boolean }) {
-  const { ref: magRef, springX, springY } = useMagneticEffect(0.18);
+  const { ref: magRef, springX, springY } = useMagneticEffect(0.08);
   return (
     <motion.div
       ref={magRef as React.RefObject<HTMLDivElement>}
@@ -1321,9 +1477,9 @@ function ConstellationSection() {
 ──────────────────────────────────────────────────────── */
 function ContactSection({ revealed }: { revealed: boolean }) {
   const { t } = useI18n();
-  const { ref: btnRef1, springX: b1x, springY: b1y } = useMagneticEffect(0.4);
-  const { ref: btnRef2, springX: b2x, springY: b2y } = useMagneticEffect(0.4);
-  const { ref: btnRef3, springX: b3x, springY: b3y } = useMagneticEffect(0.4);
+  const { ref: btnRef1, springX: b1x, springY: b1y } = useMagneticEffect(0.15);
+  const { ref: btnRef2, springX: b2x, springY: b2y } = useMagneticEffect(0.15);
+  const { ref: btnRef3, springX: b3x, springY: b3y } = useMagneticEffect(0.15);
 
   return (
     <section id="contact" className="py-section px-page relative grain overflow-hidden">
