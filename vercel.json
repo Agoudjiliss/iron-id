@@ -3,6 +3,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/protect",
+      "destination": "https://iron-id-ea601dce55ce.herokuapp.com/api/protect"
+    },
+    {
       "source": "/api/protect/:path*",
       "destination": "https://iron-id-ea601dce55ce.herokuapp.com/api/protect/:path*"
     },
