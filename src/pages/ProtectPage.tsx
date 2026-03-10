@@ -99,7 +99,8 @@ export default function ProtectPage() {
           wsRef.current = null;
           setError(err);
           setStep("error");
-        }
+        },
+        resp.ws_url
       );
       wsRef.current = ws;
     } catch (e: unknown) {
