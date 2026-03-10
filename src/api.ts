@@ -108,7 +108,8 @@ export function connectProgress(
   onError: (err: string) => void,
   wsUrl?: string
 ) {
-let normalizedWsUrl: string;
+  const trimmedWsUrl = wsUrl?.trim();
+  let normalizedWsUrl: string;
   if (!trimmedWsUrl) {
     normalizedWsUrl = `${WS_BASE}/api/ws/progress/${jobId}`;
   } else if (/^wss?:\/\//i.test(trimmedWsUrl)) {
