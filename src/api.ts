@@ -31,6 +31,15 @@ export interface VerifyResponse {
   details: Record<string, unknown>;
 }
 
+const DEFAULT_API_BASE = "https://iron-id-ea601dce55ce.herokuapp.com";
+const API_BASE = (import.meta.env.VITE_API_URL || DEFAULT_API_BASE).replace(/\/$/, "");
+const WS_BASE = API_BASE.replace(/^http/i, "ws");
+
+function buildApiUrl(path: string): string {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${API_BASE}${normalized}`;
+}
+
 async function handleResponse(res: Response, fallback = "Request failed") {
   const err = await res.json().catch(() => ({ detail: res.statusText }));
   const d = err.detail;
@@ -49,7 +58,7 @@ export async function protectFile(
   form.append("protection_level", protectionLevel);
 
   try {
-    const res = await fetch(`/api/protect`, {
+    const res = await fetch(buildApiUrl("/api/protect"), {
       method: "POST",
       body: form,
     });
@@ -65,7 +74,7 @@ export async function protectFile(
 
 export async function getJobResult(jobId: string): Promise<JobResult> {
   const res = await fetch(
-    `/api/protect/result/${jobId}?base_url=${encodeURIComponent(window.location.origin)}`
+    `${buildApiUrl(`/api/protect/result/${jobId}`)}?base_url=${encodeURIComponent(API_BASE)}`
   );
   if (!res.ok) {
     throw new Error(`Job not ready (${res.status})`);
@@ -78,7 +87,7 @@ export async function verifyFile(file: File): Promise<VerifyResponse> {
   form.append("file", file);
 
   try {
-    const res = await fetch(`/api/verify/upload`, {
+    const res = await fetch(buildApiUrl("/api/verify/upload"), {
       method: "POST",
       body: form,
     });
@@ -98,8 +107,7 @@ export function connectProgress(
   onDone: (result: JobResult) => void,
   onError: (err: string) => void
 ) {
-  const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  const ws = new WebSocket(`${wsProtocol}//${window.location.host}/api/ws/progress/${jobId}`);
+  const ws = new WebSocket(`${WS_BASE}/api/ws/progress/${jobId}`);
   ws.onmessage = (e) => {
     const data = JSON.parse(e.data);
     onMessage(data);
@@ -114,7 +122,7 @@ export function connectProgress(
 
 export function getDownloadUrl(outputPath: string): string {
   const filename = outputPath.split("/").pop();
-  return `/uploads/${filename}`;
+  return buildApiUrl(`/uploads/${filename}`);
 }
 
 export interface FeedbackPayload {
