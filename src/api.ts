@@ -105,9 +105,17 @@ export function connectProgress(
   jobId: string,
   onMessage: (data: Record<string, unknown>) => void,
   onDone: (result: JobResult) => void,
-  onError: (err: string) => void
+  onError: (err: string) => void,
+  wsUrl?: string
 ) {
-  const ws = new WebSocket(`${WS_BASE}/api/ws/progress/${jobId}`);
+  const normalizedWsUrl =
+    wsUrl && wsUrl.trim().length > 0
+      ? wsUrl
+          .trim()
+          .replace(/^https:/i, "wss:")
+          .replace(/^http:/i, "ws:")
+      : `${WS_BASE}/api/ws/progress/${jobId}`;
+  const ws = new WebSocket(normalizedWsUrl);
   ws.onmessage = (e) => {
     const data = JSON.parse(e.data);
     onMessage(data);
