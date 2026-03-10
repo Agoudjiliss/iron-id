@@ -108,15 +108,18 @@ export function connectProgress(
   onError: (err: string) => void,
   wsUrl?: string
 ) {
-  const trimmedWsUrl = wsUrl?.trim();
-  const wsCandidate =
-    trimmedWsUrl
-      ? trimmedWsUrl
-          .replace(/^https?:/i, (scheme) => (scheme.toLowerCase() === "https:" ? "wss:" : "ws:"))
-      : `${WS_BASE}/api/ws/progress/${jobId}`;
-  const normalizedWsUrl = /\/api\/ws\/progress(?:\/|$)/.test(wsCandidate)
-    ? wsCandidate
-    : `${wsCandidate.replace(/\/$/, "")}/api/ws/progress/${jobId}`;
+let normalizedWsUrl: string;
+  if (!trimmedWsUrl) {
+    normalizedWsUrl = `${WS_BASE}/api/ws/progress/${jobId}`;
+  } else if (/^wss?:\/\//i.test(trimmedWsUrl)) {
+    normalizedWsUrl = trimmedWsUrl;
+  } else if (/^https?:\/\//i.test(trimmedWsUrl)) {
+    normalizedWsUrl = trimmedWsUrl.replace(/^https:/i, "wss:").replace(/^http:/i, "ws:");
+  } else {
+    // Relative path from backend — prepend WS_BASE (Heroku) directly, Vercel doesn't support WebSocket
+    const path = trimmedWsUrl.startsWith("/") ? trimmedWsUrl : `/${trimmedWsUrl}`;
+    normalizedWsUrl = `${WS_BASE}${path}`;
+  }
   const ws = new WebSocket(normalizedWsUrl);
   ws.onmessage = (e) => {
     const data = JSON.parse(e.data);
