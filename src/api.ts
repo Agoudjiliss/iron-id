@@ -108,13 +108,15 @@ export function connectProgress(
   onError: (err: string) => void,
   wsUrl?: string
 ) {
-  const normalizedWsUrl =
-    wsUrl && wsUrl.trim().length > 0
-      ? wsUrl
-          .trim()
-          .replace(/^https:/i, "wss:")
-          .replace(/^http:/i, "ws:")
+  const trimmedWsUrl = wsUrl?.trim();
+  const wsCandidate =
+    trimmedWsUrl
+      ? trimmedWsUrl
+          .replace(/^https?:/i, (scheme) => (scheme.toLowerCase() === "https:" ? "wss:" : "ws:"))
       : `${WS_BASE}/api/ws/progress/${jobId}`;
+  const normalizedWsUrl = /\/api\/ws\/progress(?:\/|$)/.test(wsCandidate)
+    ? wsCandidate
+    : `${wsCandidate.replace(/\/$/, "")}/api/ws/progress/${jobId}`;
   const ws = new WebSocket(normalizedWsUrl);
   ws.onmessage = (e) => {
     const data = JSON.parse(e.data);
