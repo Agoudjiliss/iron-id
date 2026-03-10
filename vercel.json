@@ -1,7 +1,25 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
+  "rewrites": [
+    {
+      "source": "/api/protect/:path*",
+      "destination": "https://iron-id-ea601dce55ce.herokuapp.com/api/protect/:path*"
+    },
+    {
+      "source": "/api/verify/:path*",
+      "destination": "https://iron-id-ea601dce55ce.herokuapp.com/api/verify/:path*"
+    },
+    {
+      "source": "/api/ws/:path*",
+      "destination": "https://iron-id-ea601dce55ce.herokuapp.com/api/ws/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://iron-id-ea601dce55ce.herokuapp.com/uploads/:path*"
+    },
+    { "source": "/((?!api|uploads).*)", "destination": "/index.html" }
+  ],
   "functions": {
     "api/feedback.ts": {
       "maxDuration": 30
