@@ -127,7 +127,7 @@ export interface FeedbackPayload {
 
 export async function submitFeedback(payload: FeedbackPayload): Promise<{ ok: boolean; id?: string }> {
   try {
-    const res = await fetch(`${API_BASE}/api/feedback`, {
+    const res = await fetch(`/api/feedback`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

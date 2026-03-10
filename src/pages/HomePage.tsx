@@ -454,18 +454,18 @@ function ApertureVisual({ active }: { active: boolean }) {
             strokeWidth="0.6"
             style={{ transformOrigin: "80px 80px" }}
             transform={`rotate(${angle} 80 80) translate(0 -22)`}
-            animate={{ rx: active ? 6 : 10, opacity: active ? 0.9 : 0.5 }}
+            animate={{ opacity: active ? 0.9 : 0.5 }}
             transition={{ duration: 0.6, ease: "easeInOut" }}
           />
         );
       })}
       {/* Inner lens */}
       <motion.circle
-        cx="80" cy="80" r="18"
+        cx="80" cy="80" r={active ? 14 : 18}
         fill="rgba(15,30,80,0.7)"
         stroke="rgba(147,197,253,0.7)"
         strokeWidth="1.2"
-        animate={{ r: active ? 14 : 18, opacity: active ? 1 : 0.65 }}
+        animate={{ opacity: active ? 1 : 0.65 }}
         transition={{ duration: 0.6, ease: "easeInOut" }}
       />
       {/* Centre dot */}
