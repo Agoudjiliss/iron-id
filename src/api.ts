@@ -1,5 +1,3 @@
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
 export interface ProtectResponse {
   job_id: string;
   message: string;
@@ -51,7 +49,7 @@ export async function protectFile(
   form.append("protection_level", protectionLevel);
 
   try {
-    const res = await fetch(`${API_BASE}/api/protect`, {
+    const res = await fetch(`/api/protect`, {
       method: "POST",
       body: form,
     });
@@ -67,7 +65,7 @@ export async function protectFile(
 
 export async function getJobResult(jobId: string): Promise<JobResult> {
   const res = await fetch(
-    `${API_BASE}/api/protect/result/${jobId}?base_url=${encodeURIComponent(API_BASE)}`
+    `/api/protect/result/${jobId}?base_url=${encodeURIComponent(window.location.origin)}`
   );
   if (!res.ok) {
     throw new Error(`Job not ready (${res.status})`);
@@ -80,7 +78,7 @@ export async function verifyFile(file: File): Promise<VerifyResponse> {
   form.append("file", file);
 
   try {
-    const res = await fetch(`${API_BASE}/api/verify/upload`, {
+    const res = await fetch(`/api/verify/upload`, {
       method: "POST",
       body: form,
     });
@@ -100,8 +98,8 @@ export function connectProgress(
   onDone: (result: JobResult) => void,
   onError: (err: string) => void
 ) {
-  const wsBase = API_BASE.replace(/^http/, "ws");
-  const ws = new WebSocket(`${wsBase}/api/ws/progress/${jobId}`);
+  const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const ws = new WebSocket(`${wsProtocol}//${window.location.host}/api/ws/progress/${jobId}`);
   ws.onmessage = (e) => {
     const data = JSON.parse(e.data);
     onMessage(data);
@@ -116,7 +114,7 @@ export function connectProgress(
 
 export function getDownloadUrl(outputPath: string): string {
   const filename = outputPath.split("/").pop();
-  return `${API_BASE}/uploads/${filename}`;
+  return `/uploads/${filename}`;
 }
 
 export interface FeedbackPayload {
