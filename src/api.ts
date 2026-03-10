@@ -33,7 +33,7 @@ export interface VerifyResponse {
 
 const DEFAULT_API_BASE = "https://iron-id-ea601dce55ce.herokuapp.com";
 const API_BASE = (import.meta.env.VITE_API_URL || DEFAULT_API_BASE).replace(/\/$/, "");
-const WS_BASE = API_BASE.replace(/^http/i, "ws");
+const WS_BASE = API_BASE.replace(/^https:/i, "wss:").replace(/^http:/i, "ws:");
 
 function buildApiUrl(path: string): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;
@@ -74,7 +74,7 @@ export async function protectFile(
 
 export async function getJobResult(jobId: string): Promise<JobResult> {
   const res = await fetch(
-    `${buildApiUrl(`/api/protect/result/${jobId}`)}?base_url=${encodeURIComponent(API_BASE)}`
+    `${buildApiUrl(`/api/protect/result/${jobId}`)}?base_url=${encodeURIComponent(window.location.origin)}`
   );
   if (!res.ok) {
     throw new Error(`Job not ready (${res.status})`);
