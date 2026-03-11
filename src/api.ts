@@ -32,12 +32,16 @@ export interface VerifyResponse {
 }
 
 const DEFAULT_API_BASE = "https://iron-id-ea601dce55ce.herokuapp.com";
+// API_BASE is only used to derive the WebSocket base URL.
+// HTTP API calls use relative paths so that the Vite dev-proxy and the
+// Vercel rewrites in vercel.json can route them to the backend without CORS.
 const API_BASE = (import.meta.env.VITE_API_URL || DEFAULT_API_BASE).replace(/\/$/, "");
 const WS_BASE = API_BASE.replace(/^https:/i, "wss:").replace(/^http:/i, "ws:");
 
+// Returns a root-relative path (e.g. "/api/protect") so requests go through
+// the Vite proxy in development and the Vercel rewrites in production.
 function buildApiUrl(path: string): string {
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  return `${API_BASE}${normalized}`;
+  return path.startsWith("/") ? path : `/${path}`;
 }
 
 async function handleResponse(res: Response, fallback = "Request failed") {
