@@ -1,0 +1,214 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  CheckCircle,
+  Clock,
+  XCircle,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Filter,
+} from "lucide-react";
+import {
+  listCertifications,
+  type Certification,
+  type CertificationStatus,
+} from "@/lib/api";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { HashBadge } from "@/components/ui/HashBadge";
+import { cn, formatBytes, formatDate } from "@/lib/utils";
+
+const PAGE_SIZE = 15;
+
+const STATUS_OPTIONS: { value: CertificationStatus | "all"; label: string }[] = [
+  { value: "all",        label: "Tous les statuts"  },
+  { value: "certified",  label: "Certifiés"         },
+  { value: "pending",    label: "En attente"        },
+  { value: "processing", label: "En cours"          },
+  { value: "failed",     label: "Échoués"           },
+];
+
+export function CertificationsListClient() {
+  const [certs, setCerts] = useState<Certification[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<CertificationStatus | "all">("all");
+  const [rawKey, setRawKey] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
+  async function load(p: number, status: CertificationStatus | "all", key: string) {
+    if (!key.startsWith("iid_")) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await listCertifications(key, {
+        page: p,
+        pageSize: PAGE_SIZE,
+        status: status === "all" ? undefined : status,
+      });
+      setCerts(res.data);
+      setTotal(res.total);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur de chargement");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (rawKey) load(page, statusFilter, rawKey);
+  }, [page, statusFilter, rawKey]);
+
+  // API key prompt
+  if (!rawKey.startsWith("iid_")) {
+    return (
+      <div className="max-w-md mx-auto mt-12 text-center space-y-4">
+        <p className="text-sm text-iron-white/50">
+          Entrez votre clé API pour charger vos certifications.
+        </p>
+        <input
+          type="password"
+          placeholder="iid_live_..."
+          onChange={(e) => setRawKey(e.target.value)}
+          className="w-full px-4 py-2.5 rounded-xl bg-iron-slate border border-iron-border font-mono text-sm text-iron-white placeholder:text-iron-white/25 focus:outline-none focus:border-iron-gold/50"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Filter size={14} className="text-iron-white/40" />
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value as CertificationStatus | "all"); setPage(1); }}
+            className="px-3 py-1.5 rounded-xl bg-iron-slate border border-iron-border text-sm text-iron-white focus:outline-none focus:border-iron-gold/50 transition-colors"
+          >
+            {STATUS_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+        <p className="text-xs text-iron-white/40">
+          {total} certification{total !== 1 ? "s" : ""}
+        </p>
+      </div>
+
+      {/* Table */}
+      <div className="rounded-2xl bg-iron-slate border border-iron-border overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center h-48 gap-2 text-iron-white/40 text-sm">
+            <Loader2 size={16} className="animate-spin" />
+            Chargement…
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center h-48 text-iron-red text-sm">
+            {error}
+          </div>
+        ) : certs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-48 text-iron-white/40">
+            <CheckCircle size={28} className="text-iron-border mb-3" />
+            <p className="text-sm">Aucune certification trouvée.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-iron-border">
+                  {["Fichier", "Hash", "Statut", "Date", "Actions"].map((h) => (
+                    <th key={h} className="text-left px-4 py-3 text-xs font-medium text-iron-white/40 whitespace-nowrap">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-iron-border/50">
+                {certs.map((cert) => (
+                  <CertRow key={cert.id} cert={cert} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm text-iron-white/50 hover:text-iron-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <ChevronLeft size={14} /> Précédent
+          </button>
+          <span className="text-xs text-iron-white/40">
+            Page {page} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm text-iron-white/50 hover:text-iron-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            Suivant <ChevronRight size={14} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CertRow({ cert }: { cert: Certification }) {
+  return (
+    <tr className="hover:bg-iron-border/20 transition-colors group">
+      <td className="px-4 py-3 max-w-[200px]">
+        <p className="truncate font-medium text-iron-white text-sm" title={cert.file_name ?? undefined}>
+          {cert.file_name ?? "—"}
+        </p>
+        {cert.file_size_bytes && (
+          <p className="text-xs text-iron-white/40">{formatBytes(cert.file_size_bytes)}</p>
+        )}
+      </td>
+
+      <td className="px-4 py-3">
+        {cert.file_hash_sha256 ? (
+          <HashBadge hash={cert.file_hash_sha256} chars={6} />
+        ) : (
+          <span className="text-iron-white/30 text-xs">—</span>
+        )}
+      </td>
+
+      <td className="px-4 py-3">
+        <StatusBadge status={cert.status} size="sm" />
+      </td>
+
+      <td className="px-4 py-3 text-xs text-iron-white/50 whitespace-nowrap">
+        {formatDate(cert.created_at)}
+      </td>
+
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          {cert.file_hash_sha256 && (
+            <a
+              href={`/verify/${cert.file_hash_sha256}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Page de vérification publique"
+              className="p-1.5 rounded-lg text-iron-white/40 hover:text-iron-gold hover:bg-iron-gold/10 transition-colors"
+            >
+              <ExternalLink size={13} />
+            </a>
+          )}
+        </div>
+      </td>
+    </tr>
+  );
+}

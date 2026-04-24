@@ -1,0 +1,31 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm ci",
+  "regions": ["cdg1"],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options",           "value": "SAMEORIGIN"                                     },
+        { "key": "X-Content-Type-Options",     "value": "nosniff"                                        },
+        { "key": "Referrer-Policy",            "value": "strict-origin-when-cross-origin"                },
+        { "key": "Permissions-Policy",         "value": "camera=(), microphone=(), geolocation=()"       },
+        { "key": "Strict-Transport-Security",  "value": "max-age=63072000; includeSubDomains; preload"   }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0" }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/v1/:path*",
+      "destination": "https://api.ironid.io/v1/:path*"
+    }
+  ]
+}

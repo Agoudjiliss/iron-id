@@ -1,0 +1,57 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "copy": "Copier",
+    "copied": "Copié !",
+    "close": "Fermer",
+    "back": "Retour",
+    "tryAgain": "Réessayer"
+  },
+  "verify": {
+    "title": "Vérifier un fichier",
+    "subtitle": "Glissez un fichier pour vérifier son authenticité sur le ledger IronID",
+    "dropzone": {
+      "idle": "Glissez un fichier ici, ou cliquez pour sélectionner",
+      "hint": "Images, vidéos, PDF, audio — jusqu'à 500 MB",
+      "dragging": "Déposez le fichier",
+      "computing": "Calcul de l'empreinte SHA-256...",
+      "uploading": "Vérification en cours..."
+    },
+    "hashInput": {
+      "label": "Ou entrez un hash SHA-256",
+      "placeholder": "a3f5b9c1d2e4f6...",
+      "button": "Vérifier"
+    },
+    "result": {
+      "certified": "Fichier certifié",
+      "notCertified": "Non certifié",
+      "certifiedDesc": "Ce fichier a été certifié par IronID. Son intégrité et son origine sont authentifiées.",
+      "notCertifiedDesc": "Ce hash n'est associé à aucune certification dans le ledger IronID.",
+      "certifiedAt": "Certifié le",
+      "fileName": "Nom du fichier",
+      "mimeType": "Type",
+      "hash": "Empreinte SHA-256",
+      "certId": "ID de certification",
+      "ledgerEntries": "Entrées dans le ledger",
+      "manifest": "Manifest C2PA",
+      "verifyAnother": "Vérifier un autre fichier",
+      "downloadCertified": "Télécharger le fichier certifié"
+    }
+  },
+  "nav": {
+    "certify": "Certifier",
+    "verify": "Vérifier",
+    "certifications": "Mes certifications",
+    "keys": "Clés API",
+    "billing": "Facturation",
+    "affiliate": "Affiliation",
+    "usage": "Utilisation"
+  },
+  "status": {
+    "pending": "En attente",
+    "processing": "En cours",
+    "certified": "Certifié",
+    "failed": "Échoué"
+  }
+}

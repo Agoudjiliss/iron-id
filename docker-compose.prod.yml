@@ -1,0 +1,90 @@
+version: "3.9"
+
+# Production Docker Compose — use with Railway / self-hosted VPS.
+# Postgres and Redis are expected to be managed services in prod
+# (Railway Postgres, Upstash Redis, etc.) so they are NOT included here.
+# Only the application containers are defined.
+
+x-api-base: &api-base
+  image: ghcr.io/ironid/api:${IMAGE_TAG:-latest}
+  build:
+    context: ./apps/api
+    dockerfile: Dockerfile
+  env_file: .env
+  restart: unless-stopped
+  depends_on:
+    - healthcheck-sentinel
+
+services:
+  # Sentinel service that succeeds once env is validated
+  healthcheck-sentinel:
+    image: busybox
+    command: echo "env ok"
+
+  api:
+    <<: *api-base
+    container_name: ironid_api
+    ports:
+      - "8000:8000"
+    command: >
+      uvicorn main:app
+        --host 0.0.0.0
+        --port 8000
+        --workers 4
+        --log-level info
+        --access-log
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+  celery_worker:
+    <<: *api-base
+    container_name: ironid_celery
+    command: >
+      celery -A tasks.celery_app worker
+        --loglevel=info
+        --concurrency=4
+        --max-tasks-per-child=100
+    healthcheck:
+      test: ["CMD", "celery", "-A", "tasks.celery_app", "inspect", "ping"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+
+  celery_beat:
+    <<: *api-base
+    container_name: ironid_beat
+    command: >
+      celery -A tasks.celery_app beat
+        --loglevel=info
+        --scheduler celery.beat.PersistentScheduler
+
+  web:
+    image: ghcr.io/ironid/web:${IMAGE_TAG:-latest}
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY}
+        NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://app.posthog.com}
+    container_name: ironid_web
+    env_file: ./apps/web/.env.local
+    environment:
+      INTERNAL_API_URL: http://api:8000
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3

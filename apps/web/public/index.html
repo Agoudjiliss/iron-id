@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr" x-data="app()" x-init="init()">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IronID — The Gold Standard for Digital Truth</title>
+  <meta name="description" content="Prove the origin, author, and integrity of any file — forever. Powered by C2PA and the IronID Ledger." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gold: { DEFAULT: '#C9A227', light: '#F5E9C3', dark: '#8B6914', glow: 'rgba(201,162,39,0.15)' },
+            surface: '#F8F7F4',
+            border: '#E8E5DF',
+            muted: '#6B6B7B',
+            verified: { DEFAULT: '#059669', bg: '#ECFDF5' },
+            trust: '#1E40AF',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['"IBM Plex Mono"', '"Fira Code"', 'monospace'],
+            arabic: ['"IBM Plex Arabic"', 'sans-serif'],
+          },
+        }
+      }
+    };
+  </script>
+
+  <!-- Alpine.js CDN -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    /* ── Base ───────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: #fff; color: #0A0A0A; }
+    [dir="rtl"] body { font-family: 'IBM Plex Arabic', sans-serif; }
+
+    /* ── Animations ─────────────────────────── */
+    @keyframes fadeUp   { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes shimmer  { 0%,100% { background-position:200% center; } }
+    @keyframes spin     { to { transform:rotate(360deg); } }
+    @keyframes pulse-ring { 0%,100% { transform:scale(1); opacity:.6; } 50% { transform:scale(1.15); opacity:.2; } }
+    @keyframes drawCheck { from { stroke-dashoffset:100; } to { stroke-dashoffset:0; } }
+    @keyframes progressBar { from { width:0; } to { width:100%; } }
+    @keyframes typewriter { from { width:0; } to { width:100%; } }
+    @keyframes floatCard { 0%,100% { transform:translateY(0px); } 50% { transform:translateY(-8px); } }
+    @keyframes goldPulse { 0%,100%{box-shadow:0 0 0 0 rgba(201,162,39,.3);} 50%{box-shadow:0 0 0 12px rgba(201,162,39,0);} }
+
+    .animate-fade-up   { animation: fadeUp 0.6s ease-out forwards; }
+    .animate-float     { animation: floatCard 4s ease-in-out infinite; }
+    .animate-pulse-ring{ animation: pulse-ring 2s ease-in-out infinite; }
+    .animate-spin-slow { animation: spin 8s linear infinite; }
+
+    /* reveal on scroll */
+    .reveal { opacity:0; transform:translateY(24px); transition:.6s ease-out; }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+
+    /* ── Nav blur ─────────────────────────── */
+    .nav-scrolled { backdrop-filter:blur(12px); background:rgba(255,255,255,.88) !important; border-bottom:1px solid #E8E5DF; }
+
+    /* ── Gold button shimmer ──────────────── */
+    .btn-gold {
+      background: linear-gradient(135deg,#C9A227 0%,#E8C14A 50%,#C9A227 100%);
+      background-size: 200%;
+      transition: all .25s ease;
+    }
+    .btn-gold:hover {
+      background-position: right center;
+      transform: scale(1.02);
+      box-shadow: 0 8px 32px rgba(201,162,39,.35);
+    }
+    .btn-gold:active { transform:scale(.98); }
+
+    /* ── Card hover ───────────────────────── */
+    .card-hover {
+      transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(201,162,39,.12);
+      border-color: #C9A227 !important;
+    }
+
+    /* ── Drop zone ────────────────────────── */
+    .drop-zone {
+      border: 2px dashed #E8E5DF;
+      transition: border-color .2s, background .2s;
+    }
+    .drop-zone:hover, .drop-zone.dragging {
+      border-color: #C9A227;
+      background: #F5E9C3;
+      animation: goldPulse 1.5s infinite;
+    }
+
+    /* ── Code terminal ────────────────────── */
+    .terminal { background:#0A0A0A; border-radius:12px; overflow:hidden; }
+    .terminal-bar { background:#1a1a1a; padding:10px 16px; display:flex; gap:6px; align-items:center; }
+    .dot { width:12px; height:12px; border-radius:50%; }
+
+    /* ── Progress bar demo ────────────────── */
+    .progress-fill { animation: progressBar 1.3s ease-out forwards; }
+
+    /* ── Typewriter hash ──────────────────── */
+    .typewriter {
+      overflow:hidden; white-space:nowrap; width:0;
+      animation: typewriter 1s steps(20) .2s forwards;
+    }
+
+    /* ── Check SVG ────────────────────────── */
+    .check-svg { stroke-dasharray:100; stroke-dashoffset:100; animation: drawCheck .5s ease .3s forwards; }
+
+    /* ── Accordion ────────────────────────── */
+    .accordion-content { max-height:0; overflow:hidden; transition:max-height .35s ease; }
+    .accordion-content.open { max-height:400px; }
+
+    /* ── Pricing toggle ───────────────────── */
+    .pricing-toggle { position:relative; display:inline-flex; background:#F8F7F4; border-radius:99px; padding:4px; }
+    .pricing-toggle button { z-index:1; position:relative; padding:6px 20px; border-radius:99px; font-size:.875rem; font-weight:600; transition:color .2s; }
+    .pricing-toggle .slider {
+      position:absolute; top:4px; height:calc(100% - 8px);
+      background:#fff; border-radius:99px;
+      box-shadow:0 1px 4px rgba(0,0,0,.1);
+      transition:all .3s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── Code tabs ────────────────────────── */
+    .code-tab.active { color:#C9A227; border-bottom:2px solid #C9A227; }
+
+    /* ── Tier cards ───────────────────────── */
+    .tier-iron     { background:#F8F7F4; }
+    .tier-silver   { background:linear-gradient(135deg,#f0f0f0,#e8e8e8); }
+    .tier-gold     { background:linear-gradient(135deg,#F5E9C3,#f0d97a20); border:1px solid #C9A227; }
+    .tier-platinum { background:linear-gradient(135deg,#f3e8ff,#e9d5ff30); border:1px solid #a855f7; }
+
+    /* ── Logo strip ───────────────────────── */
+    .logo-pill { opacity:.45; filter:grayscale(1); transition:.3s; padding:10px 20px; border-radius:8px; font-weight:700; font-size:.85rem; letter-spacing:.05em; border:1px solid #E8E5DF; }
+    .logo-pill:hover { opacity:1; filter:none; }
+
+    /* ── Affiliate calc slider ──────────────── */
+    input[type=range] { -webkit-appearance:none; appearance:none; width:100%; height:6px; border-radius:99px; background:linear-gradient(to right,#C9A227 var(--pct,50%),#E8E5DF var(--pct,50%)); outline:none; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:22px; height:22px; border-radius:50%; background:#C9A227; cursor:pointer; box-shadow:0 2px 8px rgba(201,162,39,.4); }
+
+    /* ── RTL tweaks ─────────────────────────── */
+    [dir="rtl"] .rtl-flip { transform:scaleX(-1); }
+    [dir="rtl"] .text-left { text-align:right; }
+  </style>
+</head>
+
+<body class="antialiased">
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 1 — NAVIGATION                         -->
+<!-- ═══════════════════════════════════════════════ -->
+<header id="navbar" class="fixed top-0 inset-x-0 z-50 bg-white transition-all duration-300">
+  <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <!-- Logo -->
+    <a href="#" class="flex items-center gap-2.5 flex-shrink-0">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <path d="M14 2L4 7v8c0 5.5 4.3 10.7 10 12 5.7-1.3 10-6.5 10-12V7L14 2z" fill="#C9A227" opacity=".15"/>
+        <path d="M14 2L4 7v8c0 5.5 4.3 10.7 10 12 5.7-1.3 10-6.5 10-12V7L14 2z" stroke="#C9A227" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M10 14l2.5 2.5L18 11" stroke="#C9A227" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="text-xl font-extrabold tracking-tight">Iron<span class="text-gold">ID</span></span>
+    </a>
+
+    <!-- Desktop nav -->
+    <nav class="hidden md:flex items-center gap-8">
+      <a href="#features" class="text-sm text-muted hover:text-gray-900 transition-colors" x-text="t('nav_product')"></a>
+      <a href="#pricing"  class="text-sm text-muted hover:text-gray-900 transition-colors" x-text="t('nav_pricing')"></a>
+      <a href="#api"      class="text-sm text-muted hover:text-gray-900 transition-colors">API</a>
+      <a href="#affiliate" class="text-sm text-muted hover:text-gray-900 transition-colors" x-text="t('nav_affiliates')"></a>
+    </nav>
+
+    <!-- Right cluster -->
+    <div class="flex items-center gap-3">
+      <!-- Lang toggle -->
+      <div class="hidden sm:flex items-center gap-1 bg-surface rounded-lg p-1 text-xs font-semibold">
+        <template x-for="l in ['en','fr','ar']" :key="l">
+          <button @click="setLang(l)"
+            :class="lang===l ? 'bg-white shadow-sm text-gold border border-gold' : 'text-muted hover:text-gray-800'"
+            class="px-2.5 py-1 rounded-md transition-all uppercase" x-text="l"></button>
+        </template>
+      </div>
+      <a href="#" class="hidden sm:block text-sm text-muted hover:text-gray-900 transition-colors" x-text="t('sign_in')"></a>
+      <a href="#demo" class="btn-gold text-white text-sm font-semibold px-4 py-2 rounded-lg" x-text="t('start_free')"></a>
+    </div>
+  </div>
+</header>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 2 — HERO                               -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="pt-28 pb-20 px-6 min-h-screen flex items-center overflow-hidden">
+  <div class="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-16 items-center">
+
+    <!-- Left: Copy -->
+    <div class="reveal">
+      <!-- Badge pill -->
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold/10 border border-gold/30 text-gold-dark text-xs font-semibold mb-6">
+        <span class="text-gold">✦</span>
+        <span x-text="t('hero_badge')"></span>
+      </div>
+
+      <h1 class="text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] mb-6" x-html="t('hero_h1')"></h1>
+
+      <p class="text-lg text-muted leading-relaxed mb-8 max-w-lg" x-text="t('hero_sub')"></p>
+
+      <!-- CTAs -->
+      <div class="flex flex-wrap gap-3 mb-8">
+        <a href="#demo" class="btn-gold text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2">
+          <span x-text="t('cta_certify')"></span>
+          <svg class="w-4 h-4 rtl-flip" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </a>
+        <a href="#api" class="border border-border text-sm font-semibold px-6 py-3 rounded-xl hover:bg-surface transition-colors" x-text="t('cta_docs')"></a>
+      </div>
+
+      <!-- Trust bar -->
+      <div class="flex flex-wrap gap-x-6 gap-y-2">
+        <template x-for="item in t('trust_items')" :key="item">
+          <div class="flex items-center gap-1.5 text-xs text-muted">
+            <svg class="w-3.5 h-3.5 text-verified" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+            <span x-text="item"></span>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Right: Animated cert card -->
+    <div class="flex justify-center">
+      <div class="animate-float relative w-full max-w-sm">
+        <!-- Glow behind -->
+        <div class="absolute inset-0 bg-gold/10 rounded-3xl blur-3xl scale-110"></div>
+
+        <div id="hero-card" class="relative bg-white border border-border rounded-2xl shadow-xl overflow-hidden p-6">
+          <!-- Step 1: File -->
+          <div id="step1" class="transition-all duration-500">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 bg-surface rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-gray-900">photo_paris.jpg</p>
+                <p class="text-xs text-muted">4.2 MB · JPEG</p>
+              </div>
+            </div>
+            <div id="progress-wrap" class="hidden mb-4">
+              <div class="flex justify-between text-xs text-muted mb-1">
+                <span>Certifying…</span><span id="pct-text">0%</span>
+              </div>
+              <div class="h-1.5 bg-surface rounded-full overflow-hidden">
+                <div id="progress-fill" class="h-full bg-gold rounded-full transition-all duration-100" style="width:0%"></div>
+              </div>
+            </div>
+            <div id="cert-result" class="hidden">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-6 h-6 bg-verified-bg rounded-full flex items-center justify-center">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5">
+                    <path class="check-svg" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+                <span class="text-sm font-semibold text-verified">Certified in 1.3s</span>
+              </div>
+              <div class="bg-surface rounded-lg p-3">
+                <p class="text-xs text-muted mb-1">SHA-256 Hash</p>
+                <p id="hash-display" class="typewriter text-xs font-mono text-gold overflow-hidden">a3f5b9c1d0e247f8...</p>
+              </div>
+            </div>
+
+            <button id="certify-btn" onclick="runDemo()"
+              class="mt-4 w-full btn-gold text-white text-sm font-semibold py-2.5 rounded-xl">
+              ⚡ Certify Now
+            </button>
+          </div>
+        </div>
+
+        <!-- Floating badges -->
+        <div class="absolute -top-3 -right-3 bg-verified text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg">
+          C2PA ✓
+        </div>
+        <div class="absolute -bottom-3 -left-3 bg-white border border-border text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg text-muted">
+          🔒 Immutable ledger
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 3 — PROBLEM                            -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="py-20 px-6 bg-surface">
+  <div class="max-w-5xl mx-auto text-center">
+    <p class="text-xs font-bold text-gold uppercase tracking-widest mb-3 reveal">The Trust Crisis</p>
+    <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight mb-4 reveal" x-text="t('problem_h2')"></h2>
+    <p class="text-muted text-lg mb-14 reveal" x-text="t('problem_sub')"></p>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-white border border-border rounded-2xl p-8 card-hover reveal" style="transition-delay:.0s">
+        <p class="text-5xl font-extrabold text-gold mb-2 counter" data-target="500" data-suffix="M+">0</p>
+        <p class="text-sm text-muted" x-text="t('stat1')"></p>
+      </div>
+      <div class="bg-white border border-border rounded-2xl p-8 card-hover reveal" style="transition-delay:.1s">
+        <p class="text-5xl font-extrabold text-gold mb-2 counter" data-target="25" data-prefix="$" data-suffix="B">0</p>
+        <p class="text-sm text-muted" x-text="t('stat2')"></p>
+      </div>
+      <div class="bg-white border border-border rounded-2xl p-8 card-hover reveal" style="transition-delay:.2s">
+        <p class="text-5xl font-extrabold text-gold mb-2 counter" data-target="96" data-suffix="%">0</p>
+        <p class="text-sm text-muted" x-text="t('stat3')"></p>
+      </div>
+    </div>
+
+    <div class="mt-10 inline-flex items-center gap-2 bg-trust/5 border border-trust/20 rounded-xl px-5 py-3 reveal">
+      <svg class="w-4 h-4 text-trust flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+      <p class="text-sm text-trust font-medium" x-text="t('ai_act_note')"></p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 4 — DEMO INTERACTIVE                   -->
+<!-- ═══════════════════════════════════════════════ -->
+<section id="demo" class="py-24 px-6">
+  <div class="max-w-2xl mx-auto">
+    <div class="text-center mb-12 reveal">
+      <p class="text-xs font-bold text-gold uppercase tracking-widest mb-3" x-text="t('demo_label')"></p>
+      <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight mb-4" x-text="t('demo_h2')"></h2>
+      <p class="text-muted" x-text="t('demo_sub')"></p>
+    </div>
+
+    <div class="bg-white border border-border rounded-2xl shadow-lg overflow-hidden reveal">
+      <!-- Drop zone -->
+      <div id="main-drop" class="drop-zone m-6 rounded-xl p-12 text-center cursor-pointer"
+           onclick="triggerMainDemo()"
+           ondragover="event.preventDefault(); this.classList.add('dragging')"
+           ondragleave="this.classList.remove('dragging')"
+           ondrop="event.preventDefault(); this.classList.remove('dragging'); triggerMainDemo()">
+        <svg class="w-10 h-10 text-gold mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+        <p class="font-semibold text-gray-900 mb-1" x-text="t('drop_text')"></p>
+        <p class="text-xs text-muted mb-4" x-text="t('drop_formats')"></p>
+        <div class="flex flex-wrap justify-center gap-2">
+          <template x-for="f in ['JPG','PNG','PDF','MP4','WAV','SVG']" :key="f">
+            <span class="px-2.5 py-0.5 bg-surface text-xs text-muted rounded-full border border-border" x-text="f"></span>
+          </template>
+        </div>
+      </div>
+
+      <!-- Optional fields -->
+      <div class="px-6 pb-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <input type="text" :placeholder="t('field_author')" class="border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold transition-colors" />
+        <input type="text" :placeholder="t('field_caption')" class="border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold transition-colors" />
+        <input type="text" :placeholder="t('field_location')" class="border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold transition-colors" />
+      </div>
+
+      <!-- CTA -->
+      <div class="px-6 pb-6">
+        <button onclick="triggerMainDemo()" class="btn-gold w-full text-white font-semibold py-3.5 rounded-xl flex items-center justify-center gap-2">
+          <span>⚡</span>
+          <span x-text="t('btn_certify_now')"></span>
+        </button>
+      </div>
+
+      <!-- Result (hidden initially) -->
+      <div id="main-result" class="hidden px-6 pb-6">
+        <div class="bg-verified-bg border border-verified/20 rounded-xl p-5">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-7 h-7 bg-verified rounded-full flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path class="check-svg-main" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <span class="font-semibold text-verified text-sm" x-text="t('result_certified')"></span>
+          </div>
+          <div class="flex items-center gap-2 bg-white rounded-lg px-3 py-2 mb-4">
+            <span class="text-xs text-muted flex-shrink-0">Hash:</span>
+            <span class="typewriter-main font-mono text-xs text-gold flex-1 overflow-hidden">a3f5b9c1d0e247f8b9a3c5d7e1f2a4b6</span>
+            <button onclick="navigator.clipboard.writeText('a3f5b9c1d0e247f8b9a3c5d7e1f2a4b6')" class="text-xs text-muted hover:text-gold transition-colors">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            </button>
+          </div>
+          <div class="flex gap-2">
+            <button class="flex-1 btn-gold text-white text-xs font-semibold py-2 rounded-lg" x-text="t('btn_download')"></button>
+            <button class="flex-1 border border-border text-xs font-semibold py-2 rounded-lg hover:bg-surface transition-colors" x-text="t('btn_share')"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 5 — 3 PILIERS                          -->
+<!-- ═══════════════════════════════════════════════ -->
+<section id="features" class="py-24 px-6 bg-white">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-16 reveal">
+      <p class="text-xs font-bold text-gold uppercase tracking-widest mb-3" x-text="t('pillars_label')"></p>
+      <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight" x-text="t('pillars_h2')"></h2>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-6">
+      <!-- C2PA -->
+      <div class="border border-border rounded-2xl p-8 card-hover reveal" style="transition-delay:.0s">
+        <div class="w-12 h-12 bg-gold/10 rounded-2xl flex items-center justify-center mb-5">
+          <svg class="w-6 h-6 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </div>
+        <h3 class="text-lg font-bold mb-2" x-text="t('pillar1_h')"></h3>
+        <p class="text-sm text-muted leading-relaxed mb-4" x-text="t('pillar1_p')"></p>
+        <a href="#" class="text-sm font-semibold text-gold hover:text-gold-dark transition-colors" x-text="t('learn_more')"></a>
+      </div>
+
+      <!-- Ledger -->
+      <div class="border border-border rounded-2xl p-8 card-hover reveal" style="transition-delay:.1s">
+        <div class="w-12 h-12 bg-gold/10 rounded-2xl flex items-center justify-center mb-5">
+          <svg class="w-6 h-6 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+        </div>
+        <h3 class="text-lg font-bold mb-2" x-text="t('pillar2_h')"></h3>
+        <p class="text-sm text-muted leading-relaxed mb-4" x-text="t('pillar2_p')"></p>
+        <a href="#" class="text-sm font-semibold text-gold hover:text-gold-dark transition-colors" x-text="t('learn_more')"></a>
+      </div>
+
+      <!-- API -->
+      <div class="border border-border rounded-2xl p-8 card-hover reveal" style="transition-delay:.2s">
+        <div class="w-12 h-12 bg-gold/10 rounded-2xl flex items-center justify-center mb-5">
+          <svg class="w-6 h-6 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+        </div>
+        <h3 class="text-lg font-bold mb-2" x-text="t('pillar3_h')"></h3>
+        <p class="text-sm text-muted leading-relaxed mb-3" x-text="t('pillar3_p')"></p>
+        <div class="terminal text-xs p-3 mb-3">
+          <span class="text-gray-500">npm install </span><span class="text-gold">@ironid/sdk</span>
+        </div>
+        <a href="#api" class="text-sm font-semibold text-gold hover:text-gold-dark transition-colors" x-text="t('learn_more')"></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 6 — SOCIAL PROOF                       -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="py-24 px-6 bg-surface">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <p class="text-xs font-bold text-gold uppercase tracking-widest mb-3" x-text="t('trust_label')"></p>
+      <h2 class="text-3xl font-extrabold tracking-tight" x-text="t('trust_h2')"></h2>
+    </div>
+
+    <!-- Logo strip -->
+    <div class="flex flex-wrap justify-center gap-4 mb-14 reveal">
+      <template x-for="logo in ['PRESS AGENCY','LAW FIRM','BANK','PHOTO AGENCY','NGO']" :key="logo">
+        <div class="logo-pill text-gray-500" x-text="logo"></div>
+      </template>
+    </div>
+
+    <!-- Testimonials -->
+    <div class="grid md:grid-cols-2 gap-6 mb-14">
+      <div class="bg-white border-l-4 border-gold rounded-r-2xl p-6 shadow-sm card-hover reveal">
+        <p class="text-sm text-gray-700 leading-relaxed mb-4 italic" x-text="t('test1_quote')"></p>
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold text-sm">M</div>
+          <div>
+            <p class="text-sm font-semibold" x-text="t('test1_name')"></p>
+            <p class="text-xs text-muted" x-text="t('test1_role')"></p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white border-l-4 border-gold rounded-r-2xl p-6 shadow-sm card-hover reveal" style="transition-delay:.1s">
+        <p class="text-sm text-gray-700 leading-relaxed mb-4 italic" x-text="t('test2_quote')"></p>
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gold/20 flex items-center justify-center text-gold font-bold text-sm">T</div>
+          <div>
+            <p class="text-sm font-semibold" x-text="t('test2_name')"></p>
+            <p class="text-xs text-muted" x-text="t('test2_role')"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white border border-border rounded-2xl p-6 text-center card-hover reveal">
+        <p class="text-3xl font-extrabold text-gold mb-1 counter" data-target="47832" data-suffix="+">0</p>
+        <p class="text-xs text-muted" x-text="t('kpi1')"></p>
+      </div>
+      <div class="bg-white border border-border rounded-2xl p-6 text-center card-hover reveal" style="transition-delay:.05s">
+        <p class="text-3xl font-extrabold text-gold mb-1 counter" data-target="142">0</p>
+        <p class="text-xs text-muted" x-text="t('kpi2')"></p>
+      </div>
+      <div class="bg-white border border-border rounded-2xl p-6 text-center card-hover reveal" style="transition-delay:.1s">
+        <p class="text-3xl font-extrabold text-gold mb-1">99.9%</p>
+        <p class="text-xs text-muted" x-text="t('kpi3')"></p>
+      </div>
+      <div class="bg-white border border-border rounded-2xl p-6 text-center card-hover reveal" style="transition-delay:.15s">
+        <p class="text-3xl font-extrabold text-gold mb-1">&lt; 1.3s</p>
+        <p class="text-xs text-muted" x-text="t('kpi4')"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 7 — PRICING                            -->
+<!-- ═══════════════════════════════════════════════ -->
+<section id="pricing" class="py-24 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-12 reveal">
+      <p class="text-xs font-bold text-gold uppercase tracking-widest mb-3" x-text="t('pricing_label')"></p>
+      <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight mb-6" x-text="t('pricing_h2')"></h2>
+
+      <!-- Monthly / Yearly toggle -->
+      <div class="pricing-toggle inline-block reveal" x-data="{yearly:false}">
+        <div class="slider" :style="yearly ? 'left:calc(50% + 4px);width:calc(50% - 4px)' : 'left:4px;width:calc(50% - 4px)'"></div>
+        <button @click="yearly=false; $dispatch('pricing-toggle',{yearly:false})" :class="!yearly?'text-gray-900':'text-muted'" x-text="t('monthly')"></button>
+        <button @click="yearly=true;  $dispatch('pricing-toggle',{yearly:true})"  :class="yearly?'text-gray-900':'text-muted'">
+          <span x-text="t('yearly')"></span>
+          <span class="ml-1 text-xs text-verified font-bold">-20%</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5" x-data="{yearly:false}" @pricing-toggle.window="yearly=$event.detail.yearly">
+
+      <!-- Free -->
+      <div class="border border-border rounded-2xl p-6 card-hover reveal flex flex-col">
+        <p class="text-xs font-bold text-muted uppercase tracking-wider mb-2" x-text="t('plan_free')"></p>
+        <p class="text-4xl font-extrabold mb-1">$0</p>
+        <p class="text-xs text-muted mb-5" x-text="t('per_month')"></p>
+        <ul class="space-y-2.5 flex-1 mb-6">
+          <template x-for="f in t('free_features')" :key="f">
+            <li class="flex items-start gap-2 text-xs text-muted">
+              <svg class="w-3.5 h-3.5 text-verified mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span x-text="f"></span>
+            </li>
+          </template>
+        </ul>
+        <a href="#" class="block text-center border border-border text-sm font-semibold py-2.5 rounded-xl hover:bg-surface transition-colors" x-text="t('cta_free')"></a>
+      </div>
+
+      <!-- Individual — POPULAR -->
+      <div class="rounded-2xl p-6 card-hover reveal flex flex-col relative overflow-hidden" style="background:#F5E9C3;border:1.5px solid #C9A227;transition-delay:.05s">
+        <div class="absolute top-0 right-0 bg-gold text-white text-xs font-bold px-3 py-1 rounded-bl-xl" x-text="t('popular')"></div>
+        <p class="text-xs font-bold text-gold-dark uppercase tracking-wider mb-2" x-text="t('plan_individual')"></p>
+        <p class="text-4xl font-extrabold mb-1">
+          <span x-text="yearly ? '$23' : '$29'"></span>
+        </p>
+        <p class="text-xs text-muted mb-5" x-text="t('per_month')"></p>
+        <ul class="space-y-2.5 flex-1 mb-6">
+          <template x-for="f in t('ind_features')" :key="f">
+            <li class="flex items-start gap-2 text-xs text-muted">
+              <svg class="w-3.5 h-3.5 text-verified mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span x-text="f"></span>
+            </li>
+          </template>
+        </ul>
+        <a href="#demo" class="btn-gold block text-center text-white text-sm font-semibold py-2.5 rounded-xl" x-text="t('cta_start')"></a>
+      </div>
+
+      <!-- Studio -->
+      <div class="border border-border rounded-2xl p-6 card-hover reveal flex flex-col" style="transition-delay:.1s">
+        <p class="text-xs font-bold text-muted uppercase tracking-wider mb-2" x-text="t('plan_studio')"></p>
+        <p class="text-4xl font-extrabold mb-1">
+          <span x-text="yearly ? '$159' : '$199'"></span>
+        </p>
+        <p class="text-xs text-muted mb-5" x-text="t('per_month')"></p>
+        <ul class="space-y-2.5 flex-1 mb-6">
+          <template x-for="f in t('studio_features')" :key="f">
+            <li class="flex items-start gap-2 text-xs text-muted">
+              <svg class="w-3.5 h-3.5 text-verified mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span x-text="f"></span>
+            </li>
+          </template>
+        </ul>
+        <a href="#demo" class="block text-center bg-gray-900 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-gray-800 transition-colors" x-text="t('cta_start')"></a>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="bg-gray-950 text-white rounded-2xl p-6 card-hover reveal flex flex-col" style="transition-delay:.15s">
+        <p class="text-xs font-bold text-gold uppercase tracking-wider mb-2" x-text="t('plan_enterprise')"></p>
+        <p class="text-4xl font-extrabold mb-1">
+          <span x-text="yearly ? '$960' : '$1,200'"></span>
+        </p>
+        <p class="text-xs text-gray-400 mb-5" x-text="t('per_month')"></p>
+        <ul class="space-y-2.5 flex-1 mb-6">
+          <template x-for="f in t('ent_features')" :key="f">
+            <li class="flex items-start gap-2 text-xs text-gray-300">
+              <svg class="w-3.5 h-3.5 text-gold mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              <span x-text="f"></span>
+            </li>
+          </template>
+        </ul>
+        <a href="#" class="block text-center border border-gold text-gold text-sm font-semibold py-2.5 rounded-xl hover:bg-gold/10 transition-colors" x-text="t('cta_enterprise')"></a>
+      </div>
+    </div>
+
+    <!-- Trust notes -->
+    <div class="mt-8 flex flex-wrap justify-center gap-6 text-xs text-muted reveal">
+      <span>✓ 30-day money-back guarantee</span>
+      <span>✓ 99.9% SLA</span>
+      <span>✓ Cancel anytime</span>
+      <span>🇪🇺 Hosted in Europe · GDPR compliant</span>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 8 — API SHOWCASE                       -->
+<!-- ═══════════════════════════════════════════════ -->
+<section id="api" class="py-24 px-6 bg-surface">
+  <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 items-center">
+
+    <!-- Left -->
+    <div class="reveal">
+      <p class="text-xs font-bold text-gold uppercase tracking-widest mb-3" x-text="t('api_label')"></p>
+      <h2 class="text-3xl lg:text-5xl font-extrabold tracking-tight leading-tight mb-4" x-html="t('api_h2')"></h2>
+      <p class="text-muted mb-6" x-text="t('api_sub')"></p>
+      <div class="flex flex-wrap gap-2 mb-8">
+        <template x-for="sdk in ['npm install @ironid/sdk','pip install ironid']" :key="sdk">
+          <div class="bg-gray-950 text-gold font-mono text-xs px-4 py-2 rounded-lg">
+            <span x-text="sdk"></span>
+          </div>
+        </template>
+      </div>
+      <a href="#" class="btn-gold text-white font-semibold px-6 py-3 rounded-xl inline-flex items-center gap-2" x-text="t('api_cta')"></a>
+    </div>
+
+    <!-- Right: Terminal -->
+    <div class="reveal" style="transition-delay:.15s" x-data="{tab:'js'}">
+      <div class="terminal shadow-2xl">
+        <!-- Tab bar -->
+        <div class="terminal-bar justify-between">
+          <div class="flex gap-1.5">
+            <div class="dot bg-red-500"></div>
+            <div class="dot bg-yellow-400"></div>
+            <div class="dot bg-green-400"></div>
+          </div>
+          <div class="flex gap-1">
+            <button @click="tab='js'"  :class="tab==='js' ? 'text-gold border-b border-gold' : 'text-gray-500 hover:text-gray-300'" class="px-3 py-1 text-xs font-mono transition-colors">JavaScript</button>
+            <button @click="tab='py'"  :class="tab==='py' ? 'text-gold border-b border-gold' : 'text-gray-500 hover:text-gray-300'" class="px-3 py-1 text-xs font-mono transition-colors">Python</button>
+            <button @click="tab='php'" :class="tab==='php'? 'text-gold border-b border-gold' : 'text-gray-500 hover:text-gray-300'" class="px-3 py-1 text-xs font-mono transition-colors">PHP</button>
+          </div>
+        </div>
+
+        <!-- JS -->
+        <pre x-show="tab==='js'" class="text-xs p-5 text-gray-300 leading-relaxed overflow-x-auto"><span class="text-gray-500">// npm install @ironid/sdk</span>
+<span class="text-purple-400">import</span> { IronID } <span class="text-purple-400">from</span> <span class="text-green-400">'@ironid/sdk'</span>;
+
+<span class="text-gray-500">const</span> client = <span class="text-purple-400">new</span> <span class="text-yellow-300">IronID</span>({
+  apiKey: <span class="text-gold">'iid_live_...'</span>
+});
+
+<span class="text-gray-500">const</span> cert = <span class="text-purple-400">await</span> client.certifications
+  .<span class="text-yellow-300">certifyAndWait</span>({
+    file: fs.<span class="text-yellow-300">readFileSync</span>(<span class="text-green-400">'photo.jpg'</span>),
+    filename: <span class="text-green-400">'photo.jpg'</span>,
+    metadata: { author: <span class="text-green-400">'Jane Doe'</span> }
+  });
+
+console.<span class="text-yellow-300">log</span>(cert.status);          <span class="text-gray-600">// "certified"</span>
+console.<span class="text-yellow-300">log</span>(cert.file_hash_sha256); <span class="text-gold">// a3f5b9c1...</span></pre>
+
+        <!-- Python -->
+        <pre x-show="tab==='py'" class="text-xs p-5 text-gray-300 leading-relaxed overflow-x-auto"><span class="text-gray-500"># pip install ironid</span>
+<span class="text-purple-400">from</span> ironid <span class="text-purple-400">import</span> IronID
+
+<span class="text-purple-400">with</span> <span class="text-yellow-300">IronID</span>(api_key=<span class="text-green-400">"iid_live_..."</span>) <span class="text-purple-400">as</span> client:
+    cert = client.certifications.<span class="text-yellow-300">certify_and_wait</span>(
+        <span class="text-yellow-300">open</span>(<span class="text-green-400">"photo.jpg"</span>, <span class="text-green-400">"rb"</span>),
+        filename=<span class="text-green-400">"photo.jpg"</span>,
+        metadata={<span class="text-green-400">"author"</span>: <span class="text-green-400">"Jane Doe"</span>},
+    )
+    <span class="text-yellow-300">print</span>(cert.status)           <span class="text-gray-600"># "certified"</span>
+    <span class="text-yellow-300">print</span>(cert.file_hash_sha256) <span class="text-gold"># a3f5b9c1...</span></pre>
+
+        <!-- PHP -->
+        <pre x-show="tab==='php'" class="text-xs p-5 text-gray-300 leading-relaxed overflow-x-auto"><span class="text-gray-500">// composer require ironid/sdk</span>
+<span class="text-purple-400">use</span> IronID\Client;
+
+$client = <span class="text-purple-400">new</span> <span class="text-yellow-300">Client</span>([
+    <span class="text-green-400">'api_key'</span> => <span class="text-gold">'iid_live_...'</span>
+]);
+
+$cert = $client->certifications-><span class="text-yellow-300">certifyAndWait</span>([
+    <span class="text-green-400">'file'</span>     => <span class="text-yellow-300">fopen</span>(<span class="text-green-400">'photo.jpg'</span>, <span class="text-green-400">'r'</span>),
+    <span class="text-green-400">'filename'</span> => <span class="text-green-400">'photo.jpg'</span>,
+    <span class="text-green-400">'metadata'</span> => [<span class="text-green-400">'author'</span> => <span class="text-green-400">'Jane Doe'</span>],
+]);
+
+<span class="text-yellow-300">echo</span> $cert->status;          <span class="text-gray-600">// "certified"</span>
+<span class="text-yellow-300">echo</span> $cert->file_hash_sha256; <span class="text-gold">// a3f5b9c1...</span></pre>
+
+        <!-- Result badge -->
+        <div class="m-4 mt-0 bg-verified-bg/20 border border-verified/30 rounded-lg p-3 flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-verified animate-pulse"></div>
+          <span class="font-mono text-xs text-verified">status: <span class="font-bold">"certified"</span></span>
+          <span class="font-mono text-xs text-gold ms-auto">hash: a3f5b9c1...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 9 — AFFILIATION (LE CENTREPIECE)       -->
+<!-- ═══════════════════════════════════════════════ -->
+<section id="affiliate" class="py-24 px-6" style="background:linear-gradient(160deg,#fff 0%,#F5E9C3 100%)">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-14 reveal">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold/10 border border-gold/30 text-gold-dark text-xs font-semibold mb-5">
+        <span class="text-gold">✦</span>
+        <span x-text="t('aff_badge')"></span>
+      </div>
+      <h2 class="text-4xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-4" x-html="t('aff_h2')"></h2>
+      <p class="text-muted text-lg max-w-xl mx-auto" x-text="t('aff_sub')"></p>
+    </div>
+
+    <!-- Calculator -->
+    <div class="bg-white rounded-2xl border border-border shadow-xl p-8 mb-10 reveal"
+         x-data="{
+           clients: 20,
+           plan: 199,
+           rate: 0.10,
+           get monthly() { return Math.round(this.clients * this.plan * this.rate); },
+           get yearly()  { return this.monthly * 12; },
+           get tier()    { return this.clients>=50?'Platinum':this.clients>=30?'Gold':this.clients>=15?'Silver':this.clients>=5?'Bronze':'Iron'; },
+           get tierRate(){ return this.clients>=50?.20:this.clients>=30?.17:this.clients>=15?.15:this.clients>=5?.12:.10; },
+           updateSlider(e){ this.clients=+e.target.value; this.rate=this.tierRate; let pct=(this.clients-1)/99*100; e.target.style.setProperty('--pct',pct+'%'); }
+         }">
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Controls -->
+        <div>
+          <div class="mb-6">
+            <div class="flex justify-between mb-3">
+              <label class="text-sm font-semibold" x-text="t('calc_clients')"></label>
+              <span class="text-2xl font-extrabold text-gold" x-text="clients"></span>
+            </div>
+            <input type="range" min="1" max="100" x-model="clients"
+              @input="updateSlider($event); rate=tierRate"
+              style="--pct:19%" />
+            <div class="flex justify-between text-xs text-muted mt-1"><span>1</span><span>50</span><span>100</span></div>
+          </div>
+
+          <div>
+            <label class="text-sm font-semibold block mb-2" x-text="t('calc_plan')"></label>
+            <select x-model.number="plan" @change="rate=tierRate" class="w-full border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gold transition-colors bg-white">
+              <option value="29">Individual — $29/mo</option>
+              <option value="199" selected>Studio — $199/mo</option>
+              <option value="1200">Enterprise — $1,200/mo</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Result -->
+        <div class="bg-surface rounded-2xl p-6 flex flex-col justify-between">
+          <div>
+            <p class="text-xs text-muted mb-1" x-text="t('calc_monthly')"></p>
+            <p class="text-5xl font-extrabold text-gold mb-1" x-text="'$'+monthly.toLocaleString()+'/mo'"></p>
+            <p class="text-lg text-muted font-semibold" x-text="'$'+yearly.toLocaleString()+'/yr'"></p>
+          </div>
+          <div class="mt-4 flex items-center gap-2">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full"
+              :class="{'tier-iron text-gray-500':tier==='Iron','tier-silver text-gray-600':tier==='Bronze','tier-gold text-gold-dark':tier==='Silver','bg-gold/20 text-gold-dark':tier==='Gold','bg-purple-100 text-purple-700':tier==='Platinum'}"
+              x-text="tier+' tier'"></span>
+            <span class="text-xs text-muted" x-text="(tierRate*100).toFixed(0)+'% commission'"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tier cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+      <div class="tier-iron rounded-2xl p-5 text-center card-hover reveal border border-border">
+        <div class="text-2xl mb-2">🔩</div>
+        <p class="font-bold text-sm mb-1" x-text="t('tier_iron')"></p>
+        <p class="text-xs text-muted mb-1">0–5 clients</p>
+        <p class="text-xl font-extrabold text-gray-700">10%</p>
+      </div>
+      <div class="tier-silver rounded-2xl p-5 text-center card-hover reveal" style="transition-delay:.05s">
+        <div class="text-2xl mb-2">🥈</div>
+        <p class="font-bold text-sm mb-1" x-text="t('tier_bronze')"></p>
+        <p class="text-xs text-muted mb-1">5–15 clients</p>
+        <p class="text-xl font-extrabold text-gray-600">12%</p>
+      </div>
+      <div class="tier-gold rounded-2xl p-5 text-center card-hover reveal" style="transition-delay:.1s">
+        <div class="text-2xl mb-2">🥇</div>
+        <p class="font-bold text-sm mb-1" x-text="t('tier_gold')"></p>
+        <p class="text-xs text-muted mb-1">15–50 clients</p>
+        <p class="text-xl font-extrabold text-gold-dark">15–17%</p>
+      </div>
+      <div class="tier-platinum rounded-2xl p-5 text-center card-hover reveal" style="transition-delay:.15s">
+        <div class="text-2xl mb-2">💎</div>
+        <p class="font-bold text-sm mb-1" x-text="t('tier_platinum')"></p>
+        <p class="text-xs text-muted mb-1">50+ clients</p>
+        <p class="text-xl font-extrabold text-purple-600">20%</p>
+      </div>
+    </div>
+
+    <div class="text-center reveal">
+      <a href="#" class="btn-gold text-white font-bold px-8 py-4 rounded-2xl inline-flex items-center gap-2 text-base">
+        <span x-text="t('aff_cta')"></span>
+        <svg class="w-4 h-4 rtl-flip" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+      </a>
+      <p class="text-xs text-muted mt-3" x-text="t('aff_reassure')"></p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 10 — FAQ                               -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="py-24 px-6 bg-white">
+  <div class="max-w-2xl mx-auto">
+    <div class="text-center mb-12 reveal">
+      <p class="text-xs font-bold text-gold uppercase tracking-widest mb-3">FAQ</p>
+      <h2 class="text-3xl font-extrabold tracking-tight" x-text="t('faq_h2')"></h2>
+    </div>
+
+    <div class="space-y-3" x-data="{open:null}">
+      <template x-for="(item, i) in t('faq_items')" :key="i">
+        <div class="border border-border rounded-2xl overflow-hidden card-hover reveal">
+          <button @click="open===i ? open=null : open=i"
+            class="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-surface transition-colors"
+            :aria-expanded="open===i">
+            <span class="text-sm font-semibold" x-text="item.q"></span>
+            <svg class="w-4 h-4 text-muted flex-shrink-0 transition-transform" :class="open===i?'rotate-180':''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div :class="open===i ? 'accordion-content open' : 'accordion-content'" class="accordion-content">
+            <div class="px-6 pb-4 border-t border-gold/20">
+              <p class="text-sm text-muted leading-relaxed pt-3" x-text="item.a"></p>
+            </div>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- SECTION 11 — CTA FINAL + FOOTER                -->
+<!-- ═══════════════════════════════════════════════ -->
+<section class="bg-gray-950 text-white py-24 px-6">
+  <div class="max-w-3xl mx-auto text-center">
+    <div class="mb-12 reveal">
+      <h2 class="text-4xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-5" x-text="t('final_h2')"></h2>
+      <p class="text-gray-400 text-lg mb-8" x-text="t('final_sub')"></p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+        <a href="#demo" class="btn-gold text-white font-bold px-8 py-4 rounded-2xl flex items-center gap-2 text-base">
+          <span x-text="t('final_cta1')"></span>
+          <svg class="w-4 h-4 rtl-flip" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </a>
+        <a href="#" class="border border-white/30 text-white font-bold px-8 py-4 rounded-2xl hover:bg-white/10 transition-colors text-base" x-text="t('final_cta2')"></a>
+      </div>
+      <p class="text-xs text-gray-500" x-text="t('final_micro')"></p>
+    </div>
+
+    <!-- Trust badges -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-14 reveal">
+      <div class="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+        <p class="text-lg mb-1">🔒</p><p class="text-xs text-gray-400">256-bit encryption</p>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+        <p class="text-lg mb-1">🇪🇺</p><p class="text-xs text-gray-400">GDPR · Hosted in EU</p>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+        <p class="text-lg mb-1">📋</p><p class="text-xs text-gray-400">AI Act Ready</p>
+      </div>
+      <div class="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+        <p class="text-lg mb-1">✅</p><p class="text-xs text-gray-400">C2PA Certified</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="border-t border-white/10 pt-10">
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-6 mb-6">
+        <div class="flex items-center gap-2">
+          <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
+            <path d="M14 2L4 7v8c0 5.5 4.3 10.7 10 12 5.7-1.3 10-6.5 10-12V7L14 2z" fill="#C9A227" opacity=".3"/>
+            <path d="M14 2L4 7v8c0 5.5 4.3 10.7 10 12 5.7-1.3 10-6.5 10-12V7L14 2z" stroke="#C9A227" stroke-width="1.5"/>
+            <path d="M10 14l2.5 2.5L18 11" stroke="#C9A227" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="font-extrabold text-white">Iron<span class="text-gold">ID</span></span>
+        </div>
+        <div class="flex gap-5 text-xs text-gray-500">
+          <a href="#" class="hover:text-gray-300 transition-colors">Privacy</a>
+          <a href="#" class="hover:text-gray-300 transition-colors">Terms</a>
+          <a href="#" class="hover:text-gray-300 transition-colors">AI Act Compliance</a>
+        </div>
+      </div>
+      <p class="text-xs text-gray-600">
+        © 2026 IronID · Hosted in Europe 🇪🇺 · Trusted in the Gulf 🇸🇦
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- ALPINE.JS APP + TRANSLATIONS                   -->
+<!-- ═══════════════════════════════════════════════ -->
+<script>
+const translations = {
+  en: {
+    nav_product: 'Product', nav_pricing: 'Pricing', nav_affiliates: 'Affiliates',
+    sign_in: 'Sign in', start_free: 'Start Free →',
+    hero_badge: 'C2PA Certified Platform · Trusted Globally',
+    hero_h1: 'The Gold Standard<br>for Digital Truth.',
+    hero_sub: 'Prove the origin, author, and integrity of any file — forever. Powered by C2PA and the IronID Ledger.',
+    cta_certify: 'Certify for free',
+    cta_docs: 'View API docs',
+    trust_items: ['Bank-grade encryption','< 2s certification','AI Act compliant','No credit card required'],
+    problem_h2: 'The digital world has a trust problem.',
+    problem_sub: 'Deepfakes, manipulated evidence, and unverified media cost billions every year.',
+    stat1: 'Deepfakes created in 2025',
+    stat2: 'Lost to media fraud annually',
+    stat3: 'Of viral images lack provenance proof',
+    ai_act_note: 'IronID is fully compliant with the EU AI Act and GDPR.',
+    demo_label: 'Live Demo',
+    demo_h2: 'Certify any file in under 2 seconds.',
+    demo_sub: 'Drop a file, add metadata, and receive a permanent cryptographic proof.',
+    drop_text: 'Drop your file here or click to browse',
+    drop_formats: 'Supports JPG · PNG · PDF · MP4 · WAV · SVG',
+    field_author: 'Author name',
+    field_caption: 'Caption',
+    field_location: 'Location',
+    btn_certify_now: 'Certify Now — $0.10',
+    result_certified: '✅ Certified in 1.3s',
+    btn_download: '⬇ Download certified file',
+    btn_share: '🔗 Share verification link',
+    pillars_label: 'How it works',
+    pillars_h2: 'Three pillars. Unbreakable trust.',
+    pillar1_h: 'C2PA Signature — The Universal Seal',
+    pillar1_p: 'The open standard backed by Adobe, Microsoft, Google. Recognized globally by browsers, newsrooms, and courts.',
+    pillar2_h: 'IronID Ledger — Permanent Proof',
+    pillar2_p: 'Immutable PostgreSQL ledger with Row-Level Security. Even if metadata is stripped, the proof survives forever.',
+    pillar3_h: 'API First — Built for Developers',
+    pillar3_p: '2 lines of code. Certified forever. SDKs for JS, Python, and PHP.',
+    learn_more: 'Learn more →',
+    trust_label: 'Social Proof',
+    trust_h2: 'Trusted by forward-thinking organizations',
+    test1_quote: '"IronID allowed us to prove the authenticity of our press photos in seconds. A game-changer for trust."',
+    test1_name: 'Marie L.',
+    test1_role: 'Photo Director, Press Agency',
+    test2_quote: '"SDK integration took 20 minutes. We now automatically certify every export from our creative pipeline."',
+    test2_name: 'Théo M.',
+    test2_role: 'Lead Developer, Video Studio',
+    kpi1: 'Files certified',
+    kpi2: 'Countries reached',
+    kpi3: 'API uptime SLA',
+    kpi4: 'Avg. certification time',
+    pricing_label: 'Pricing',
+    pricing_h2: 'Simple, transparent pricing.',
+    monthly: 'Monthly',
+    yearly: 'Yearly',
+    popular: 'Most Popular',
+    per_month: '/month',
+    plan_free: 'Free',
+    plan_individual: 'Individual',
+    plan_studio: 'Studio',
+    plan_enterprise: 'Enterprise',
+    cta_free: 'Get started',
+    cta_start: 'Start now',
+    cta_enterprise: 'Contact Sales',
+    free_features: ['10 certifications/month','Public verification','API access','SHA-256 ledger'],
+    ind_features: ['500 certifications/month','Files up to 200 MB','Full API + SDK','C2PA manifest','30-day history','Email support','30-day money-back'],
+    studio_features: ['5,000 certifications/month','Files up to 500 MB','Webhooks unlimited','Team dashboard','Priority support','99.9% SLA'],
+    ent_features: ['Unlimited certifications','Dedicated VPS','Unlimited history','24/7 dedicated support','Custom SLA','GDPR — EU data'],
+    api_label: 'Developer First',
+    api_h2: 'Two lines of code.<br>Certified forever.',
+    api_sub: 'Full REST API with official SDKs for JavaScript, Python, and PHP. Async processing with webhooks or polling.',
+    api_cta: 'Read the API docs →',
+    aff_badge: 'Affiliate Program · Earn for life',
+    aff_h2: 'Earn 10% forever.<br>On every payment.',
+    aff_sub: 'Refer a bank on the Enterprise plan ($1,200/mo)? That\'s $120 every single month — forever.',
+    calc_clients: 'How many clients will you refer?',
+    calc_plan: 'Average plan',
+    calc_monthly: 'Your monthly earnings',
+    tier_iron: 'Iron', tier_bronze: 'Bronze', tier_gold: 'Gold', tier_platinum: 'Platinum',
+    aff_cta: 'Get your affiliate link →',
+    aff_reassure: 'Paid monthly · No cap · No expiry · PayPal payouts',
+    faq_h2: 'Frequently asked questions',
+    faq_items: [
+      { q: 'Is IronID compliant with the AI Act and GDPR?', a: 'Yes. IronID is fully compliant with the EU AI Act (Article 50 on content provenance) and GDPR. All data is stored on servers in Europe. We can provide a DPA on request.' },
+      { q: 'What happens if a social network strips the metadata?', a: 'The hash stored in the IronID Ledger is permanent and independent of metadata. Even if EXIF data is removed, anyone can re-upload the file or enter its hash to verify authenticity.' },
+      { q: 'How is IronID different from a simple watermark?', a: 'A watermark is visual and can be cropped or edited out. IronID creates a cryptographic SHA-256 fingerprint of the file and signs it with ECDSA P-256 — tamper-evident by design.' },
+      { q: 'Is the data stored in Europe?', a: 'Yes. All data is stored on infrastructure in the European Union. We comply with GDPR and can sign a Data Processing Agreement (DPA) for Enterprise customers.' },
+      { q: 'Can I integrate IronID into my existing app?', a: 'Absolutely. We offer a full REST API and official SDKs for JavaScript, Python, and PHP. Integration typically takes less than 30 minutes.' },
+      { q: 'When and how are affiliate commissions paid?', a: 'Commissions are paid monthly via PayPal, 30 days after each transaction (anti-fraud hold). Minimum payout is $1. No cap, no expiry.' },
+      { q: 'Is there a free trial for Enterprise?', a: 'Yes. We offer a 14-day full-feature trial for Enterprise. Contact sales@ironid.io to set it up — no credit card required.' },
+    ],
+    final_h2: 'Start proving your content is real.',
+    final_sub: 'Join thousands of creators, journalists, and developers who trust IronID.',
+    final_cta1: 'Start for free →',
+    final_cta2: 'Book a demo',
+    final_micro: 'No credit card required · Setup in 2 minutes · Cancel anytime',
+  },
+
+  fr: {
+    nav_product: 'Produit', nav_pricing: 'Tarifs', nav_affiliates: 'Affiliation',
+    sign_in: 'Connexion', start_free: 'Commencer →',
+    hero_badge: 'Plateforme C2PA certifiée · Reconnue mondialement',
+    hero_h1: 'Le Standard Or<br>de la Vérité Numérique.',
+    hero_sub: 'Prouvez l\'origine, l\'auteur et l\'intégrité de n\'importe quel fichier — pour toujours. Propulsé par C2PA et le Ledger IronID.',
+    cta_certify: 'Certifier gratuitement',
+    cta_docs: 'Voir la documentation API',
+    trust_items: ['Chiffrement niveau bancaire','< 2s de certification','Conforme AI Act','Sans carte bancaire'],
+    problem_h2: 'Le monde numérique a un problème de confiance.',
+    problem_sub: 'Deepfakes, preuves manipulées, images sans provenance — les médias perdent la confiance du public.',
+    stat1: 'Deepfakes créés en 2025',
+    stat2: 'Perdus à cause de la fraude médiatique',
+    stat3: 'Des images virales sans preuve d\'origine',
+    ai_act_note: 'IronID est entièrement conforme à l\'AI Act européen et au RGPD.',
+    demo_label: 'Démo en direct',
+    demo_h2: 'Certifiez n\'importe quel fichier en moins de 2 secondes.',
+    demo_sub: 'Déposez un fichier, ajoutez des métadonnées, obtenez une preuve cryptographique permanente.',
+    drop_text: 'Déposez votre fichier ici ou cliquez pour parcourir',
+    drop_formats: 'Formats : JPG · PNG · PDF · MP4 · WAV · SVG',
+    field_author: 'Nom de l\'auteur',
+    field_caption: 'Légende',
+    field_location: 'Localisation',
+    btn_certify_now: 'Certifier maintenant — $0.10',
+    result_certified: '✅ Certifié en 1,3s',
+    btn_download: '⬇ Télécharger le fichier certifié',
+    btn_share: '🔗 Partager le lien de vérification',
+    pillars_label: 'Comment ça marche',
+    pillars_h2: 'Trois piliers. Une confiance indestructible.',
+    pillar1_h: 'Signature C2PA — Le Sceau Universel',
+    pillar1_p: 'Le standard ouvert soutenu par Adobe, Microsoft, Google. Reconnu par les navigateurs, rédactions et tribunaux.',
+    pillar2_h: 'Ledger IronID — Preuve Permanente',
+    pillar2_p: 'Ledger PostgreSQL immuable avec Row-Level Security. Même si les métadonnées sont supprimées, la preuve survit éternellement.',
+    pillar3_h: 'API First — Conçu pour les développeurs',
+    pillar3_p: '2 lignes de code. Certifié pour toujours. SDK pour JS, Python et PHP.',
+    learn_more: 'En savoir plus →',
+    trust_label: 'Preuve sociale',
+    trust_h2: 'Fait confiance par des organisations visionnaires',
+    test1_quote: '"IronID nous a permis de prouver l\'authenticité de nos photos de presse en quelques secondes. Un game-changer."',
+    test1_name: 'Marie L.',
+    test1_role: 'Directrice photo, Agence de presse',
+    test2_quote: '"L\'intégration SDK a pris 20 minutes. On certifie maintenant automatiquement chaque export de notre pipeline."',
+    test2_name: 'Théo M.',
+    test2_role: 'Lead Developer, Studio vidéo',
+    kpi1: 'Fichiers certifiés',
+    kpi2: 'Pays atteints',
+    kpi3: 'Disponibilité API (SLA)',
+    kpi4: 'Temps moyen de certification',
+    pricing_label: 'Tarifs',
+    pricing_h2: 'Des tarifs simples et transparents.',
+    monthly: 'Mensuel',
+    yearly: 'Annuel',
+    popular: 'Le plus populaire',
+    per_month: '/mois',
+    plan_free: 'Gratuit',
+    plan_individual: 'Individual',
+    plan_studio: 'Studio',
+    plan_enterprise: 'Enterprise',
+    cta_free: 'Commencer',
+    cta_start: 'Démarrer',
+    cta_enterprise: 'Contacter les ventes',
+    free_features: ['10 certifications/mois','Vérification publique','Accès API','Ledger SHA-256'],
+    ind_features: ['500 certifications/mois','Fichiers jusqu\'à 200 Mo','API + SDK complet','Manifest C2PA','Historique 30 jours','Support email','Remboursement 30 jours'],
+    studio_features: ['5 000 certifications/mois','Fichiers jusqu\'à 500 Mo','Webhooks illimités','Dashboard d\'équipe','Support prioritaire','SLA 99,9%'],
+    ent_features: ['Certifications illimitées','VPS dédié','Historique illimité','Support 24/7 dédié','SLA personnalisé','RGPD — données UE'],
+    api_label: 'Developers First',
+    api_h2: 'Deux lignes de code.<br>Certifié pour toujours.',
+    api_sub: 'API REST complète avec SDK officiels pour JavaScript, Python et PHP. Traitement asynchrone avec webhooks ou polling.',
+    api_cta: 'Lire la documentation →',
+    aff_badge: 'Programme d\'affiliation · Gagnez à vie',
+    aff_h2: 'Gagnez 10% à vie.<br>Sur chaque paiement.',
+    aff_sub: 'Parrainez une banque sur le plan Enterprise (1 200 $/mois) ? C\'est 120 $ chaque mois — à vie.',
+    calc_clients: 'Combien de clients allez-vous parrainer ?',
+    calc_plan: 'Plan moyen',
+    calc_monthly: 'Vos gains mensuels',
+    tier_iron: 'Fer', tier_bronze: 'Bronze', tier_gold: 'Or', tier_platinum: 'Platine',
+    aff_cta: 'Obtenir votre lien d\'affiliation →',
+    aff_reassure: 'Payé mensuellement · Sans plafond · Sans expiration · Virement PayPal',
+    faq_h2: 'Questions fréquentes',
+    faq_items: [
+      { q: 'IronID est-il conforme à l\'AI Act et au RGPD ?', a: 'Oui. IronID est entièrement conforme à l\'AI Act européen (article 50 sur la provenance du contenu) et au RGPD. Toutes les données sont stockées sur des serveurs en Europe. Nous pouvons fournir un DPA sur demande.' },
+      { q: 'Que se passe-t-il si un réseau social supprime les métadonnées ?', a: 'Le hash stocké dans le Ledger IronID est permanent et indépendant des métadonnées. Même si les données EXIF sont supprimées, n\'importe qui peut re-uploader le fichier ou entrer son hash pour vérifier son authenticité.' },
+      { q: 'En quoi IronID est-il différent d\'un simple filigrane ?', a: 'Un filigrane est visuel et peut être recadré ou effacé. IronID crée une empreinte cryptographique SHA-256 du fichier et la signe avec ECDSA P-256 — inviolable par conception.' },
+      { q: 'Les données sont-elles stockées en Europe ?', a: 'Oui. Toutes les données sont stockées sur des infrastructures situées dans l\'Union européenne. Nous respectons le RGPD et pouvons signer un DPA pour les clients Enterprise.' },
+      { q: 'Puis-je intégrer IronID dans mon application existante ?', a: 'Absolument. Nous proposons une API REST complète et des SDK officiels pour JavaScript, Python et PHP. L\'intégration prend généralement moins de 30 minutes.' },
+      { q: 'Quand et comment les commissions d\'affiliation sont-elles payées ?', a: 'Les commissions sont versées mensuellement via PayPal, 30 jours après chaque transaction (délai anti-fraude). Minimum de versement : 1 $. Sans plafond ni expiration.' },
+      { q: 'Y a-t-il un essai gratuit pour l\'Enterprise ?', a: 'Oui. Nous proposons un essai gratuit de 14 jours avec toutes les fonctionnalités pour l\'Enterprise. Contactez sales@ironid.io pour le configurer — sans carte bancaire.' },
+    ],
+    final_h2: 'Commencez à prouver que votre contenu est réel.',
+    final_sub: 'Rejoignez des milliers de créateurs, journalistes et développeurs qui font confiance à IronID.',
+    final_cta1: 'Commencer gratuitement →',
+    final_cta2: 'Réserver une démo',
+    final_micro: 'Sans carte bancaire · Configuration en 2 minutes · Annulez à tout moment',
+  },
+
+  ar: {
+    nav_product: 'المنتج', nav_pricing: 'الأسعار', nav_affiliates: 'الشراكة',
+    sign_in: 'تسجيل الدخول', start_free: 'ابدأ مجاناً →',
+    hero_badge: 'منصة معتمدة C2PA · موثوقة عالمياً',
+    hero_h1: 'المعيار الذهبي<br>للحقيقة الرقمية.',
+    hero_sub: 'أثبت أصل ومؤلف وسلامة أي ملف — إلى الأبد. مدعوم بـ C2PA وسجل IronID.',
+    cta_certify: 'اعتمد مجاناً',
+    cta_docs: 'عرض وثائق API',
+    trust_items: ['تشفير على مستوى البنوك','< 2 ثانية للاعتماد','متوافق مع قانون الذكاء الاصطناعي','بدون بطاقة ائتمان'],
+    problem_h2: 'العالم الرقمي يعاني من أزمة ثقة.',
+    problem_sub: 'التزوير، الأدلة المتلاعب بها، والمحتوى بلا مصدر يكلف المليارات كل عام.',
+    stat1: 'صورة مزيفة أُنشئت عام 2025',
+    stat2: 'خسائر احتيال الإعلام سنوياً',
+    stat3: 'من الصور الفيروسية بلا دليل مصدر',
+    ai_act_note: 'IronID متوافق تماماً مع قانون الذكاء الاصطناعي الأوروبي والناظم الأوروبي لحماية البيانات.',
+    demo_label: 'عرض مباشر',
+    demo_h2: 'اعتمد أي ملف في أقل من ثانيتين.',
+    demo_sub: 'أسقط ملفاً، أضف بيانات وصفية، واحصل على دليل تشفيري دائم.',
+    drop_text: 'أسقط ملفك هنا أو انقر للاستعراض',
+    drop_formats: 'الصيغ المدعومة: JPG · PNG · PDF · MP4 · WAV · SVG',
+    field_author: 'اسم المؤلف',
+    field_caption: 'التعليق',
+    field_location: 'الموقع',
+    btn_certify_now: 'اعتمد الآن — $0.10',
+    result_certified: '✅ تم الاعتماد في 1.3 ثانية',
+    btn_download: '⬇ تحميل الملف المعتمد',
+    btn_share: '🔗 مشاركة رابط التحقق',
+    pillars_label: 'كيف يعمل',
+    pillars_h2: 'ثلاثة أعمدة. ثقة لا تتزعزع.',
+    pillar1_h: 'توقيع C2PA — الختم العالمي',
+    pillar1_p: 'المعيار المفتوح المدعوم من Adobe وMicrosoft وGoogle. معترف به من المتصفحات والصحف والمحاكم.',
+    pillar2_h: 'سجل IronID — دليل دائم',
+    pillar2_p: 'سجل PostgreSQL غير قابل للتغيير مع أمان على مستوى الصف. حتى لو حُذفت البيانات الوصفية، يبقى الدليل للأبد.',
+    pillar3_h: 'API أولاً — مبني للمطورين',
+    pillar3_p: 'سطران من الكود. معتمد للأبد. SDKs لـ JS وPython وPHP.',
+    learn_more: 'اعرف أكثر →',
+    trust_label: 'شهادات',
+    trust_h2: 'موثوق به من منظمات رائدة',
+    test1_quote: '"مكّننا IronID من إثبات أصالة صور الصحافة في ثوانٍ. تحول حقيقي في بناء الثقة."',
+    test1_name: 'ماري ل.',
+    test1_role: 'مديرة التصوير، وكالة أنباء',
+    test2_quote: '"استغرق تكامل SDK عشرين دقيقة. الآن نعتمد كل ملف تلقائياً من خط إنتاجنا الإبداعي."',
+    test2_name: 'ثيو م.',
+    test2_role: 'مطور رئيسي، استوديو فيديو',
+    kpi1: 'ملف معتمد',
+    kpi2: 'دولة مغطاة',
+    kpi3: 'اتفاقية مستوى الخدمة',
+    kpi4: 'متوسط وقت الاعتماد',
+    pricing_label: 'الأسعار',
+    pricing_h2: 'أسعار بسيطة وشفافة.',
+    monthly: 'شهري',
+    yearly: 'سنوي',
+    popular: 'الأكثر شعبية',
+    per_month: '/شهر',
+    plan_free: 'مجاني',
+    plan_individual: 'فردي',
+    plan_studio: 'استوديو',
+    plan_enterprise: 'مؤسسات',
+    cta_free: 'ابدأ',
+    cta_start: 'ابدأ الآن',
+    cta_enterprise: 'تواصل مع المبيعات',
+    free_features: ['10 اعتمادات/شهر','تحقق عام','وصول API','سجل SHA-256'],
+    ind_features: ['500 اعتماد/شهر','ملفات حتى 200 MB','API + SDK كامل','قائمة C2PA','سجل 30 يوم','دعم بريد إلكتروني','ضمان استرداد 30 يوم'],
+    studio_features: ['5000 اعتماد/شهر','ملفات حتى 500 MB','Webhooks غير محدودة','لوحة تحكم الفريق','دعم أولوية','99.9% SLA'],
+    ent_features: ['اعتمادات غير محدودة','خادم مخصص','سجل غير محدود','دعم 24/7 مخصص','SLA مخصص','GDPR — بيانات أوروبية'],
+    api_label: 'المطورون أولاً',
+    api_h2: 'سطران من الكود.<br>معتمد للأبد.',
+    api_sub: 'API REST كامل مع SDKs رسمية لـ JavaScript وPython وPHP. معالجة غير متزامنة مع Webhooks أو Polling.',
+    api_cta: 'اقرأ وثائق API →',
+    aff_badge: 'برنامج الشراكة · اكسب مدى الحياة',
+    aff_h2: 'اكسب 10% إلى الأبد.<br>على كل دفعة.',
+    aff_sub: 'رشّح بنكاً للخطة المؤسسية ($1200/شهر)؟ هذا 120 دولار كل شهر — إلى الأبد.',
+    calc_clients: 'كم عدد العملاء الذين ستُرشّحهم؟',
+    calc_plan: 'متوسط الخطة',
+    calc_monthly: 'أرباحك الشهرية',
+    tier_iron: 'حديد', tier_bronze: 'برونز', tier_gold: 'ذهب', tier_platinum: 'بلاتين',
+    aff_cta: 'احصل على رابط الشراكة →',
+    aff_reassure: 'يُدفع شهرياً · بدون سقف · بدون انتهاء · دفع PayPal',
+    faq_h2: 'الأسئلة المتكررة',
+    faq_items: [
+      { q: 'هل IronID متوافق مع قانون الذكاء الاصطناعي والـ GDPR؟', a: 'نعم. IronID متوافق تماماً مع قانون الذكاء الاصطناعي الأوروبي (المادة 50 حول مصدر المحتوى) والـ GDPR. تُخزَّن جميع البيانات على خوادم في أوروبا.' },
+      { q: 'ماذا يحدث إذا حذفت شبكة اجتماعية البيانات الوصفية؟', a: 'يبقى الـ Hash المخزن في سجل IronID دائماً ومستقلاً عن البيانات الوصفية. حتى لو حُذفت بيانات EXIF، يمكن لأي شخص رفع الملف مجدداً أو إدخال الـ Hash للتحقق من الأصالة.' },
+      { q: 'كيف يختلف IronID عن العلامة المائية البسيطة؟', a: 'العلامة المائية مرئية ويمكن قصّها أو محوها. IronID ينشئ بصمة تشفيرية SHA-256 للملف ويوقّعها بـ ECDSA P-256 — مقاومة للتلاعب بتصميمها.' },
+      { q: 'هل البيانات مخزّنة في أوروبا؟', a: 'نعم. جميع البيانات مخزّنة على بنية تحتية في الاتحاد الأوروبي. نلتزم بـ GDPR ويمكننا توقيع اتفاقية DPA لعملاء Enterprise.' },
+      { q: 'هل يمكنني دمج IronID في تطبيقي الحالي؟', a: 'بالتأكيد. نوفر API REST كاملاً وSDKs رسمية لـ JavaScript وPython وPHP. يستغرق التكامل عادةً أقل من 30 دقيقة.' },
+      { q: 'متى وكيف تُدفع عمولات الشراكة؟', a: 'تُدفع العمولات شهرياً عبر PayPal، بعد 30 يوماً من كل معاملة (فترة مكافحة الاحتيال). الحد الأدنى للصرف: 1 دولار. بدون سقف أو انتهاء.' },
+      { q: 'هل هناك تجربة مجانية للمؤسسات؟', a: 'نعم. نقدم تجربة مجانية لمدة 14 يوماً بجميع الميزات لخطة المؤسسات. تواصل مع sales@ironid.io لإعدادها — بدون بطاقة ائتمان.' },
+    ],
+    final_h2: 'ابدأ بإثبات أن محتواك حقيقي.',
+    final_sub: 'انضم إلى آلاف المبدعين والصحفيين والمطورين الذين يثقون بـ IronID.',
+    final_cta1: 'ابدأ مجاناً →',
+    final_cta2: 'احجز عرضاً تجريبياً',
+    final_micro: 'بدون بطاقة ائتمان · إعداد في دقيقتين · إلغاء في أي وقت',
+  }
+};
+
+function app() {
+  return {
+    lang: 'fr',
+    t(key) {
+      const d = translations[this.lang] || translations['fr'];
+      return d[key] ?? key;
+    },
+    setLang(l) {
+      this.lang = l;
+      document.documentElement.lang = l;
+      document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+      if (l === 'ar') {
+        document.body.style.fontFamily = "'IBM Plex Arabic', sans-serif";
+      } else {
+        document.body.style.fontFamily = "'Inter', sans-serif";
+      }
+    },
+    init() {
+      // Nav scroll effect
+      window.addEventListener('scroll', () => {
+        const nav = document.getElementById('navbar');
+        nav.classList.toggle('nav-scrolled', window.scrollY > 20);
+      }, { passive: true });
+
+      // Intersection observer for reveal
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry, i) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            // counters
+            if (entry.target.querySelector('.counter')) {
+              entry.target.querySelectorAll('.counter').forEach(el => animateCounter(el));
+            }
+            if (entry.target.classList.contains('counter')) {
+              animateCounter(entry.target);
+            }
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15 });
+
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+      document.querySelectorAll('.counter').forEach(el => observer.observe(el));
+
+      // Hero card demo loop
+      setTimeout(runHeroLoop, 1500);
+    }
+  };
+}
+
+// ── Counter animation ────────────────────────────
+function animateCounter(el) {
+  const target = parseInt(el.dataset.target, 10);
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  const duration = 1500;
+  const steps = 60;
+  const step = duration / steps;
+  let current = 0;
+  const increment = target / steps;
+  const timer = setInterval(() => {
+    current = Math.min(current + increment, target);
+    el.textContent = prefix + Math.floor(current).toLocaleString() + suffix;
+    if (current >= target) clearInterval(timer);
+  }, step);
+}
+
+// ── Hero card demo ───────────────────────────────
+let demoRunning = false;
+function runDemo() {
+  if (demoRunning) return;
+  demoRunning = true;
+
+  const btn = document.getElementById('certify-btn');
+  const progressWrap = document.getElementById('progress-wrap');
+  const certResult = document.getElementById('cert-result');
+  const pctText = document.getElementById('pct-text');
+  const fill = document.getElementById('progress-fill');
+
+  btn.disabled = true;
+  btn.textContent = 'Processing…';
+  progressWrap.classList.remove('hidden');
+  certResult.classList.add('hidden');
+
+  let pct = 0;
+  const interval = setInterval(() => {
+    pct += Math.random() * 15;
+    if (pct >= 100) { pct = 100; clearInterval(interval); showResult(); }
+    fill.style.width = pct + '%';
+    pctText.textContent = Math.floor(pct) + '%';
+  }, 80);
+
+  function showResult() {
+    setTimeout(() => {
+      progressWrap.classList.add('hidden');
+      certResult.classList.remove('hidden');
+      setTimeout(() => { demoRunning = false; btn.disabled = false; btn.textContent = '⚡ Certify Again'; }, 3000);
+    }, 200);
+  }
+}
+
+function runHeroLoop() {
+  let cycle = 0;
+  setInterval(() => {
+    cycle++;
+    if (cycle % 6 === 0 && !demoRunning) runDemo();
+  }, 500);
+}
+
+// ── Main demo ────────────────────────────────────
+let mainDemoRunning = false;
+function triggerMainDemo() {
+  if (mainDemoRunning) return;
+  mainDemoRunning = true;
+
+  const dropZone = document.getElementById('main-drop');
+  const result = document.getElementById('main-result');
+  result.classList.add('hidden');
+
+  dropZone.innerHTML = `
+    <div class="py-4">
+      <div class="text-sm font-semibold text-gray-900 mb-3">photo_paris.jpg</div>
+      <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-2">
+        <div id="main-bar" class="h-full bg-[#C9A227] rounded-full transition-all duration-100" style="width:0%"></div>
+      </div>
+      <div id="main-pct" class="text-xs text-[#6B6B7B]">0%</div>
+    </div>`;
+
+  let pct = 0;
+  const bar = document.getElementById('main-bar');
+  const pctEl = document.getElementById('main-pct');
+
+  const interval = setInterval(() => {
+    pct += Math.random() * 12;
+    if (pct >= 100) {
+      pct = 100;
+      clearInterval(interval);
+      setTimeout(() => {
+        result.classList.remove('hidden');
+        dropZone.innerHTML = `
+          <svg class="w-10 h-10 text-[#C9A227] mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          <p class="font-semibold text-gray-900 mb-1">Drop another file</p>
+          <p class="text-xs text-[#6B6B7B]">Click to certify again</p>`;
+        mainDemoRunning = false;
+      }, 300);
+    }
+    if (bar) bar.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = Math.floor(pct) + '%';
+  }, 80);
+}
+</script>
+
+</body>
+</html>

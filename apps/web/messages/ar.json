@@ -1,0 +1,57 @@
+{
+  "common": {
+    "loading": "جارٍ التحميل...",
+    "error": "حدث خطأ",
+    "copy": "نسخ",
+    "copied": "تم النسخ!",
+    "close": "إغلاق",
+    "back": "رجوع",
+    "tryAgain": "حاول مجدداً"
+  },
+  "verify": {
+    "title": "التحقق من ملف",
+    "subtitle": "أسقط ملفاً للتحقق من أصالته في سجل IronID",
+    "dropzone": {
+      "idle": "أسقط ملفاً هنا، أو انقر للاختيار",
+      "hint": "صور، فيديو، PDF، صوت — حتى 500 ميغابايت",
+      "dragging": "أسقط الملف",
+      "computing": "جارٍ حساب بصمة SHA-256...",
+      "uploading": "جارٍ التحقق..."
+    },
+    "hashInput": {
+      "label": "أو أدخل قيمة SHA-256",
+      "placeholder": "a3f5b9c1d2e4f6...",
+      "button": "تحقق"
+    },
+    "result": {
+      "certified": "ملف معتمد",
+      "notCertified": "غير معتمد",
+      "certifiedDesc": "تم اعتماد هذا الملف بواسطة IronID. تمت مصادقة سلامته وأصله.",
+      "notCertifiedDesc": "هذه البصمة غير مرتبطة بأي اعتماد في سجل IronID.",
+      "certifiedAt": "تاريخ الاعتماد",
+      "fileName": "اسم الملف",
+      "mimeType": "النوع",
+      "hash": "بصمة SHA-256",
+      "certId": "معرف الاعتماد",
+      "ledgerEntries": "إدخالات السجل",
+      "manifest": "بيان C2PA",
+      "verifyAnother": "التحقق من ملف آخر",
+      "downloadCertified": "تحميل الملف المعتمد"
+    }
+  },
+  "nav": {
+    "certify": "اعتماد",
+    "verify": "تحقق",
+    "certifications": "اعتماداتي",
+    "keys": "مفاتيح API",
+    "billing": "الفواتير",
+    "affiliate": "الإحالة",
+    "usage": "الاستخدام"
+  },
+  "status": {
+    "pending": "في الانتظار",
+    "processing": "قيد المعالجة",
+    "certified": "معتمد",
+    "failed": "فشل"
+  }
+}

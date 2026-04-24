@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   IronID Design System — CSS Custom Properties
+   "The Gold Standard for Digital Truth"
+   ============================================================ */
+
+:root {
+  --iron-black:    #0A0A0A;
+  --iron-white:    #FAFAFA;
+  --iron-gold:     #D4AF37;
+  --iron-gold-dim: #9E7F1A;
+  --iron-slate:    #1A1A2E;
+  --iron-border:   #2A2A3E;
+  --iron-green:    #00D26A;
+  --iron-red:      #FF4757;
+  --iron-blue:     #4A90E2;
+}
+
+/* ---- Base ---- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--iron-black);
+  color: var(--iron-white);
+  font-family: var(--font-inter, 'Inter', system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar          { width: 6px; height: 6px; }
+::-webkit-scrollbar-track    { background: var(--iron-slate); }
+::-webkit-scrollbar-thumb    { background: var(--iron-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--iron-gold-dim); }
+
+/* ---- Selection ---- */
+::selection {
+  background: rgba(212, 175, 55, 0.25);
+  color: var(--iron-white);
+}
+
+/* ---- Focus ring (accessibility) ---- */
+:focus-visible {
+  outline: 2px solid var(--iron-gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- RTL support for Arabic ---- */
+[dir="rtl"] {
+  text-align: right;
+}
+
+/* ---- Utility classes ---- */
+@layer utilities {
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #D4AF37, #F5D060, #9E7F1A);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .border-gold-gradient {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(var(--iron-slate), var(--iron-slate)) padding-box,
+      linear-gradient(135deg, #D4AF37, #9E7F1A) border-box;
+  }
+
+  .glass {
+    background: rgba(26, 26, 46, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--iron-border);
+  }
+
+  .mono {
+    font-family: var(--font-jetbrains, 'JetBrains Mono', monospace);
+    font-size: 0.875rem;
+    letter-spacing: -0.01em;
+  }
+}

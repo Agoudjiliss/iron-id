@@ -1,0 +1,57 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "close": "Close",
+    "back": "Back",
+    "tryAgain": "Try again"
+  },
+  "verify": {
+    "title": "Verify a File",
+    "subtitle": "Drop a file to verify its authenticity on the IronID ledger",
+    "dropzone": {
+      "idle": "Drop a file here, or click to select",
+      "hint": "Images, videos, PDFs, audio — up to 500 MB",
+      "dragging": "Drop the file",
+      "computing": "Computing SHA-256 fingerprint...",
+      "uploading": "Verifying..."
+    },
+    "hashInput": {
+      "label": "Or enter a SHA-256 hash",
+      "placeholder": "a3f5b9c1d2e4f6...",
+      "button": "Verify"
+    },
+    "result": {
+      "certified": "Certified File",
+      "notCertified": "Not Certified",
+      "certifiedDesc": "This file has been certified by IronID. Its integrity and origin are authenticated.",
+      "notCertifiedDesc": "This hash is not associated with any certification in the IronID ledger.",
+      "certifiedAt": "Certified on",
+      "fileName": "File name",
+      "mimeType": "Type",
+      "hash": "SHA-256 fingerprint",
+      "certId": "Certification ID",
+      "ledgerEntries": "Ledger entries",
+      "manifest": "C2PA Manifest",
+      "verifyAnother": "Verify another file",
+      "downloadCertified": "Download certified file"
+    }
+  },
+  "nav": {
+    "certify": "Certify",
+    "verify": "Verify",
+    "certifications": "My certifications",
+    "keys": "API Keys",
+    "billing": "Billing",
+    "affiliate": "Affiliate",
+    "usage": "Usage"
+  },
+  "status": {
+    "pending": "Pending",
+    "processing": "Processing",
+    "certified": "Certified",
+    "failed": "Failed"
+  }
+}
