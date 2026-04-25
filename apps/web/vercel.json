@@ -25,7 +25,7 @@
   "rewrites": [
     {
       "source": "/api/v1/:path*",
-      "destination": "https://api.ironid.io/v1/:path*"
+      "destination": "https://api.iron-id.io/v1/:path*"
     }
   ]
 }

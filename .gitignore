@@ -24,6 +24,8 @@ __pycache__/
 .env.production.local
 .env.production
 *.env
+!.env.example
+!.env.test
 
 # Logs
 npm-debug.log*

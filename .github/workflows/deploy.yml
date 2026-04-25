@@ -6,25 +6,55 @@ on:
 
 jobs:
   deploy-api:
-    name: Deploy API → Railway
+    name: Deploy API → GCP VPS
     runs-on: ubuntu-latest
     environment: production
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:        ${{ secrets.VPS_IP }}
+          username:    ubuntu
+          key:         ${{ secrets.VPS_SSH_KEY }}
+          timeout:     300s
+          script: |
+            set -e
+            cd /opt/ironid/repo
+            git pull origin main
 
-      - name: Deploy API service
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service ironid-api --detach
+            # Rebuild image from monorepo root
+            docker build -f apps/api/Dockerfile -t ironid-api:latest .
 
-      - name: Deploy Celery worker
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service ironid-celery --detach
+            # Restart API
+            docker rm -f ironid-api 2>/dev/null || true
+            docker run -d \
+              --name ironid-api \
+              --restart always \
+              --env-file /opt/ironid/.env \
+              --network host \
+              ironid-api:latest
+
+            # Restart Celery worker
+            docker rm -f ironid-celery 2>/dev/null || true
+            docker run -d \
+              --name ironid-celery \
+              --restart always \
+              --env-file /opt/ironid/.env \
+              --network host \
+              ironid-api:latest \
+              celery -A tasks.celery_app worker --loglevel=info
+
+            # Run any new migrations
+            sleep 5
+            docker exec ironid-api alembic -c /migrations/alembic.ini upgrade head || true
+
+      - name: Health check
+        run: |
+          sleep 15
+          curl -sf https://api.iron-id.io/health
 
   deploy-web:
     name: Deploy Web → Vercel
@@ -38,10 +68,10 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      - name: Deploy to Vercel (production)
+      - name: Deploy to Vercel
         env:
-          VERCEL_TOKEN:   ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID:  ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_TOKEN:      ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID:     ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           cd apps/web
