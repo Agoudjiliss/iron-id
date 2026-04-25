@@ -13,10 +13,11 @@ const nextConfig = {
     ],
   },
   async rewrites() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "https://api.iron-id.io";
     return [
       {
         source: "/api/v1/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_URL}/v1/:path*`,
+        destination: `${apiUrl}/v1/:path*`,
       },
     ];
   },
