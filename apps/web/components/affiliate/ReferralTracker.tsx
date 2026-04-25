@@ -47,7 +47,7 @@ export function ReferralTracker() {
       .then(() => {
         sessionStorage.removeItem("ironid_pending_ref");
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         // Non-fatal — don't block the dashboard
         console.warn("[ReferralTracker] Failed to set ref_code:", err);
       });
