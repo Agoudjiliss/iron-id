@@ -41,10 +41,6 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-const hasClerk =
-  Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) &&
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== "pk_test_placeholder";
-
 export default async function RootLayout({
   children,
 }: {
@@ -53,17 +49,17 @@ export default async function RootLayout({
   const locale   = await getLocale();
   const messages = await getMessages();
 
-  const inner = (
-    <html lang={locale} className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="min-h-screen bg-iron-black text-iron-white antialiased">
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <PostHogProvider>
-            {children}
-          </PostHogProvider>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+  return (
+    <ClerkProvider>
+      <html lang={locale} className={`${inter.variable} ${jetbrainsMono.variable}`}>
+        <body className="min-h-screen bg-iron-black text-iron-white antialiased">
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <PostHogProvider>
+              {children}
+            </PostHogProvider>
+          </NextIntlClientProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
-
-  return hasClerk ? <ClerkProvider>{inner}</ClerkProvider> : inner;
 }
