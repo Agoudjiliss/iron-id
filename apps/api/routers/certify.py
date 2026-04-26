@@ -17,8 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import get_settings
 from database import get_db
-from middleware.auth import get_current_user
-from models.api_key import APIKey
+from middleware.auth import get_current_user_from_session
 from models.certification import Certification
 from models.user import User
 from services.file_service import validate_and_read_upload
@@ -91,7 +90,7 @@ async def certify_file(
     file: UploadFile = File(..., description="File to certify (max 500 MB depending on plan)"),
     metadata: str = Form(default="{}", description="JSON string of custom metadata"),
     webhook_url: str | None = Form(default=None, description="Callback URL for async notification"),
-    auth: tuple[User, APIKey] = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_db),
 ) -> CertificationStatusResponse:
     """
@@ -103,8 +102,6 @@ async def certify_file(
     Poll GET /v1/certify/{id} for the result, or provide a webhook_url.
     """
     import json
-
-    user, api_key = auth
 
     # Parse metadata JSON
     try:
@@ -146,7 +143,7 @@ async def certify_file(
     # Create the Certification record in 'pending' state
     cert = Certification(
         user_id=user.id,
-        api_key_id=api_key.id,
+        api_key_id=None,  # dashboard upload via session auth
         file_hash_sha256=sha256_hex,
         file_name=file.filename or "unknown",
         file_size_bytes=len(file_content),
@@ -181,14 +178,13 @@ async def certify_file(
 )
 async def get_certification(
     certification_id: uuid.UUID,
-    auth: tuple[User, APIKey] = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_db),
 ) -> CertificationStatusResponse:
     """
     Retrieve the current status and result of a certification.
     Only the owner can access their own certifications.
     """
-    user, _ = auth
 
     result = await db.execute(
         select(Certification).where(
@@ -216,7 +212,7 @@ async def list_certifications(
     page: int = 1,
     page_size: int = 20,
     status_filter: str | None = None,
-    auth: tuple[User, APIKey] = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_db),
 ) -> CertificationListResponse:
     """
@@ -227,7 +223,6 @@ async def list_certifications(
       - page_size: results per page (max 100)
       - status_filter: filter by status ('pending', 'certified', 'failed', etc.)
     """
-    user, _ = auth
     page_size = min(page_size, 100)
     offset = (page - 1) * page_size
 

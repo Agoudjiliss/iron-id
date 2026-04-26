@@ -6,47 +6,66 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 
 export const metadata: Metadata = { title: "Vue d'ensemble" };
 
-// Server-side data fetch
-async function getDashboardStats(token: string) {
-  const apiUrl = process.env.INTERNAL_API_URL ?? process.env.NEXT_PUBLIC_API_URL;
+const API_URL =
+  process.env.INTERNAL_API_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "https://api.iron-id.io";
+
+interface DashboardStats {
+  totalCertifications: number;
+  signaturesUsed: number;
+  signaturesLimit: number;
+  activeKeys: number;
+}
+
+async function getDashboardStats(token: string): Promise<DashboardStats> {
   try {
-    const [certRes, usageRes] = await Promise.all([
-      fetch(`${apiUrl}/v1/certifications?page_size=5`, {
+    const [certRes, subRes, keysRes] = await Promise.all([
+      fetch(`${API_URL}/v1/certifications?page_size=1`, {
         headers: { Authorization: `Bearer ${token}` },
         next: { revalidate: 30 },
       }),
-      fetch(`${apiUrl}/v1/usage`, {
+      fetch(`${API_URL}/v1/billing/subscription`, {
+        headers: { Authorization: `Bearer ${token}` },
+        next: { revalidate: 30 },
+      }),
+      fetch(`${API_URL}/v1/keys`, {
         headers: { Authorization: `Bearer ${token}` },
         next: { revalidate: 30 },
       }),
     ]);
 
-    const certs = certRes.ok ? await certRes.json() : { total: 0, data: [] };
-    const usage = usageRes.ok ? await usageRes.json() : { used: 0, limit: 10 };
+    const certs = certRes.ok ? await certRes.json() : { total: 0 };
+    const sub = subRes.ok
+      ? await subRes.json()
+      : { monthly_signatures_used: 0, monthly_signatures_limit: 10 };
+    const keys = keysRes.ok ? await keysRes.json() : [];
 
-    return { certs, usage };
-  } catch {
     return {
-      certs: { total: 0, data: [] },
-      usage: { used: 0, limit: 10 },
+      totalCertifications: certs.total ?? 0,
+      signaturesUsed: sub.monthly_signatures_used ?? 0,
+      signaturesLimit: sub.monthly_signatures_limit ?? 10,
+      activeKeys: Array.isArray(keys)
+        ? keys.filter((k: { is_active: boolean }) => k.is_active).length
+        : 0,
     };
+  } catch {
+    return { totalCertifications: 0, signaturesUsed: 0, signaturesLimit: 10, activeKeys: 0 };
   }
 }
 
 export default async function DashboardPage() {
-  // In production: use getToken to get the user's API key or session token
-  // For now, we show the structure with placeholder data
-  const stats = {
-    totalCertifications: 0,
-    certifiedThisMonth: 0,
-    signaturesUsed: 0,
-    signaturesLimit: 10,
-    apiKeys: 0,
-  };
+  const { getToken } = await auth();
+  const token = await getToken();
 
-  const usagePct = stats.signaturesLimit > 0
-    ? Math.round((stats.signaturesUsed / stats.signaturesLimit) * 100)
-    : 0;
+  const data = token
+    ? await getDashboardStats(token)
+    : { totalCertifications: 0, signaturesUsed: 0, signaturesLimit: 10, activeKeys: 0 };
+
+  const usagePct =
+    data.signaturesLimit > 0
+      ? Math.round((data.signaturesUsed / data.signaturesLimit) * 100)
+      : 0;
 
   return (
     <>
@@ -60,31 +79,31 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <StatsCard
             title="Certifications totales"
-            value={stats.totalCertifications}
+            value={data.totalCertifications}
             icon={CheckCircle}
             accent="green"
             subtitle="Depuis la création du compte"
           />
           <StatsCard
-            title="Ce mois-ci"
-            value={stats.certifiedThisMonth}
+            title="Signatures ce mois"
+            value={data.signaturesUsed}
             icon={TrendingUp}
             accent="gold"
-            subtitle="Signatures utilisées"
+            subtitle="Utilisées ce mois-ci"
           />
           <StatsCard
             title="Quota mensuel"
-            value={`${stats.signaturesUsed} / ${stats.signaturesLimit === -1 ? "∞" : stats.signaturesLimit}`}
+            value={`${data.signaturesUsed} / ${data.signaturesLimit === -1 ? "∞" : data.signaturesLimit}`}
             icon={Zap}
             accent={usagePct > 80 ? "red" : usagePct > 60 ? "gold" : "blue"}
             subtitle={`${usagePct}% utilisé`}
           />
           <StatsCard
             title="Clés API actives"
-            value={stats.apiKeys}
+            value={data.activeKeys}
             icon={Key}
             accent="blue"
-            subtitle="Toutes les clés de production"
+            subtitle="Clés de production actives"
           />
         </div>
 
@@ -122,13 +141,24 @@ export default async function DashboardPage() {
 
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <CheckCircle size={32} className="text-iron-border mb-3" />
-            <p className="text-sm text-iron-white/40">Aucune certification pour le moment.</p>
-            <a
-              href="/certify"
-              className="mt-3 text-sm text-iron-gold hover:text-iron-gold-dim underline underline-offset-2 transition-colors"
-            >
-              Certifier votre premier fichier
-            </a>
+            {data.totalCertifications === 0 ? (
+              <>
+                <p className="text-sm text-iron-white/40">Aucune certification pour le moment.</p>
+                <a
+                  href="/certify"
+                  className="mt-3 text-sm text-iron-gold hover:text-iron-gold-dim underline underline-offset-2 transition-colors"
+                >
+                  Certifier votre premier fichier
+                </a>
+              </>
+            ) : (
+              <a
+                href="/certifications"
+                className="text-sm text-iron-gold hover:text-iron-gold-dim underline underline-offset-2 transition-colors"
+              >
+                Voir les {data.totalCertifications} certification{data.totalCertifications > 1 ? "s" : ""} →
+              </a>
+            )}
           </div>
         </div>
       </main>

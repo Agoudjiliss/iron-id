@@ -41,7 +41,7 @@ interface MetadataField {
   value: string;
 }
 
-export function CertificationUploader({ apiKey }: { apiKey: string }) {
+export function CertificationUploader({ sessionToken }: { sessionToken: string }) {
   const [state, setState] = useState<UploaderState>("idle");
   const [file, setFile] = useState<File | null>(null);
   const [cert, setCert] = useState<Certification | null>(null);
@@ -90,7 +90,7 @@ export function CertificationUploader({ apiKey }: { apiKey: string }) {
       }
 
       try {
-        const updated = await getCertification(certId, apiKey);
+        const updated = await getCertification(certId, sessionToken);
         setProgress(Math.min(95, 30 + attempts * 1.5));
 
         if (updated.status === "certified") {
@@ -118,7 +118,7 @@ export function CertificationUploader({ apiKey }: { apiKey: string }) {
 
     try {
       const result = await certifyFile(f, {
-        apiKey,
+        sessionToken,
         metadata: buildMetadata(),
         webhookUrl: webhookUrl.trim() || undefined,
       });

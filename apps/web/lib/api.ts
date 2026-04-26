@@ -106,13 +106,13 @@ export async function verifyByHash(hash: string): Promise<VerificationResult> {
   return request<VerificationResult>(`/verify/${encodeURIComponent(hash)}`);
 }
 
-// ---- Certifications (requires API key) ----
+// ---- Certifications (requires Clerk session token) ----
 
 /** Submit a file for certification. Returns 202 Accepted immediately. */
 export async function certifyFile(
   file: File,
   options: {
-    apiKey: string;
+    sessionToken: string;
     metadata?: Record<string, string>;
     webhookUrl?: string;
   },
@@ -125,28 +125,32 @@ export async function certifyFile(
   return request<Certification>("/certify", {
     method: "POST",
     body: form,
-    apiKey: options.apiKey,
+    headers: { Authorization: `Bearer ${options.sessionToken}` },
   });
 }
 
 /** Poll the status of a certification. */
 export async function getCertification(
   id: string,
-  apiKey: string,
+  sessionToken: string,
 ): Promise<Certification> {
-  return request<Certification>(`/certify/${id}`, { apiKey });
+  return request<Certification>(`/certify/${id}`, {
+    headers: { Authorization: `Bearer ${sessionToken}` },
+  });
 }
 
 /** List all certifications (paginated). */
 export async function listCertifications(
-  apiKey: string,
+  sessionToken: string,
   params?: { page?: number; pageSize?: number; status?: CertificationStatus },
 ): Promise<{ data: Certification[]; total: number; page: number; page_size: number }> {
   const q = new URLSearchParams();
   if (params?.page) q.set("page", String(params.page));
   if (params?.pageSize) q.set("page_size", String(params.pageSize));
   if (params?.status) q.set("status_filter", params.status);
-  return request(`/certifications?${q}`, { apiKey });
+  return request(`/certifications?${q}`, {
+    headers: { Authorization: `Bearer ${sessionToken}` },
+  });
 }
 
 // ---- API Keys (requires Clerk session token) ----

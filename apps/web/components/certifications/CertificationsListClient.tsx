@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "@clerk/nextjs";
 import {
   CheckCircle,
-  Clock,
-  XCircle,
   Loader2,
   ChevronLeft,
   ChevronRight,
@@ -31,25 +30,26 @@ const STATUS_OPTIONS: { value: CertificationStatus | "all"; label: string }[] = 
 ];
 
 export function CertificationsListClient() {
+  const { getToken } = useAuth();
   const [certs, setCerts] = useState<Certification[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<CertificationStatus | "all">("all");
-  const [rawKey, setRawKey] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
-  async function load(p: number, status: CertificationStatus | "all", key: string) {
-    if (!key.startsWith("iid_")) return;
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await listCertifications(key, {
-        page: p,
+      const token = await getToken();
+      if (!token) { setError("Session expirée. Veuillez vous reconnecter."); setLoading(false); return; }
+      const res = await listCertifications(token, {
+        page,
         pageSize: PAGE_SIZE,
-        status: status === "all" ? undefined : status,
+        status: statusFilter === "all" ? undefined : statusFilter,
       });
       setCerts(res.data);
       setTotal(res.total);
@@ -58,28 +58,9 @@ export function CertificationsListClient() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [page, statusFilter, getToken]);
 
-  useEffect(() => {
-    if (rawKey) load(page, statusFilter, rawKey);
-  }, [page, statusFilter, rawKey]);
-
-  // API key prompt
-  if (!rawKey.startsWith("iid_")) {
-    return (
-      <div className="max-w-md mx-auto mt-12 text-center space-y-4">
-        <p className="text-sm text-iron-white/50">
-          Entrez votre clé API pour charger vos certifications.
-        </p>
-        <input
-          type="password"
-          placeholder="iid_live_..."
-          onChange={(e) => setRawKey(e.target.value)}
-          className="w-full px-4 py-2.5 rounded-xl bg-iron-slate border border-iron-border font-mono text-sm text-iron-white placeholder:text-iron-white/25 focus:outline-none focus:border-iron-gold/50"
-        />
-      </div>
-    );
-  }
+  useEffect(() => { load(); }, [load]);
 
   return (
     <div className="space-y-4">
