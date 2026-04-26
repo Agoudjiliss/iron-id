@@ -111,19 +111,16 @@ async def upload_to_r2(
     object_key: str,
     mime_type: str,
     metadata: dict[str, str] | None = None,
-) -> str:
+) -> str | None:
     """
     Upload bytes to Cloudflare R2.
 
-    Args:
-        content: Raw file bytes.
-        object_key: R2 object key (e.g. "certified/cert_xxx.jpg").
-        mime_type: MIME type for Content-Type header.
-        metadata: Optional string key-value pairs stored as S3 metadata.
-
-    Returns:
-        Public URL of the uploaded object.
+    Returns the public URL, or None if R2 is not configured.
     """
+    if not settings.r2_account_id or not settings.r2_access_key_id:
+        logger.warning("r2_not_configured_skipping_upload", key=object_key)
+        return None
+
     async with _get_r2_client() as client:
         try:
             await client.put_object(

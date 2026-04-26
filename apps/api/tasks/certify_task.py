@@ -24,6 +24,46 @@ from tasks.celery_app import celery_app
 logger = structlog.get_logger()
 
 
+async def run_certify_background(
+    *,
+    certification_id: str,
+    file_content: bytes,
+    file_name: str,
+    file_mime_type: str,
+    file_size_bytes: int,
+    user_id: str,
+    user_plan: str,
+    metadata: dict,
+    webhook_url: str | None,
+) -> None:
+    """
+    Async wrapper for the certification pipeline — used with FastAPI BackgroundTasks.
+    Runs in the same process as the API server (no Celery worker needed).
+    """
+    cert_uuid = uuid.UUID(certification_id)
+    user_uuid = uuid.UUID(user_id)
+    try:
+        await _certify_pipeline(
+            certification_id=cert_uuid,
+            file_content=file_content,
+            file_name=file_name,
+            file_mime_type=file_mime_type,
+            file_size_bytes=file_size_bytes,
+            user_id=user_uuid,
+            user_plan=user_plan,
+            metadata=metadata,
+            webhook_url=webhook_url,
+        )
+    except Exception as exc:
+        logger.error(
+            "certify_background_failed",
+            certification_id=certification_id,
+            error=str(exc),
+            exc_info=True,
+        )
+        await _mark_failed(cert_uuid, str(exc))
+
+
 def _run_async(coro):
     """Run an async coroutine from a sync Celery task."""
     loop = asyncio.new_event_loop()

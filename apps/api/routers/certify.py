@@ -7,10 +7,9 @@ Endpoints:
   GET   /v1/certifications     List user's certifications (paginated)
 """
 
-import base64
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Request, UploadFile, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,7 +21,7 @@ from models.certification import Certification
 from models.user import User
 from services.file_service import validate_and_read_upload
 from services.ledger_service import count_certifications_this_month
-from tasks.certify_task import run_certification
+from tasks.certify_task import run_certify_background
 
 settings = get_settings()
 router = APIRouter(prefix="/v1", tags=["Certifications"])
@@ -87,6 +86,7 @@ class CertificationListResponse(BaseModel):
 )
 async def certify_file(
     request: Request,
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(..., description="File to certify (max 500 MB depending on plan)"),
     metadata: str = Form(default="{}", description="JSON string of custom metadata"),
     webhook_url: str | None = Form(default=None, description="Callback URL for async notification"),
@@ -155,10 +155,11 @@ async def certify_file(
     db.add(cert)
     await db.flush()  # get the cert.id
 
-    # Enqueue async Celery task
-    run_certification.delay(
+    # Run certification pipeline as a FastAPI background task (no Celery worker needed)
+    background_tasks.add_task(
+        run_certify_background,
         certification_id=str(cert.id),
-        file_content_b64=base64.b64encode(file_content).decode(),
+        file_content=file_content,
         file_name=cert.file_name,
         file_mime_type=detected_mime,
         file_size_bytes=len(file_content),
