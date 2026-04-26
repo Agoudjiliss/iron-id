@@ -39,7 +39,7 @@ export function Nav() {
             { href: "/#features",   label: "Fonctionnalités" },
             { href: "/#how",        label: "Comment ça marche" },
             { href: "/pricing",     label: "Tarifs" },
-            { href: "/affiliate",   label: "Affiliation" },
+            { href: "/earn",        label: "Affiliation" },
             { href: "/docs",        label: "Documentation" },
           ].map(({ href, label }) => (
             <Link
@@ -85,7 +85,7 @@ export function Nav() {
             { href: "/#features",  label: "Fonctionnalités" },
             { href: "/#how",       label: "Comment ça marche" },
             { href: "/pricing",    label: "Tarifs" },
-            { href: "/affiliate",  label: "Affiliation" },
+            { href: "/earn",       label: "Affiliation" },
             { href: "/docs",       label: "Documentation" },
             { href: "/sign-in",    label: "Connexion" },
           ].map(({ href, label }) => (
