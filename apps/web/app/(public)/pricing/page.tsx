@@ -4,7 +4,15 @@ import { PricingClient } from "@/components/billing/PricingClient";
 
 export const metadata: Metadata = {
   title: "Tarifs — IronID",
-  description: "Plans IronID : Individual à $29/mois, Studio à $199/mois, Enterprise à $1 200/mois. Paiement PayPal sécurisé.",
+  description:
+    "Plans IronID : Individual à $29/mois, Studio à $199/mois, Enterprise à $1 200/mois. Certification C2PA illimitée. Paiement PayPal sécurisé.",
+  alternates: { canonical: "https://www.iron-id.io/pricing" },
+  openGraph: {
+    title:       "Tarifs IronID — Certification C2PA pour tous",
+    description: "Individual $29/mois · Studio $199/mois · Enterprise $1 200/mois. Commencez gratuitement, aucune carte bancaire requise.",
+    url:         "https://www.iron-id.io/pricing",
+    type:        "website",
+  },
 };
 
 export default function PricingPage() {

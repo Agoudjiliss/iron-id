@@ -3,8 +3,16 @@ import Link from "next/link";
 import { Shield } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Documentation — IronID",
-  description: "Référence complète de l'API IronID, des SDK JavaScript et Python, et des webhooks.",
+  title: "Documentation API — IronID",
+  description:
+    "Référence complète de l'API IronID : certification C2PA, SDK JavaScript & Python, webhooks, vérification publique. Intégrez la provenance numérique en quelques minutes.",
+  alternates: { canonical: "https://www.iron-id.io/docs" },
+  openGraph: {
+    title:       "Documentation API IronID — Intégrez la certification C2PA",
+    description: "SDK JavaScript & Python, API REST, webhooks. Certifiez vos fichiers en quelques lignes de code.",
+    url:         "https://www.iron-id.io/docs",
+    type:        "website",
+  },
 };
 
 // ---- Code block helper ----

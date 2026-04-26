@@ -20,25 +20,56 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.iron-id.io"),
   title: {
-    default: "IronID — The Gold Standard for Digital Truth",
+    default: "IronID — Certifiez l'authenticité de vos fichiers",
     template: "%s | IronID",
   },
   description:
-    "Prove the origin, author and integrity of any digital file — forever. C2PA-certified provenance for developers, creators and enterprises.",
-  keywords: ["C2PA", "content authenticity", "digital provenance", "deepfake detection", "file certification"],
+    "Certifiez n'importe quel fichier avec une signature C2PA cryptographique. Prouvez l'origine, l'auteur et l'intégrité de vos contenus — vérifiable publiquement, pour toujours.",
+  keywords: [
+    "certification C2PA", "authenticité numérique", "provenance contenu",
+    "signature cryptographique", "détection deepfake", "preuve numérique",
+    "certifier fichier", "content authenticity", "digital provenance",
+    "C2PA standard", "IronID",
+  ],
+  authors: [{ name: "IronID", url: "https://www.iron-id.io" }],
+  creator: "IronID",
+  publisher: "IronID",
   openGraph: {
     type: "website",
     siteName: "IronID",
-    title: "IronID — The Gold Standard for Digital Truth",
-    description: "Cryptographic certification for digital content.",
+    locale: "fr_FR",
+    url: "https://www.iron-id.io",
+    title: "IronID — Certifiez l'authenticité de vos fichiers",
+    description:
+      "Certifiez n'importe quel fichier avec une signature C2PA cryptographique. Prouvez l'origine et l'intégrité de vos contenus — vérifiable publiquement, pour toujours.",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "IronID — The Gold Standard for Digital Truth",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "IronID",
-    description: "The Gold Standard for Digital Truth.",
+    site: "@ironid_io",
+    creator: "@ironid_io",
+    title: "IronID — Certifiez l'authenticité de vos fichiers",
+    description:
+      "Signature C2PA cryptographique pour prouver l'origine de vos contenus. Vérifiable publiquement, pour toujours.",
+    images: ["/opengraph-image"],
   },
-  robots: { index: true, follow: true },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
+  alternates: {
+    canonical: "https://www.iron-id.io",
+  },
 };
 
 export default async function RootLayout({

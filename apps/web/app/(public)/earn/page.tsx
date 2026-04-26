@@ -18,9 +18,16 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Programme affilié — Gagnez avec IronID",
+  title: "Programme affilié — Gagnez jusqu'à 20% avec IronID",
   description:
-    "Gagnez jusqu'à 20% de commission récurrente sur chaque abonnement. Inscription gratuite. Paiements PayPal automatiques.",
+    "Recommandez IronID et gagnez jusqu'à 20% de commission récurrente sur chaque abonnement. Inscription 100% gratuite, paiements PayPal automatiques, cookie 90 jours.",
+  alternates: { canonical: "https://www.iron-id.io/earn" },
+  openGraph: {
+    title:       "Programme affilié IronID — 10 à 20% de commission récurrente",
+    description: "Partagez votre lien, touchez jusqu'à 20% chaque mois tant que vos filleuls restent abonnés. Gratuit, sans carte bancaire.",
+    url:         "https://www.iron-id.io/earn",
+    type:        "website",
+  },
 };
 
 // ─── Tier data ───────────────────────────────────────────────────────────────
