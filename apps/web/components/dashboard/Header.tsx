@@ -2,9 +2,7 @@
 
 import { Bell, Menu, X } from "lucide-react";
 import { useState } from "react";
-function useSafeUser() {
-  try { return require("@clerk/nextjs").useUser(); } catch { return { user: null }; }
-}
+import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import { Sidebar } from "./Sidebar";
 
@@ -15,7 +13,7 @@ interface HeaderProps {
 
 export function Header({ title, description }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user } = useSafeUser();
+  const { user } = useUser();
 
   return (
     <>

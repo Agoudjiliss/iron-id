@@ -1,17 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-
-// Lazy-import Clerk hook — gracefully degrades when ClerkProvider is absent
-function useSafeUser() {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { useUser } = require("@clerk/nextjs");
-    return useUser();
-  } catch {
-    return { user: null, isLoaded: true };
-  }
-}
+import { useUser } from "@clerk/nextjs";
 
 /**
  * ReferralTracker — mounted once in the dashboard layout.
@@ -25,7 +15,7 @@ function useSafeUser() {
  *   6. sessionStorage key is cleared so we never double-attribute.
  */
 export function ReferralTracker() {
-  const { user, isLoaded } = useSafeUser();
+  const { user, isLoaded } = useUser();
   const attempted = useRef(false);
 
   useEffect(() => {

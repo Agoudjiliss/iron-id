@@ -13,13 +13,7 @@ import {
   LogOut,
   ChevronRight,
 } from "lucide-react";
-// Gracefully degrade when ClerkProvider is absent (dev without real keys)
-function useSafeClerk() {
-  try { return require("@clerk/nextjs").useClerk(); } catch { return { signOut: () => {} }; }
-}
-function useSafeUser() {
-  try { return require("@clerk/nextjs").useUser(); } catch { return { user: null }; }
-}
+import { useClerk, useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -56,8 +50,8 @@ const PLAN_LABELS: Record<string, string> = {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { signOut } = useSafeClerk();
-  const { user } = useSafeUser();
+  const { signOut } = useClerk();
+  const { user } = useUser();
 
   // Read plan from public metadata (set by Stripe webhook)
   const plan = (user?.publicMetadata?.plan as string) ?? "free";
