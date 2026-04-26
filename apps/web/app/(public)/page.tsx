@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Nav }         from "@/components/landing/Nav";
 import { Hero }        from "@/components/landing/Hero";
 import { HowItWorks }  from "@/components/landing/HowItWorks";
-import { Industries }  from "@/components/landing/Industries";
-import { Features }    from "@/components/landing/Features";
+import { Industries }    from "@/components/landing/Industries";
+import { C2PACoalition } from "@/components/landing/C2PACoalition";
+import { Features }      from "@/components/landing/Features";
 import { SocialProof } from "@/components/landing/SocialProof";
 import { CTA }         from "@/components/landing/CTA";
 import { Footer }      from "@/components/landing/Footer";
@@ -27,6 +28,7 @@ export default function LandingPage() {
         <Hero />
         <HowItWorks />
         <Industries />
+        <C2PACoalition />
         <Features />
         <SocialProof />
         <CTA />
