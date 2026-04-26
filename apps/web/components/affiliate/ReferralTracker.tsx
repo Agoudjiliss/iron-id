@@ -3,17 +3,29 @@
 import { useEffect, useRef } from "react";
 import { useUser } from "@clerk/nextjs";
 
+const COOKIE_NAME = "ironid_ref";
+
 /**
  * ReferralTracker — mounted once in the dashboard layout.
  *
  * Flow:
- *   1. Middleware captures ?ref=XXXX → cookie `ironid_ref` (90 days).
- *   2. Sign-up page moves cookie value into sessionStorage as `ironid_pending_ref`.
- *   3. After sign-up Clerk redirects to /dashboard → this component mounts.
- *   4. We read the pending ref, push it into Clerk unsafeMetadata via user.update().
- *   5. Clerk fires a `user.updated` webhook → backend attributes the referral.
- *   6. sessionStorage key is cleared so we never double-attribute.
+ *   1. Middleware captures ?ref=XXXX → cookie `ironid_ref` (90 days, not httpOnly).
+ *   2. After sign-up/sign-in, user lands on /dashboard → this component mounts.
+ *   3. We read the cookie directly from document.cookie (JS-accessible).
+ *   4. Push the code into Clerk unsafeMetadata via user.update().
+ *   5. Clerk fires user.updated webhook → backend attributes the referral.
+ *   6. Cookie is cleared so we never double-attribute.
  */
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.split("; ").find((c) => c.startsWith(`${name}=`));
+  return match ? match.split("=")[1] : null;
+}
+
+function clearCookie(name: string) {
+  document.cookie = `${name}=; Max-Age=0; path=/`;
+}
+
 export function ReferralTracker() {
   const { user, isLoaded } = useUser();
   const attempted = useRef(false);
@@ -22,26 +34,25 @@ export function ReferralTracker() {
     if (!isLoaded || !user || attempted.current) return;
     attempted.current = true;
 
-    const pending = sessionStorage.getItem("ironid_pending_ref");
-    if (!pending) return;
+    const refCode = readCookie(COOKIE_NAME);
+    if (!refCode) return;
 
-    // Only set if not already attributed (check unsafeMetadata)
+    // Already attributed — don't overwrite
     const already = (user.unsafeMetadata as Record<string, unknown>)?.ref_code;
     if (already) {
-      sessionStorage.removeItem("ironid_pending_ref");
+      clearCookie(COOKIE_NAME);
       return;
     }
 
     user
-      .update({ unsafeMetadata: { ref_code: pending } })
+      .update({ unsafeMetadata: { ref_code: refCode } })
       .then(() => {
-        sessionStorage.removeItem("ironid_pending_ref");
+        clearCookie(COOKIE_NAME);
       })
       .catch((err: unknown) => {
-        // Non-fatal — don't block the dashboard
         console.warn("[ReferralTracker] Failed to set ref_code:", err);
       });
   }, [isLoaded, user]);
 
-  return null; // renders nothing
+  return null;
 }

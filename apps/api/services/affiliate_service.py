@@ -240,10 +240,9 @@ def _next_tier(active_count: int) -> dict | None:
     for threshold, rate, name in thresholds:
         if active_count < threshold:
             return {
-                "name":       name,
-                "rate":       rate,
-                "needed":     threshold - active_count,
-                "threshold":  threshold,
+                "name":      name,
+                "rate":      rate,
+                "required":  threshold,
             }
     return None
 
