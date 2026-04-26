@@ -24,9 +24,11 @@ const config: Config = {
         mono: ["var(--font-jetbrains)", "JetBrains Mono", "monospace"],
       },
       animation: {
-        "pulse-gold": "pulse-gold 2s ease-in-out infinite",
-        "fade-in":    "fade-in 0.3s ease-out",
-        "slide-up":   "slide-up 0.4s ease-out",
+        "pulse-gold":      "pulse-gold 2s ease-in-out infinite",
+        "fade-in":         "fade-in 0.3s ease-out",
+        "slide-up":        "slide-up 0.4s ease-out",
+        "marquee":         "marquee 40s linear infinite",
+        "marquee-reverse": "marquee-reverse 40s linear infinite",
       },
       keyframes: {
         "pulse-gold": {
@@ -40,6 +42,14 @@ const config: Config = {
         "slide-up": {
           from: { opacity: "0", transform: "translateY(12px)" },
           to:   { opacity: "1", transform: "translateY(0)" },
+        },
+        "marquee": {
+          from: { transform: "translateX(0)" },
+          to:   { transform: "translateX(-50%)" },
+        },
+        "marquee-reverse": {
+          from: { transform: "translateX(-50%)" },
+          to:   { transform: "translateX(0)" },
         },
       },
     },
