@@ -66,10 +66,34 @@ async def _get_clerk_jwks() -> dict:
 async def verify_clerk_token(token: str, db: AsyncSession) -> User:
     """Validate a Clerk session JWT and return the matching local User."""
     jwks = await _get_clerk_jwks()
+
+    # Select the correct JWK by matching the `kid` in the JWT header
+    try:
+        unverified_header = jwt.get_unverified_header(token)
+    except JWTError as exc:
+        log.debug("clerk_jwt_bad_header: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"error": "Invalid session token.", "code": "UNAUTHORIZED"},
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    kid = unverified_header.get("kid")
+    keys = jwks.get("keys", [])
+    key = next((k for k in keys if k.get("kid") == kid), None) if kid else (keys[0] if keys else None)
+
+    if not key:
+        log.warning("clerk_jwks_no_matching_key: kid=%s available=%s", kid, [k.get("kid") for k in keys])
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"error": "Unknown signing key.", "code": "UNAUTHORIZED"},
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     try:
         payload = jwt.decode(
             token,
-            jwks,
+            key,
             algorithms=["RS256"],
             options={"verify_aud": False},
         )
@@ -91,14 +115,56 @@ async def verify_clerk_token(token: str, db: AsyncSession) -> User:
 
     result = await db.execute(select(User).where(User.clerk_id == clerk_id))
     user = result.scalar_one_or_none()
+
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail={"error": "User not found. Please sign up first.", "code": "USER_NOT_FOUND"},
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        # Clerk webhook not yet configured — auto-create the user via Clerk API
+        user = await _auto_create_user_from_clerk(db, clerk_id)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={"error": "User not found. Please contact support.", "code": "USER_NOT_FOUND"},
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
     return user
+
+
+async def _auto_create_user_from_clerk(db: AsyncSession, clerk_id: str) -> User | None:
+    """Fetch user data from Clerk API and create a local User record."""
+    try:
+        async with httpx.AsyncClient(timeout=5) as client:
+            resp = await client.get(
+                f"https://api.clerk.com/v1/users/{clerk_id}",
+                headers={"Authorization": f"Bearer {settings.clerk_secret_key}"},
+            )
+            if resp.status_code != 200:
+                log.warning("clerk_api_fetch_failed: clerk_id=%s status=%d", clerk_id, resp.status_code)
+                return None
+            data = resp.json()
+    except Exception as exc:
+        log.warning("clerk_api_error: %s", exc)
+        return None
+
+    email = _extract_email_from_clerk_data(data)
+    if not email:
+        log.warning("clerk_user_no_email: clerk_id=%s", clerk_id)
+        return None
+
+    user = User(clerk_id=clerk_id, email=email, plan="free", monthly_signatures_limit=10)
+    db.add(user)
+    await db.flush()
+    log.info("auto_created_user: clerk_id=%s email=%s", clerk_id, email)
+    return user
+
+
+def _extract_email_from_clerk_data(data: dict) -> str | None:
+    """Extract the primary email from a Clerk user API response."""
+    emails = data.get("email_addresses", [])
+    primary_id = data.get("primary_email_address_id")
+    for e in emails:
+        if e.get("id") == primary_id:
+            return e.get("email_address")
+    return emails[0].get("email_address") if emails else None
 
 # ---------------------------------------------------------------------------
 # FastAPI dependencies
