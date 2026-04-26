@@ -16,8 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import get_settings
 from database import get_db
-from middleware.auth import get_current_user
-from models.api_key import APIKey
+from middleware.auth import get_current_user_from_session
 from models.user import User
 from services.affiliate_service import (
     get_affiliate_stats,
@@ -63,14 +62,13 @@ class CommissionsListResponse(BaseModel):
 
 @router.get("/link", response_model=AffiliateLinkResponse, summary="Get referral link")
 async def get_affiliate_link(
-    auth: tuple[User, APIKey] = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_db),
 ) -> AffiliateLinkResponse:
     """
     Return (or generate) the authenticated user's referral link.
     Format: https://ironid.io?ref=<CODE>
     """
-    user, _ = auth
     code = await get_or_create_affiliate_code(db, user)
     link = f"{settings.frontend_url}?ref={code}"
 
@@ -79,14 +77,13 @@ async def get_affiliate_link(
 
 @router.get("/stats", summary="Affiliate dashboard stats")
 async def affiliate_stats(
-    auth: tuple[User, APIKey] = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Return a full stats snapshot for the affiliate dashboard:
     referral counts, commission totals, tier, next tier progress.
     """
-    user, _ = auth
     stats = await get_affiliate_stats(db, user.id)
     return stats
 
@@ -100,11 +97,10 @@ async def list_commissions(
     page:     int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
     status_filter: str | None = Query(default=None, alias="status"),
-    auth: tuple[User, APIKey] = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_db),
 ) -> CommissionsListResponse:
     """Return paginated commission history for the authenticated affiliate."""
-    user, _ = auth
 
     if status_filter and status_filter not in ("pending", "paid", "cancelled"):
         raise HTTPException(
@@ -142,7 +138,7 @@ async def list_commissions(
     status_code=status.HTTP_200_OK,
 )
 async def trigger_payout(
-    auth: tuple[User, APIKey] = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
@@ -150,7 +146,6 @@ async def trigger_payout(
     In production this is called by a scheduled Celery beat task.
     This endpoint is exposed for admin use only — add IP allowlist in production.
     """
-    user, _ = auth
     if user.plan != "enterprise":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

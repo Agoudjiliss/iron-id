@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { Users, TrendingUp, DollarSign, Copy, Check, ExternalLink, ChevronRight } from "lucide-react";
 import { getAffiliateLink, getAffiliateStats, type AffiliateLinkResponse, type AffiliateStats } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -71,15 +72,19 @@ function StatCard({
 // ---- Main widget ----
 
 export function AffiliateWidget() {
+  const { getToken } = useAuth();
   const [link, setLink]   = useState<AffiliateLinkResponse | null>(null);
   const [stats, setStats] = useState<AffiliateStats | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([getAffiliateLink(), getAffiliateStats()])
-      .then(([l, s]) => { setLink(l); setStats(s); })
-      .catch((e) => setError(e.message ?? "Erreur chargement affiliation"));
-  }, []);
+    getToken().then((token) => {
+      if (!token) { setError("Session expirée."); return; }
+      Promise.all([getAffiliateLink(token), getAffiliateStats(token)])
+        .then(([l, s]) => { setLink(l); setStats(s); })
+        .catch((e) => setError(e.message ?? "Erreur chargement affiliation"));
+    });
+  }, [getToken]);
 
   if (error) {
     return (

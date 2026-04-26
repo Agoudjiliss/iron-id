@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { PricingCard } from "./PricingCard";
 import { cn } from "@/lib/utils";
@@ -108,6 +109,7 @@ const PLANS_YEARLY = [
 ];
 
 export function PricingClient({ currentPlan = "free" }: { currentPlan?: string }) {
+  const { getToken } = useAuth();
   const [interval, setInterval] = useState<"monthly" | "yearly">("monthly");
   const [loading, setLoading] = useState<string | null>(null);
   const router = useRouter();
@@ -124,11 +126,14 @@ export function PricingClient({ currentPlan = "free" }: { currentPlan?: string }
       return;
     }
 
+    const token = await getToken();
+    if (!token) { alert("Session expirée. Veuillez vous reconnecter."); return; }
+
     setLoading(planKey);
     try {
       const res = await fetch("/api/v1/billing/subscribe", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           plan_key: planKey,
           return_url: `${window.location.origin}/billing?success=1`,

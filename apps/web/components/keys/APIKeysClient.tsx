@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { Plus, Key, Loader2, Info } from "lucide-react";
 import {
   createAPIKey,
@@ -16,6 +17,7 @@ interface NewKey extends APIKey {
 }
 
 export function APIKeysClient() {
+  const { getToken } = useAuth();
   const [keys, setKeys] = useState<APIKey[]>([]);
   const [newKey, setNewKey] = useState<NewKey | null>(null);
   const [loading, setLoading] = useState(true);
@@ -27,20 +29,26 @@ export function APIKeysClient() {
   const [environment, setEnvironment] = useState<"production" | "test">("production");
 
   useEffect(() => {
-    listAPIKeys()
-      .then(setKeys)
-      .catch(() => setError("Impossible de charger les clés API."))
-      .finally(() => setLoading(false));
-  }, []);
+    getToken().then((token) => {
+      if (!token) { setLoading(false); return; }
+      listAPIKeys(token)
+        .then(setKeys)
+        .catch(() => setError("Impossible de charger les clés API."))
+        .finally(() => setLoading(false));
+    });
+  }, [getToken]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!keyName.trim()) return;
 
+    const token = await getToken();
+    if (!token) { setError("Session expirée. Veuillez vous reconnecter."); return; }
+
     setCreating(true);
     setError(null);
     try {
-      const created = await createAPIKey(keyName.trim(), environment);
+      const created = await createAPIKey(keyName.trim(), environment, token);
       setNewKey(created as NewKey);
       setKeys((prev) => [created, ...prev]);
       setShowForm(false);
@@ -53,9 +61,12 @@ export function APIKeysClient() {
   }
 
   async function handleRevoke(id: string) {
+    const token = await getToken();
+    if (!token) { setError("Session expirée. Veuillez vous reconnecter."); return; }
+
     setRevoking(id);
     try {
-      await revokeAPIKey(id);
+      await revokeAPIKey(id, token);
       setKeys((prev) => prev.map((k) => k.id === id ? { ...k, is_active: false } : k));
       if (newKey?.id === id) setNewKey(null);
     } catch (err) {

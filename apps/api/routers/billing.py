@@ -17,8 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import get_settings
 from database import get_db
-from middleware.auth import get_current_user
-from models.api_key import APIKey
+from middleware.auth import get_current_user_from_session
 from models.user import User
 from services.paypal_service import (
     PLAN_TIER,
@@ -189,7 +188,7 @@ async def list_plans() -> dict:
 @router.post("/subscribe", summary="Create a PayPal subscription")
 async def subscribe(
     body: SubscribeRequest,
-    auth: tuple[User, APIKey] = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
@@ -198,7 +197,6 @@ async def subscribe(
     Returns the PayPal subscription object including the approval link
     (redirect the user to `approval_url` to complete payment).
     """
-    user, _ = auth
 
     if body.plan_key not in PLAN_CATALOGUE:
         raise HTTPException(
@@ -247,7 +245,7 @@ async def subscribe(
 @router.post("/payg", summary="Create a PAYG order")
 async def create_payg(
     body: PayGRequest,
-    auth: tuple[User, APIKey] = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
@@ -256,7 +254,6 @@ async def create_payg(
 
     Returns the PayPal Order object including the approval link.
     """
-    user, _ = auth
 
     if user.plan not in ("payg", "free"):
         raise HTTPException(
@@ -299,11 +296,10 @@ async def create_payg(
 
 @router.get("/subscription", summary="Get current subscription status")
 async def get_subscription_status(
-    auth: tuple[User, APIKey] = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Return the current billing status for the authenticated user."""
-    user, _ = auth
 
     base = {
         "plan":                    user.plan,
@@ -328,14 +324,13 @@ async def get_subscription_status(
 
 @router.post("/cancel", summary="Cancel subscription", status_code=status.HTTP_200_OK)
 async def cancel_user_subscription(
-    auth: tuple[User, APIKey] = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Cancel the authenticated user's active PayPal subscription.
     The plan will be downgraded to 'free' by the webhook handler.
     """
-    user, _ = auth
 
     if not user.paypal_subscription_id:
         raise HTTPException(

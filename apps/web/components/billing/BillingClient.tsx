@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import {
   CreditCard,
   CheckCircle,
@@ -42,6 +43,7 @@ const PAYPAL_STATUS_COLORS: Record<string, string> = {
 };
 
 export function BillingClient() {
+  const { getToken } = useAuth();
   const [sub, setSub] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
@@ -68,7 +70,11 @@ export function BillingClient() {
   async function loadStatus() {
     setLoading(true);
     try {
-      const res = await fetch("/api/v1/billing/subscription");
+      const token = await getToken();
+      if (!token) throw new Error("Session expirée.");
+      const res = await fetch("/api/v1/billing/subscription", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) throw new Error("Impossible de charger le statut.");
       setSub(await res.json());
     } catch (err) {
@@ -83,10 +89,16 @@ export function BillingClient() {
   async function handleCancel() {
     if (!confirm("Êtes-vous sûr de vouloir annuler votre abonnement ?")) return;
 
+    const token = await getToken();
+    if (!token) { setError("Session expirée. Veuillez vous reconnecter."); return; }
+
     setCancelling(true);
     setError(null);
     try {
-      const res = await fetch("/api/v1/billing/cancel", { method: "POST" });
+      const res = await fetch("/api/v1/billing/cancel", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!res.ok) {
         const body = await res.json();
         throw new Error(body.error ?? "Erreur lors de l'annulation.");

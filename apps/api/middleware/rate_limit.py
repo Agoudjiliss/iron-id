@@ -6,6 +6,7 @@ Limits are applied per API key (not per IP) for authenticated routes.
 Public routes use per-IP limiting.
 """
 
+import logging
 import time
 from typing import Callable
 
@@ -14,6 +15,8 @@ from fastapi import HTTPException, Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from config import get_settings
+
+log = logging.getLogger(__name__)
 
 settings = get_settings()
 
@@ -28,6 +31,8 @@ async def get_redis() -> aioredis.Redis:
             settings.redis_url,
             encoding="utf-8",
             decode_responses=True,
+            socket_connect_timeout=2,
+            socket_timeout=2,
         )
     return _redis
 
@@ -51,7 +56,6 @@ async def check_rate_limit(
     limit = settings.RATE_LIMITS.get(plan, settings.RATE_LIMITS["free"])
     redis = await get_redis()
     now = int(time.time())
-    window_start = now - window_seconds
 
     redis_key = f"rate_limit:{identifier}:{now // window_seconds}"
 
@@ -93,7 +97,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             identifier = request.client.host if request.client else "unknown"
             plan = "free"
 
-        allowed, current, limit = await check_rate_limit(identifier, plan)
+        try:
+            allowed, current, limit = await check_rate_limit(identifier, plan)
+        except Exception as exc:
+            log.warning("rate_limit_redis_unavailable: %s — failing open", exc)
+            return await call_next(request)
 
         if not allowed:
             raise HTTPException(

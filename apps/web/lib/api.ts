@@ -149,31 +149,35 @@ export async function listCertifications(
   return request(`/certifications?${q}`, { apiKey });
 }
 
-// ---- API Keys (requires Clerk session) ----
+// ---- API Keys (requires Clerk session token) ----
 
 /** Create a new API key. Returns the raw key once — store it securely. */
 export async function createAPIKey(
   name: string,
   environment: "production" | "test" = "production",
+  sessionToken: string,
 ): Promise<APIKey & { raw_key: string }> {
   return request("/keys", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${sessionToken}` },
     body: JSON.stringify({ name, environment }),
   });
 }
 
 /** List all API keys for the current user. */
-export async function listAPIKeys(): Promise<APIKey[]> {
-  return request("/keys");
+export async function listAPIKeys(sessionToken: string): Promise<APIKey[]> {
+  return request("/keys", { headers: { Authorization: `Bearer ${sessionToken}` } });
 }
 
 /** Revoke an API key. */
-export async function revokeAPIKey(id: string): Promise<void> {
-  return request(`/keys/${id}`, { method: "DELETE" });
+export async function revokeAPIKey(id: string, sessionToken: string): Promise<void> {
+  return request(`/keys/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${sessionToken}` },
+  });
 }
 
-// ---- Affiliate (requires Clerk session) ----
+// ---- Affiliate (requires Clerk session token) ----
 
 export interface AffiliateLinkResponse {
   code:        string;
@@ -213,17 +217,17 @@ export interface CommissionsListResponse {
 }
 
 /** Get (or generate) the authenticated user's referral link. */
-export async function getAffiliateLink(): Promise<AffiliateLinkResponse> {
-  return request("/affiliate/link");
+export async function getAffiliateLink(sessionToken: string): Promise<AffiliateLinkResponse> {
+  return request("/affiliate/link", { headers: { Authorization: `Bearer ${sessionToken}` } });
 }
 
 /** Get the full affiliate stats snapshot. */
-export async function getAffiliateStats(): Promise<AffiliateStats> {
-  return request("/affiliate/stats");
+export async function getAffiliateStats(sessionToken: string): Promise<AffiliateStats> {
+  return request("/affiliate/stats", { headers: { Authorization: `Bearer ${sessionToken}` } });
 }
 
 /** List paginated commissions. */
-export async function getCommissions(params?: {
+export async function getCommissions(sessionToken: string, params?: {
   page?:   number;
   pageSize?: number;
   status?: "pending" | "paid" | "cancelled";
@@ -232,5 +236,5 @@ export async function getCommissions(params?: {
   if (params?.page)     q.set("page",      String(params.page));
   if (params?.pageSize) q.set("page_size", String(params.pageSize));
   if (params?.status)   q.set("status",    params.status);
-  return request(`/affiliate/commissions?${q}`);
+  return request(`/affiliate/commissions?${q}`, { headers: { Authorization: `Bearer ${sessionToken}` } });
 }

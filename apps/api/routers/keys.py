@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
-from middleware.auth import get_current_user
+from middleware.auth import get_current_user, get_current_user_from_session
 from models.api_key import APIKey
 from models.user import User
 from services.api_key_service import (
@@ -70,14 +70,13 @@ class CreateKeyResponse(APIKeyResponse):
 )
 async def create_key(
     body: CreateKeyRequest,
-    auth: tuple[User, APIKey] = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_db),
 ) -> CreateKeyResponse:
     """
     Generate a new API key for the authenticated user.
     The raw key is returned once — store it securely; it cannot be retrieved again.
     """
-    user, _ = auth
     is_prod = body.environment == "production"
 
     api_key, raw_key = await create_api_key(db, user.id, body.name, is_prod)
@@ -99,11 +98,10 @@ async def create_key(
     summary="List all API keys",
 )
 async def list_keys(
-    auth: tuple[User, APIKey] = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_db),
 ) -> list[APIKeyResponse]:
     """Return all API keys belonging to the authenticated user."""
-    user, _ = auth
     keys = await list_user_keys(db, user.id)
     return [APIKeyResponse.from_orm_key(k) for k in keys]
 
@@ -115,19 +113,10 @@ async def list_keys(
 )
 async def revoke_key(
     key_id: uuid.UUID,
-    auth: tuple[User, APIKey] = Depends(get_current_user),
+    user: User = Depends(get_current_user_from_session),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     """Revoke (deactivate) an API key. This action is irreversible."""
-    user, current_key = auth
-
-    # Prevent revoking the key currently used to authenticate
-    if key_id == current_key.id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"error": "Cannot revoke the API key used for this request.", "code": "SELF_REVOKE"},
-        )
-
     revoked = await revoke_api_key(db, key_id, user.id)
     if not revoked:
         raise HTTPException(

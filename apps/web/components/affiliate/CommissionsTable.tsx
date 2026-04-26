@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { getCommissions, type Commission, type CommissionsListResponse } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ function formatDate(iso: string): string {
 }
 
 export function CommissionsTable() {
+  const { getToken } = useAuth();
   const [data,   setData]   = useState<CommissionsListResponse | null>(null);
   const [page,   setPage]   = useState(1);
   const [filter, setFilter] = useState<Commission["status"] | "all">("all");
@@ -42,7 +44,9 @@ export function CommissionsTable() {
     setLoading(true);
     setError(null);
     try {
-      const res = await getCommissions({
+      const token = await getToken();
+      if (!token) { setError("Session expirée."); return; }
+      const res = await getCommissions(token, {
         page,
         pageSize: PAGE_SIZE,
         status: filter === "all" ? undefined : filter,
@@ -53,7 +57,7 @@ export function CommissionsTable() {
     } finally {
       setLoading(false);
     }
-  }, [page, filter]);
+  }, [page, filter, getToken]);
 
   useEffect(() => { load(); }, [load]);
 
