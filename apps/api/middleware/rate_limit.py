@@ -6,6 +6,7 @@ Limits are applied per API key (not per IP) for authenticated routes.
 Public routes use per-IP limiting.
 """
 
+import asyncio
 import logging
 import time
 from typing import Callable
@@ -31,8 +32,6 @@ async def get_redis() -> aioredis.Redis:
             settings.redis_url,
             encoding="utf-8",
             decode_responses=True,
-            socket_connect_timeout=2,
-            socket_timeout=2,
         )
     return _redis
 
@@ -98,9 +97,15 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             plan = "free"
 
         try:
-            allowed, current, limit = await check_rate_limit(identifier, plan)
+            allowed, current, limit = await asyncio.wait_for(
+                check_rate_limit(identifier, plan),
+                timeout=1.5,
+            )
         except Exception as exc:
-            log.warning("rate_limit_redis_unavailable: %s — failing open", exc)
+            # Redis unavailable or timed out — fail open so app stays responsive
+            log.warning("rate_limit_skip: %s", type(exc).__name__)
+            global _redis
+            _redis = None  # reset client so next request gets a fresh connection
             return await call_next(request)
 
         if not allowed:
