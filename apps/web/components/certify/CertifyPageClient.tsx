@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import { Key, AlertTriangle } from "lucide-react";
 import { listAPIKeys, type APIKey } from "@/lib/api";
 import { CertificationUploader } from "./CertificationUploader";
@@ -11,21 +12,25 @@ import { cn } from "@/lib/utils";
  * then mounts the CertificationUploader with the selected key.
  */
 export function CertifyPageClient() {
+  const { getToken } = useAuth();
   const [keys, setKeys] = useState<APIKey[]>([]);
   const [selectedKeyId, setSelectedKeyId] = useState<string>("");
   const [rawKey, setRawKey] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    listAPIKeys()
-      .then((k) => {
-        const active = k.filter((key) => key.is_active);
-        setKeys(active);
-        if (active.length > 0) setSelectedKeyId(active[0].id);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+    getToken().then((token) => {
+      if (!token) { setLoading(false); return; }
+      listAPIKeys(token)
+        .then((k) => {
+          const active = k.filter((key) => key.is_active);
+          setKeys(active);
+          if (active.length > 0) setSelectedKeyId(active[0].id);
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    });
+  }, [getToken]);
 
   if (loading) {
     return (
