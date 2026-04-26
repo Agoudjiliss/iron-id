@@ -12,6 +12,8 @@ const isPublicRoute = createRouteMatcher([
   "/earn(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  "/sitemap.xml",
+  "/robots.txt",
   "/api/v1/verify(.*)",
 ]);
 
