@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuth } from "@clerk/nextjs";
 import {
   AreaChart,
   Area,
@@ -14,7 +15,7 @@ import { Zap, TrendingUp, Calendar, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DailyUsage {
-  date: string;    // "2026-04-01"
+  date: string;
   count: number;
 }
 
@@ -25,22 +26,6 @@ interface UsageStats {
   daily: DailyUsage[];
 }
 
-// Generate realistic-looking demo data for the current month
-function generateDemoData(): DailyUsage[] {
-  const days: DailyUsage[] = [];
-  const now = new Date();
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-
-  for (let d = 1; d <= Math.min(now.getDate(), daysInMonth); d++) {
-    const date = new Date(now.getFullYear(), now.getMonth(), d);
-    days.push({
-      date: date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }),
-      count: Math.floor(Math.random() * 15),
-    });
-  }
-  return days;
-}
-
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
   payg: "Pay-as-you-go",
@@ -49,32 +34,60 @@ const PLAN_LABELS: Record<string, string> = {
   enterprise: "Enterprise",
 };
 
-function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) {
+function formatDay(isoDate: string): string {
+  const d = new Date(isoDate);
+  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+}
+
+function CustomTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: { value: number }[];
+  label?: string;
+}) {
   if (!active || !payload?.length) return null;
   return (
     <div className="glass rounded-xl px-3 py-2 text-xs">
       <p className="text-iron-white/60 mb-1">{label}</p>
-      <p className="text-iron-gold font-bold">{payload[0].value} signature{payload[0].value !== 1 ? "s" : ""}</p>
+      <p className="text-iron-gold font-bold">
+        {payload[0].value} signature{payload[0].value !== 1 ? "s" : ""}
+      </p>
     </div>
   );
 }
 
 export function UsageClient() {
+  const { getToken } = useAuth();
   const [stats, setStats] = useState<UsageStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate API call — in production: fetch /v1/usage with the API key
-    setTimeout(() => {
-      setStats({
-        used: 47,
-        limit: 10000,
-        plan: "individual",
-        daily: generateDemoData(),
-      });
-      setLoading(false);
-    }, 600);
-  }, []);
+    getToken().then(async (token) => {
+      if (!token) { setError("Session expirée."); setLoading(false); return; }
+      try {
+        const res = await fetch("/api/v1/usage", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error(`Erreur ${res.status}`);
+        const data = await res.json();
+        setStats({
+          ...data,
+          daily: (data.daily as { date: string; count: number }[]).map((d) => ({
+            date: formatDay(d.date),
+            count: d.count,
+          })),
+        });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Erreur de chargement");
+      } finally {
+        setLoading(false);
+      }
+    });
+  }, [getToken]);
 
   if (loading) {
     return (
@@ -85,16 +98,19 @@ export function UsageClient() {
     );
   }
 
-  if (!stats) return null;
+  if (error || !stats) {
+    return (
+      <div className="flex items-center justify-center h-64 text-iron-red text-sm">
+        {error ?? "Données indisponibles"}
+      </div>
+    );
+  }
 
-  const usagePct = stats.limit > 0
-    ? Math.min(100, Math.round((stats.used / stats.limit) * 100))
-    : 0;
+  const usagePct =
+    stats.limit > 0 ? Math.min(100, Math.round((stats.used / stats.limit) * 100)) : 0;
 
   const barColor =
-    usagePct > 90 ? "#FF4757" :
-    usagePct > 70 ? "#D4AF37" :
-    "#00D26A";
+    usagePct > 90 ? "#FF4757" : usagePct > 70 ? "#D4AF37" : "#00D26A";
 
   const today = new Date();
   const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -115,14 +131,14 @@ export function UsageClient() {
           icon={<TrendingUp size={16} className="text-iron-blue" />}
           label="Plan actuel"
           value={PLAN_LABELS[stats.plan] ?? stats.plan}
-          sub={usagePct > 0 ? `${usagePct}% consommé` : "Illimité"}
+          sub={stats.limit > 0 ? `${usagePct}% consommé` : "Illimité"}
           accent="blue"
         />
         <SummaryCard
           icon={<Calendar size={16} className="text-iron-white/50" />}
           label="Remise à zéro dans"
           value={`${daysLeft} jour${daysLeft !== 1 ? "s" : ""}`}
-          sub={`${today.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}`}
+          sub={today.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
           accent="default"
         />
       </div>
@@ -153,43 +169,50 @@ export function UsageClient() {
       {/* Daily chart */}
       <div className="rounded-2xl bg-iron-slate border border-iron-border p-5">
         <h2 className="text-sm font-semibold text-iron-white mb-5">
-          Signatures par jour — {today.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
+          Signatures par jour —{" "}
+          {today.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
         </h2>
 
-        <ResponsiveContainer width="100%" height={220}>
-          <AreaChart data={stats.daily} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-            <defs>
-              <linearGradient id="goldGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%"  stopColor="#D4AF37" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#D4AF37" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2A2A3E" vertical={false} />
-            <XAxis
-              dataKey="date"
-              tick={{ fill: "#FAFAFA40", fontSize: 11 }}
-              axisLine={false}
-              tickLine={false}
-              interval="preserveStartEnd"
-            />
-            <YAxis
-              tick={{ fill: "#FAFAFA40", fontSize: 11 }}
-              axisLine={false}
-              tickLine={false}
-              allowDecimals={false}
-            />
-            <Tooltip content={<CustomTooltip />} cursor={{ stroke: "#D4AF3740" }} />
-            <Area
-              type="monotone"
-              dataKey="count"
-              stroke="#D4AF37"
-              strokeWidth={2}
-              fill="url(#goldGradient)"
-              dot={false}
-              activeDot={{ r: 4, fill: "#D4AF37", strokeWidth: 0 }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        {stats.daily.length === 0 ? (
+          <div className="flex items-center justify-center h-[220px] text-iron-white/30 text-sm">
+            Aucune certification ce mois-ci.
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={stats.daily} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="goldGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#D4AF37" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#2A2A3E" vertical={false} />
+              <XAxis
+                dataKey="date"
+                tick={{ fill: "#FAFAFA40", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                interval="preserveStartEnd"
+              />
+              <YAxis
+                tick={{ fill: "#FAFAFA40", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                allowDecimals={false}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: "#D4AF3740" }} />
+              <Area
+                type="monotone"
+                dataKey="count"
+                stroke="#D4AF37"
+                strokeWidth={2}
+                fill="url(#goldGradient)"
+                dot={false}
+                activeDot={{ r: 4, fill: "#D4AF37", strokeWidth: 0 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       {/* Upgrade CTA if > 70% */}
@@ -229,9 +252,11 @@ function SummaryCard({
   accent: "gold" | "blue" | "default";
 }) {
   const ring =
-    accent === "gold" ? "ring-iron-gold/20" :
-    accent === "blue" ? "ring-iron-blue/20" :
-    "ring-iron-border";
+    accent === "gold"
+      ? "ring-iron-gold/20"
+      : accent === "blue"
+      ? "ring-iron-blue/20"
+      : "ring-iron-border";
 
   return (
     <div className={cn("rounded-2xl bg-iron-slate border border-iron-border p-4 ring-1", ring)}>

@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 from config import get_settings
 from database import close_db, init_db
 from middleware.rate_limit import RateLimitMiddleware
-from routers import affiliate, billing, certify, clerk_webhook, keys, verify, webhooks
+from routers import affiliate, billing, certify, clerk_webhook, keys, stats, verify, webhooks
 
 settings = get_settings()
 
@@ -98,6 +98,7 @@ async def health() -> dict:
 
 # --- Routers ---
 app.include_router(keys.router)
+app.include_router(stats.router)
 app.include_router(certify.router)
 app.include_router(verify.router)
 app.include_router(billing.router)
