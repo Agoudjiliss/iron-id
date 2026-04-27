@@ -1,42 +1,29 @@
 import { Upload, Cpu, Globe } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
-const STEPS = [
-  {
-    icon: Upload,
-    step: "01",
-    title: "Uploadez votre fichier",
-    description:
-      "Envoyez n'importe quel fichier via notre API REST ou nos SDK JS/Python. Nous acceptons images, vidéos, PDF et audio jusqu'à 100 Mo.",
-    detail: "POST /v1/certify",
-  },
-  {
-    icon: Cpu,
-    step: "02",
-    title: "Signature C2PA & Ledger",
-    description:
-      "IronID calcule le SHA-256, construit un manifest C2PA, signe avec ECDSA P-256 et inscrit le tout dans un ledger PostgreSQL immuable protégé par Row-Level Security.",
-    detail: "Asynchrone — webhook ou polling",
-  },
-  {
-    icon: Globe,
-    step: "03",
-    title: "Vérification publique",
-    description:
-      "N'importe qui peut vérifier l'authenticité d'un fichier via l'URL publique ou en uploadant le fichier directement — aucun compte requis.",
-    detail: "GET /v1/verify/{hash}",
-  },
-];
+const ICONS = [Upload, Cpu, Globe];
+const STEP_NUMBERS = ["01", "02", "03"];
 
-export function HowItWorks() {
+export async function HowItWorks() {
+  const t = await getTranslations("howItWorks");
+
+  const steps = (["0", "1", "2"] as const).map((i, idx) => ({
+    icon: ICONS[idx],
+    step: STEP_NUMBERS[idx],
+    title: t(`steps.${i}.title`),
+    description: t(`steps.${i}.description`),
+    detail: t(`steps.${i}.detail`),
+  }));
+
   return (
     <section id="how" className="py-24 px-6">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <p className="text-xs font-semibold text-iron-gold uppercase tracking-widest mb-3">
-            Comment ça marche
+            {t("eyebrow")}
           </p>
           <h2 className="text-3xl md:text-5xl font-bold text-iron-white">
-            Trois étapes. Immuable pour toujours.
+            {t("headline")}
           </h2>
         </div>
 
@@ -47,7 +34,7 @@ export function HowItWorks() {
             className="hidden md:block absolute top-10 left-1/3 right-1/3 h-px bg-gradient-to-r from-iron-gold/20 via-iron-gold/40 to-iron-gold/20"
           />
 
-          {STEPS.map(({ icon: Icon, step, title, description, detail }) => (
+          {steps.map(({ icon: Icon, step, title, description, detail }) => (
             <div key={step} className="relative group">
               <div className="bg-iron-slate border border-iron-border rounded-2xl p-6 h-full transition-all duration-300 hover:border-iron-gold/30 hover:shadow-lg hover:shadow-iron-gold/5">
                 {/* Step number */}

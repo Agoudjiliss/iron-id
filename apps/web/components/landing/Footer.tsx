@@ -1,27 +1,39 @@
 import Link from "next/link";
 import { Shield } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
-const LINKS = {
-  Produit: [
-    { href: "/#features",   label: "Fonctionnalités" },
-    { href: "/pricing",     label: "Tarifs"           },
-    { href: "/verify",      label: "Vérifier un fichier" },
-    { href: "/docs",        label: "Documentation"    },
-  ],
-  Développeurs: [
-    { href: "/docs#api",    label: "Référence API"    },
-    { href: "/docs#sdk-js", label: "SDK JavaScript"   },
-    { href: "/docs#sdk-py", label: "SDK Python"       },
-    { href: "/docs#webhooks", label: "Webhooks"       },
-  ],
-  Entreprise: [
-    { href: "/affiliate",   label: "Programme affilié" },
-    { href: "/pricing#enterprise", label: "Enterprise" },
-    { href: "mailto:hello@ironid.io", label: "Contact" },
-  ],
-};
+export async function Footer() {
+  const t = await getTranslations("footer");
 
-export function Footer() {
+  const sections = [
+    {
+      heading: t("product"),
+      links: [
+        { href: "/#features", label: t("features") },
+        { href: "/pricing", label: t("pricing") },
+        { href: "/verify", label: t("verify") },
+        { href: "/docs", label: t("docs") },
+      ],
+    },
+    {
+      heading: t("developers"),
+      links: [
+        { href: "/docs#api", label: t("apiRef") },
+        { href: "/docs#sdk-js", label: t("sdkJs") },
+        { href: "/docs#sdk-py", label: t("sdkPy") },
+        { href: "/docs#webhooks", label: t("webhooks") },
+      ],
+    },
+    {
+      heading: t("enterprise"),
+      links: [
+        { href: "/affiliate", label: t("affiliate") },
+        { href: "/pricing#enterprise", label: t("enterpriseLink") },
+        { href: "mailto:hello@ironid.io", label: t("contact") },
+      ],
+    },
+  ];
+
   return (
     <footer className="border-t border-iron-border bg-iron-slate/10 px-6 py-16">
       <div className="max-w-6xl mx-auto">
@@ -35,18 +47,18 @@ export function Footer() {
               </span>
             </div>
             <p className="text-xs text-iron-white/35 leading-relaxed max-w-[200px]">
-              Le standard de référence pour l'authenticité numérique. C2PA-signé, immuable, vérifiable.
+              {t("tagline")}
             </p>
           </div>
 
           {/* Link columns */}
-          {Object.entries(LINKS).map(([section, items]) => (
-            <div key={section}>
+          {sections.map(({ heading, links }) => (
+            <div key={heading}>
               <h4 className="text-xs font-semibold text-iron-white/50 uppercase tracking-wider mb-4">
-                {section}
+                {heading}
               </h4>
               <ul className="space-y-2.5">
-                {items.map(({ href, label }) => (
+                {links.map(({ href, label }) => (
                   <li key={href}>
                     <Link
                       href={href}
@@ -63,11 +75,15 @@ export function Footer() {
 
         <div className="border-t border-iron-border pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-xs text-iron-white/25">
-            © {new Date().getFullYear()} IronID. Tous droits réservés.
+            © {new Date().getFullYear()} IronID. {t("copyright")}
           </p>
           <div className="flex items-center gap-5 text-xs text-iron-white/25">
-            <Link href="/privacy" className="hover:text-iron-white/50 transition-colors">Confidentialité</Link>
-            <Link href="/terms"   className="hover:text-iron-white/50 transition-colors">CGU</Link>
+            <Link href="/privacy" className="hover:text-iron-white/50 transition-colors">
+              {t("privacy")}
+            </Link>
+            <Link href="/terms" className="hover:text-iron-white/50 transition-colors">
+              {t("terms")}
+            </Link>
           </div>
         </div>
       </div>

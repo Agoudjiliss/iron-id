@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Nav }         from "@/components/landing/Nav";
+import { NavServer }   from "@/components/landing/NavServer";
 import { Hero }        from "@/components/landing/Hero";
 import { HowItWorks }  from "@/components/landing/HowItWorks";
 import { Industries }    from "@/components/landing/Industries";
@@ -102,7 +102,7 @@ export default function LandingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Nav />
+      <NavServer />
       <main>
         <Hero />
         <HowItWorks />

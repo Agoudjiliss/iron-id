@@ -4,8 +4,25 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Shield, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
-export function Nav() {
+interface NavLink {
+  href: string;
+  label: string;
+}
+
+interface NavCta {
+  signIn: string;
+  signUp: string;
+}
+
+interface NavProps {
+  locale: string;
+  links: NavLink[];
+  cta: NavCta;
+}
+
+export function Nav({ locale, links, cta }: NavProps) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -35,13 +52,7 @@ export function Nav() {
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-6">
-          {[
-            { href: "/#features",   label: "Fonctionnalités" },
-            { href: "/#how",        label: "Comment ça marche" },
-            { href: "/pricing",     label: "Tarifs" },
-            { href: "/earn",        label: "Affiliation" },
-            { href: "/docs",        label: "Documentation" },
-          ].map(({ href, label }) => (
+          {links.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
@@ -52,19 +63,20 @@ export function Nav() {
           ))}
         </nav>
 
-        {/* CTA */}
+        {/* CTA + Language switcher */}
         <div className="hidden md:flex items-center gap-3">
+          <LanguageSwitcher current={locale} />
           <Link
             href="/sign-in"
             className="text-sm text-iron-white/60 hover:text-iron-white transition-colors"
           >
-            Connexion
+            {cta.signIn}
           </Link>
           <Link
             href="/sign-up"
             className="px-4 py-2 rounded-xl text-sm font-semibold bg-iron-gold text-iron-black hover:bg-iron-gold/90 transition-colors"
           >
-            Commencer gratuitement
+            {cta.signUp}
           </Link>
         </div>
 
@@ -81,14 +93,7 @@ export function Nav() {
       {/* Mobile drawer */}
       {open && (
         <div className="md:hidden bg-iron-black/95 border-b border-iron-border px-6 py-4 space-y-3">
-          {[
-            { href: "/#features",  label: "Fonctionnalités" },
-            { href: "/#how",       label: "Comment ça marche" },
-            { href: "/pricing",    label: "Tarifs" },
-            { href: "/earn",       label: "Affiliation" },
-            { href: "/docs",       label: "Documentation" },
-            { href: "/sign-in",    label: "Connexion" },
-          ].map(({ href, label }) => (
+          {links.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
@@ -99,12 +104,22 @@ export function Nav() {
             </Link>
           ))}
           <Link
+            href="/sign-in"
+            onClick={() => setOpen(false)}
+            className="block text-sm text-iron-white/60 hover:text-iron-white transition-colors py-1"
+          >
+            {cta.signIn}
+          </Link>
+          <Link
             href="/sign-up"
             onClick={() => setOpen(false)}
             className="block w-full text-center px-4 py-2 rounded-xl text-sm font-semibold bg-iron-gold text-iron-black"
           >
-            Commencer gratuitement
+            {cta.signUp}
           </Link>
+          <div className="pt-2">
+            <LanguageSwitcher current={locale} />
+          </div>
         </div>
       )}
     </header>

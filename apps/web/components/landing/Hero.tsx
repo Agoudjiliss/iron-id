@@ -1,14 +1,12 @@
 import Link from "next/link";
 import { Shield, ArrowRight, CheckCircle } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
-const TRUST_ITEMS = [
-  "Certifié C2PA",
-  "Ledger immuable",
-  "API-first",
-  "Open source SDK",
-];
+export async function Hero() {
+  const t = await getTranslations("hero");
 
-export function Hero() {
+  const trustItems = ["0", "1", "2", "3"].map((i) => t(`trust.${i}`));
+
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-20 overflow-hidden">
       {/* Background glow */}
@@ -31,25 +29,28 @@ export function Hero() {
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-iron-gold/20 bg-iron-gold/5 text-iron-gold text-xs font-medium mb-6">
           <Shield size={12} />
-          Standard de référence pour l'authenticité numérique
+          {t("badge")}
         </div>
 
         {/* Headline */}
         <h1 className="text-5xl md:text-7xl font-extrabold text-iron-white leading-[1.05] tracking-tight mb-6">
-          Prouvez l'origine
+          {t("headline1")}
           <br />
-          <span className="text-gradient-gold">de chaque fichier.</span>
+          <span className="text-gradient-gold">{t("headline2")}</span>
           <br />
-          Pour toujours.
+          {t("headline3")}
         </h1>
 
         {/* Subheadline */}
         <p className="max-w-2xl mx-auto text-lg md:text-xl text-iron-white/50 leading-relaxed mb-10">
-          IronID certifie vos images, vidéos et documents avec une signature{" "}
-          <strong className="text-iron-white/70">C2PA cryptographique</strong> et
-          les inscrit dans un{" "}
-          <strong className="text-iron-white/70">ledger PostgreSQL immuable</strong> —
-          vérifiable publiquement, pour toujours.
+          {t.rich("subtitle", {
+            c2pa: (chunks) => (
+              <strong className="text-iron-white/70">{chunks}</strong>
+            ),
+            ledger: (chunks) => (
+              <strong className="text-iron-white/70">{chunks}</strong>
+            ),
+          })}
         </p>
 
         {/* CTAs */}
@@ -58,20 +59,20 @@ export function Hero() {
             href="/sign-up"
             className="group flex items-center gap-2 px-6 py-3.5 rounded-2xl font-semibold text-iron-black bg-iron-gold hover:bg-iron-gold/90 transition-all shadow-lg shadow-iron-gold/20"
           >
-            Commencer gratuitement
+            {t("ctaPrimary")}
             <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
           </Link>
           <Link
             href="/docs"
             className="flex items-center gap-2 px-6 py-3.5 rounded-2xl font-semibold text-iron-white border border-iron-border hover:bg-iron-border/40 transition-colors"
           >
-            Voir la documentation
+            {t("ctaSecondary")}
           </Link>
         </div>
 
         {/* Trust items */}
         <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6">
-          {TRUST_ITEMS.map((item) => (
+          {trustItems.map((item) => (
             <div key={item} className="flex items-center gap-1.5 text-xs text-iron-white/40">
               <CheckCircle size={12} className="text-iron-green" />
               {item}

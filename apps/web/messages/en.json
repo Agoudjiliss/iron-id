@@ -53,5 +53,90 @@
     "processing": "Processing",
     "certified": "Certified",
     "failed": "Failed"
+  },
+  "landingNav": {
+    "features": "Features",
+    "howItWorks": "How it works",
+    "pricing": "Pricing",
+    "affiliate": "Affiliate",
+    "docs": "Documentation",
+    "signIn": "Sign in",
+    "signUp": "Get started free"
+  },
+  "hero": {
+    "badge": "The reference standard for digital authenticity",
+    "headline1": "Prove the origin",
+    "headline2": "of every file.",
+    "headline3": "Forever.",
+    "subtitle": "IronID certifies your images, videos and documents with a {c2pa} signature and records them in an {ledger} — publicly verifiable, forever.",
+    "c2pa": "cryptographic C2PA",
+    "ledger": "immutable ledger",
+    "ctaPrimary": "Get started free",
+    "ctaSecondary": "View documentation",
+    "trust": ["C2PA certified", "Immutable ledger", "API-first", "Open source SDK"]
+  },
+  "howItWorks": {
+    "eyebrow": "How it works",
+    "headline": "Three steps. Immutable forever.",
+    "steps": [
+      {
+        "title": "Upload your file",
+        "description": "Send any file via our REST API or JS/Python SDKs. We accept images, videos, PDFs and audio up to 100 MB.",
+        "detail": "POST /v1/certify"
+      },
+      {
+        "title": "C2PA Signature & Ledger",
+        "description": "IronID computes the SHA-256, builds a C2PA manifest, signs with ECDSA P-256 and writes everything to an immutable PostgreSQL ledger protected by Row-Level Security.",
+        "detail": "Async — webhook or polling"
+      },
+      {
+        "title": "Public verification",
+        "description": "Anyone can verify a file's authenticity via the public URL or by uploading the file directly — no account required.",
+        "detail": "GET /v1/verify/{hash}"
+      }
+    ]
+  },
+  "features": {
+    "eyebrow": "Features",
+    "headline1": "Everything you need for",
+    "headline2": "authenticity at scale.",
+    "items": [
+      { "title": "C2PA Signature", "desc": "Open standard by the Coalition for Content Provenance and Authenticity. Interoperable with Adobe, Microsoft, Google." },
+      { "title": "Immutable ledger", "desc": "PostgreSQL with Row-Level Security — UPDATE and DELETE blocked at the database level. No rollback possible." },
+      { "title": "Async processing", "desc": "Certification via BackgroundTasks. Webhook callbacks or polling. No HTTP timeout on the client side." },
+      { "title": "Official SDK", "desc": "JavaScript/TypeScript and Python SDKs with strict types, error handling and automatic retry." },
+      { "title": "Public verification", "desc": "Shareable verification URL. Anyone can prove or disprove a file's authenticity." },
+      { "title": "Full dashboard", "desc": "Overview, usage chart, certification history, API key management." },
+      { "title": "Flexible billing", "desc": "Pay only for what you use. Monthly subscriptions or PAYG via PayPal." },
+      { "title": "Affiliate program", "desc": "Refer users, earn up to 20% recurring commission. Automatic PayPal payment." }
+    ]
+  },
+  "cta": {
+    "eyebrow": "Get started now",
+    "headline1": "10 free certifications.",
+    "headline2": "No credit card.",
+    "subtitle": "Create an account, generate your API key, certify your first files in under 5 minutes.",
+    "ctaPrimary": "Create a free account",
+    "ctaSecondary": "Read the documentation →"
+  },
+  "footer": {
+    "tagline": "The reference standard for digital authenticity. C2PA-signed, immutable, verifiable.",
+    "copyright": "All rights reserved.",
+    "product": "Product",
+    "developers": "Developers",
+    "enterprise": "Enterprise",
+    "features": "Features",
+    "pricing": "Pricing",
+    "verify": "Verify a file",
+    "docs": "Documentation",
+    "apiRef": "API Reference",
+    "sdkJs": "JavaScript SDK",
+    "sdkPy": "Python SDK",
+    "webhooks": "Webhooks",
+    "affiliate": "Affiliate program",
+    "enterpriseLink": "Enterprise",
+    "contact": "Contact",
+    "privacy": "Privacy",
+    "terms": "Terms"
   }
 }

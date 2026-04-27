@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Nav }    from "@/components/landing/Nav";
-import { Footer } from "@/components/landing/Footer";
+import { NavServer } from "@/components/landing/NavServer";
+import { Footer }    from "@/components/landing/Footer";
 import { AffiliateCalculator } from "@/components/landing/AffiliateCalculator";
 import {
   Shield,
@@ -118,7 +118,7 @@ const STEPS = [
 export default function EarnPage() {
   return (
     <>
-      <Nav />
+      <NavServer />
 
       <main className="bg-[#050510] text-iron-white min-h-screen overflow-hidden">
 

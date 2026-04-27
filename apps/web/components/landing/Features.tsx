@@ -8,67 +8,37 @@ import {
   RefreshCw,
   Users,
 } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
-const FEATURES = [
-  {
-    icon: Shield,
-    title: "Signature C2PA",
-    desc: "Standard ouvert Coalition for Content Provenance and Authenticity. Interopérable avec Adobe, Microsoft, Google.",
-  },
-  {
-    icon: Lock,
-    title: "Ledger immuable",
-    desc: "PostgreSQL avec Row-Level Security — UPDATE et DELETE bloqués au niveau base de données. Pas de rollback possible.",
-  },
-  {
-    icon: Zap,
-    title: "Traitement asynchrone",
-    desc: "Certification via Celery + Redis. Retours webhook ou polling. Aucun timeout HTTP côté client.",
-  },
-  {
-    icon: Code2,
-    title: "SDK officiel",
-    desc: "SDK JavaScript/TypeScript et Python avec types stricts, gestion d'erreurs et retry automatique.",
-  },
-  {
-    icon: Globe,
-    title: "Vérification publique",
-    desc: "URL de vérification partageable. N'importe qui peut prouver ou réfuter l'authenticité d'un fichier.",
-  },
-  {
-    icon: BarChart2,
-    title: "Dashboard complet",
-    desc: "Vue d'ensemble, graphique de consommation, historique des certifications, gestion des clés API.",
-  },
-  {
-    icon: RefreshCw,
-    title: "Billing Pay-as-you-go",
-    desc: "Payez uniquement ce que vous utilisez. Abonnements mensuels ou PAYG via PayPal.",
-  },
-  {
-    icon: Users,
-    title: "Programme d'affiliation",
-    desc: "Parrainez des utilisateurs, gagnez jusqu'à 20% de commission récurrente. Paiement PayPal automatique.",
-  },
-];
+const ICONS = [Shield, Lock, Zap, Code2, Globe, BarChart2, RefreshCw, Users];
 
-export function Features() {
+export async function Features() {
+  const t = await getTranslations("features");
+
+  const items = (["0", "1", "2", "3", "4", "5", "6", "7"] as const).map(
+    (i, idx) => ({
+      icon: ICONS[idx],
+      title: t(`items.${i}.title`),
+      desc: t(`items.${i}.desc`),
+    }),
+  );
+
   return (
     <section id="features" className="py-24 px-6 bg-iron-slate/20">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <p className="text-xs font-semibold text-iron-gold uppercase tracking-widest mb-3">
-            Fonctionnalités
+            {t("eyebrow")}
           </p>
           <h2 className="text-3xl md:text-5xl font-bold text-iron-white">
-            Tout ce qu'il faut pour
+            {t("headline1")}
             <br />
-            l'authenticité à l'échelle.
+            {t("headline2")}
           </h2>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {FEATURES.map(({ icon: Icon, title, desc }) => (
+          {items.map(({ icon: Icon, title, desc }) => (
             <div
               key={title}
               className="bg-iron-slate border border-iron-border rounded-2xl p-5 hover:border-iron-gold/20 transition-colors group"

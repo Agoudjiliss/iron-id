@@ -79,10 +79,11 @@ export default async function RootLayout({
 }) {
   const locale   = await getLocale();
   const messages = await getMessages();
+  const dir = locale === "ar" ? "rtl" : "ltr";
 
   return (
     <ClerkProvider>
-      <html lang={locale} className={`${inter.variable} ${jetbrainsMono.variable}`}>
+      <html lang={locale} dir={dir} className={`${inter.variable} ${jetbrainsMono.variable}`}>
         <body className="min-h-screen bg-iron-black text-iron-white antialiased">
           <NextIntlClientProvider locale={locale} messages={messages}>
             <PostHogProvider>

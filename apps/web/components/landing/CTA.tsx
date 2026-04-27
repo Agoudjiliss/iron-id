@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
-export function CTA() {
+export async function CTA() {
+  const t = await getTranslations("cta");
+
   return (
     <section className="py-24 px-6">
       <div className="max-w-3xl mx-auto">
@@ -13,29 +16,29 @@ export function CTA() {
 
           <div className="relative z-10">
             <p className="text-xs font-semibold text-iron-gold uppercase tracking-widest mb-4">
-              Commencez dès maintenant
+              {t("eyebrow")}
             </p>
             <h2 className="text-3xl md:text-5xl font-extrabold text-iron-white mb-4 leading-tight">
-              10 certifications gratuites.
+              {t("headline1")}
               <br />
-              <span className="text-gradient-gold">Sans carte bancaire.</span>
+              <span className="text-gradient-gold">{t("headline2")}</span>
             </h2>
             <p className="text-iron-white/40 mb-8 max-w-md mx-auto">
-              Créez un compte, générez votre clé API, certifiez vos premiers fichiers en moins de 5 minutes.
+              {t("subtitle")}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/sign-up"
                 className="group flex items-center gap-2 px-7 py-3.5 rounded-2xl font-semibold text-iron-black bg-iron-gold hover:bg-iron-gold/90 transition-all shadow-lg shadow-iron-gold/25"
               >
-                Créer un compte gratuit
+                {t("ctaPrimary")}
                 <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
               </Link>
               <Link
                 href="/docs"
                 className="text-sm text-iron-white/40 hover:text-iron-white transition-colors"
               >
-                Lire la documentation →
+                {t("ctaSecondary")}
               </Link>
             </div>
           </div>

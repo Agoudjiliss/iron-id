@@ -1,16 +1,14 @@
+import { cookies } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 
-const SUPPORTED_LOCALES = ["fr", "en", "ar"] as const;
-const DEFAULT_LOCALE    = "fr";
+const SUPPORTED = ["fr", "en", "ar"] as const;
+type Locale = typeof SUPPORTED[number];
+const DEFAULT: Locale = "fr";
 
-export default getRequestConfig(async ({ requestLocale }) => {
-  // next-intl v3.22+ — use requestLocale, fall back to default
-  let locale = await requestLocale;
-
-  if (!locale || !SUPPORTED_LOCALES.includes(locale as typeof SUPPORTED_LOCALES[number])) {
-    locale = DEFAULT_LOCALE;
-  }
-
+export default getRequestConfig(async () => {
+  const cookieStore = cookies();
+  const raw = cookieStore.get("NEXT_LOCALE")?.value;
+  const locale: Locale = SUPPORTED.includes(raw as Locale) ? (raw as Locale) : DEFAULT;
   return {
     locale,
     messages: (await import(`./messages/${locale}.json`)).default,

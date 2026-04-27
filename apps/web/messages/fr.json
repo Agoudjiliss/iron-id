@@ -53,5 +53,90 @@
     "processing": "En cours",
     "certified": "Certifié",
     "failed": "Échoué"
+  },
+  "landingNav": {
+    "features": "Fonctionnalités",
+    "howItWorks": "Comment ça marche",
+    "pricing": "Tarifs",
+    "affiliate": "Affiliation",
+    "docs": "Documentation",
+    "signIn": "Connexion",
+    "signUp": "Commencer gratuitement"
+  },
+  "hero": {
+    "badge": "Standard de référence pour l'authenticité numérique",
+    "headline1": "Prouvez l'origine",
+    "headline2": "de chaque fichier.",
+    "headline3": "Pour toujours.",
+    "subtitle": "IronID certifie vos images, vidéos et documents avec une signature {c2pa} et les inscrit dans un {ledger} — vérifiable publiquement, pour toujours.",
+    "c2pa": "C2PA cryptographique",
+    "ledger": "ledger immuable",
+    "ctaPrimary": "Commencer gratuitement",
+    "ctaSecondary": "Voir la documentation",
+    "trust": ["Certifié C2PA", "Ledger immuable", "API-first", "Open source SDK"]
+  },
+  "howItWorks": {
+    "eyebrow": "Comment ça marche",
+    "headline": "Trois étapes. Immuable pour toujours.",
+    "steps": [
+      {
+        "title": "Uploadez votre fichier",
+        "description": "Envoyez n'importe quel fichier via notre API REST ou nos SDK JS/Python. Nous acceptons images, vidéos, PDF et audio jusqu'à 100 Mo.",
+        "detail": "POST /v1/certify"
+      },
+      {
+        "title": "Signature C2PA & Ledger",
+        "description": "IronID calcule le SHA-256, construit un manifest C2PA, signe avec ECDSA P-256 et inscrit le tout dans un ledger PostgreSQL immuable protégé par Row-Level Security.",
+        "detail": "Asynchrone — webhook ou polling"
+      },
+      {
+        "title": "Vérification publique",
+        "description": "N'importe qui peut vérifier l'authenticité d'un fichier via l'URL publique ou en uploadant le fichier directement — aucun compte requis.",
+        "detail": "GET /v1/verify/{hash}"
+      }
+    ]
+  },
+  "features": {
+    "eyebrow": "Fonctionnalités",
+    "headline1": "Tout ce qu'il faut pour",
+    "headline2": "l'authenticité à l'échelle.",
+    "items": [
+      { "title": "Signature C2PA", "desc": "Standard ouvert Coalition for Content Provenance and Authenticity. Interopérable avec Adobe, Microsoft, Google." },
+      { "title": "Ledger immuable", "desc": "PostgreSQL avec Row-Level Security — UPDATE et DELETE bloqués au niveau base de données. Pas de rollback possible." },
+      { "title": "Traitement asynchrone", "desc": "Certification via BackgroundTasks. Retours webhook ou polling. Aucun timeout HTTP côté client." },
+      { "title": "SDK officiel", "desc": "SDK JavaScript/TypeScript et Python avec types stricts, gestion d'erreurs et retry automatique." },
+      { "title": "Vérification publique", "desc": "URL de vérification partageable. N'importe qui peut prouver ou réfuter l'authenticité d'un fichier." },
+      { "title": "Dashboard complet", "desc": "Vue d'ensemble, graphique de consommation, historique des certifications, gestion des clés API." },
+      { "title": "Billing flexible", "desc": "Payez uniquement ce que vous utilisez. Abonnements mensuels ou PAYG via PayPal." },
+      { "title": "Programme d'affiliation", "desc": "Parrainez des utilisateurs, gagnez jusqu'à 20% de commission récurrente. Paiement PayPal automatique." }
+    ]
+  },
+  "cta": {
+    "eyebrow": "Commencez dès maintenant",
+    "headline1": "10 certifications gratuites.",
+    "headline2": "Sans carte bancaire.",
+    "subtitle": "Créez un compte, générez votre clé API, certifiez vos premiers fichiers en moins de 5 minutes.",
+    "ctaPrimary": "Créer un compte gratuit",
+    "ctaSecondary": "Lire la documentation →"
+  },
+  "footer": {
+    "tagline": "Le standard de référence pour l'authenticité numérique. C2PA-signé, immuable, vérifiable.",
+    "copyright": "Tous droits réservés.",
+    "product": "Produit",
+    "developers": "Développeurs",
+    "enterprise": "Entreprise",
+    "features": "Fonctionnalités",
+    "pricing": "Tarifs",
+    "verify": "Vérifier un fichier",
+    "docs": "Documentation",
+    "apiRef": "Référence API",
+    "sdkJs": "SDK JavaScript",
+    "sdkPy": "SDK Python",
+    "webhooks": "Webhooks",
+    "affiliate": "Programme affilié",
+    "enterpriseLink": "Enterprise",
+    "contact": "Contact",
+    "privacy": "Confidentialité",
+    "terms": "CGU"
   }
 }
