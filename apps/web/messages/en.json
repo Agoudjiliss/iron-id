@@ -68,9 +68,7 @@
     "headline1": "Prove the origin",
     "headline2": "of every file.",
     "headline3": "Forever.",
-    "subtitle": "IronID certifies your images, videos and documents with a {c2pa} signature and records them in an {ledger} — publicly verifiable, forever.",
-    "c2pa": "cryptographic C2PA",
-    "ledger": "immutable ledger",
+    "subtitle": "IronID certifies your images, videos and documents with a <b>cryptographic C2PA</b> signature and records them in an <b>immutable ledger</b> — publicly verifiable, forever.",
     "ctaPrimary": "Get started free",
     "ctaSecondary": "View documentation",
     "trust": ["C2PA certified", "Immutable ledger", "API-first", "Open source SDK"]
@@ -92,7 +90,7 @@
       {
         "title": "Public verification",
         "description": "Anyone can verify a file's authenticity via the public URL or by uploading the file directly — no account required.",
-        "detail": "GET /v1/verify/{hash}"
+        "detail": "GET /v1/verify/:hash"
       }
     ]
   },

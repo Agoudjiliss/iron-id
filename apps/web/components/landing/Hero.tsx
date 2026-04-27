@@ -44,10 +44,7 @@ export async function Hero() {
         {/* Subheadline */}
         <p className="max-w-2xl mx-auto text-lg md:text-xl text-iron-white/50 leading-relaxed mb-10">
           {t.rich("subtitle", {
-            c2pa: (chunks) => (
-              <strong className="text-iron-white/70">{chunks}</strong>
-            ),
-            ledger: (chunks) => (
+            b: (chunks) => (
               <strong className="text-iron-white/70">{chunks}</strong>
             ),
           })}
