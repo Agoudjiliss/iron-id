@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAdminKey, adminFetch } from "../layout";
-import { PageShell, Spinner } from "../page";
+import { PageShell, Spinner } from "../_components";
 import { MessageSquare, Star, CheckCircle } from "lucide-react";
 
 interface Feedback {

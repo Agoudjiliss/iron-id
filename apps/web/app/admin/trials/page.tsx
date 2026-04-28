@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useAdminKey, adminFetch } from "../layout";
-import { PageShell } from "../page";
+import { PageShell } from "../_components";
 import { Gift, CheckCircle, Search } from "lucide-react";
 
 interface TrialResult {

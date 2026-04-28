@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useAdminKey, adminFetch } from "../layout";
-import { PageShell, Spinner } from "../page";
+import { PageShell, Spinner } from "../_components";
 import { Search, ChevronLeft, ChevronRight, Edit2, Check, X } from "lucide-react";
 
 interface User {

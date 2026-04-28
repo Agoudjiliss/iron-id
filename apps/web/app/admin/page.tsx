@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useAdminKey, adminFetch } from "./layout";
-import { Users, FileCheck, Zap, TrendingUp, Clock, Shield } from "lucide-react";
+import { PageShell, Spinner } from "./_components";
+import { Users, FileCheck, Zap, TrendingUp, Shield } from "lucide-react";
 
 interface Stats {
   users: { total: number; today: number; this_week: number };
@@ -42,15 +43,13 @@ export default function AdminOverview() {
 
   return (
     <PageShell title="Overview">
-      {/* KPI Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <KpiCard icon={Users}     label="Total users"        value={stats.users.total}               sub={`+${stats.users.today} today · +${stats.users.this_week} this week`} color="gold" />
-        <KpiCard icon={FileCheck} label="Total certifications" value={stats.certifications.total}    sub={`+${stats.certifications.today} today · +${stats.certifications.this_week} this week`} color="green" />
-        <KpiCard icon={TrendingUp} label="Certs this month"   value={stats.certifications.this_month} sub="Last 30 days" color="blue" />
-        <KpiCard icon={Zap}       label="Active trials"       value={stats.active_trials}             sub="Enterprise trials running" color="purple" />
+        <KpiCard icon={Users}     label="Total users"           value={stats.users.total}                sub={`+${stats.users.today} today · +${stats.users.this_week} this week`} color="gold" />
+        <KpiCard icon={FileCheck} label="Total certifications"  value={stats.certifications.total}       sub={`+${stats.certifications.today} today · +${stats.certifications.this_week} this week`} color="green" />
+        <KpiCard icon={TrendingUp} label="Certs this month"     value={stats.certifications.this_month}  sub="Last 30 days" color="blue" />
+        <KpiCard icon={Zap}       label="Active trials"         value={stats.active_trials}              sub="Enterprise trials running" color="purple" />
       </div>
 
-      {/* Plan breakdown */}
       <div className="rounded-2xl border border-iron-border bg-iron-slate p-6">
         <h2 className="text-sm font-semibold text-iron-white mb-4 flex items-center gap-2">
           <Shield size={14} className="text-iron-gold" /> Plan distribution
@@ -67,10 +66,7 @@ export default function AdminOverview() {
                   <span className="text-xs text-iron-white/50">{count} users · {pct}%</span>
                 </div>
                 <div className="h-1.5 bg-iron-border rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-iron-gold/60 rounded-full transition-all"
-                    style={{ width: `${pct}%` }}
-                  />
+                  <div className="h-full bg-iron-gold/60 rounded-full transition-all" style={{ width: `${pct}%` }} />
                 </div>
               </div>
             );
@@ -78,27 +74,6 @@ export default function AdminOverview() {
         </div>
       </div>
     </PageShell>
-  );
-}
-
-// ── Shared components ─────────────────────────────────────────────────────────
-export function PageShell({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="flex items-center h-14 px-6 border-b border-iron-border flex-shrink-0">
-        <h1 className="text-sm font-bold text-iron-white">{title}</h1>
-        <span className="ml-2 text-xs text-iron-white/30">IronID Admin</span>
-      </div>
-      <main className="flex-1 p-6 overflow-y-auto space-y-6">{children}</main>
-    </div>
-  );
-}
-
-export function Spinner() {
-  return (
-    <div className="flex items-center justify-center py-20">
-      <div className="w-6 h-6 border-2 border-iron-gold/30 border-t-iron-gold rounded-full animate-spin" />
-    </div>
   );
 }
 
