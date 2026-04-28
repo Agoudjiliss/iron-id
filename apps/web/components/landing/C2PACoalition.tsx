@@ -1,50 +1,15 @@
-/**
- * C2PACoalition — "Built on the global C2PA standard"
- *
- * Lists real-world companies & organisations that are founding members
- * or active adopters of the C2PA (Coalition for Content Provenance and Authenticity).
- *
- * Sources: contentauthenticity.org / c2pa.org member directory (public).
- */
+import { getTranslations } from "next-intl/server";
 
-// ─── Member tiers ─────────────────────────────────────────────────────────────
+const FOUNDER_NAMES = ["Adobe", "Microsoft", "BBC", "Intel", "Arm", "Truepic"];
 
-/** Founding / Steering committee members */
-const FOUNDERS = [
-  { name: "Adobe",      note: "Founding member"   },
-  { name: "Microsoft",  note: "Founding member"   },
-  { name: "BBC",        note: "Founding member"   },
-  { name: "Intel",      note: "Founding member"   },
-  { name: "Arm",        note: "Founding member"   },
-  { name: "Truepic",    note: "Founding member"   },
+const ADOPTERS_ROW_A = [
+  "Google", "Apple", "OpenAI", "Reuters", "Associated Press",
+  "Getty Images", "Shutterstock", "Sony", "Nikon", "Canon",
 ];
-
-/** Major adopters / CAI members */
-const ADOPTERS = [
-  "Google",
-  "Apple",
-  "OpenAI",
-  "Reuters",
-  "Associated Press",
-  "Getty Images",
-  "Shutterstock",
-  "Sony",
-  "Nikon",
-  "Canon",
-  "Leica",
-  "The New York Times",
-  "Washington Post",
-  "Publicis Groupe",
-  "Qualcomm",
-  "Nvidia",
-  "Stability AI",
-  "Midjourney",
-  "PwC",
-  "Agence France-Presse",
+const ADOPTERS_ROW_B = [
+  "Leica", "The New York Times", "Washington Post", "Publicis Groupe",
+  "Qualcomm", "Nvidia", "Stability AI", "PwC", "Agence France-Presse", "Midjourney",
 ];
-
-const ROW_A = ADOPTERS.slice(0, 10);
-const ROW_B = ADOPTERS.slice(10);
 
 function AdopterPill({ name }: { name: string }) {
   return (
@@ -67,49 +32,49 @@ function MarqueeRow({ items, reverse = false }: { items: string[]; reverse?: boo
   );
 }
 
-export function C2PACoalition() {
+export async function C2PACoalition() {
+  const t = await getTranslations("c2pa");
+
   return (
     <section className="py-24 border-t border-iron-border/30 overflow-hidden">
       {/* Header */}
       <div className="max-w-6xl mx-auto px-6 text-center mb-14">
         <p className="text-xs font-semibold tracking-[0.2em] text-iron-gold uppercase mb-3">
-          Standard mondial
+          {t("eyebrow")}
         </p>
         <h2 className="text-3xl md:text-4xl font-black text-iron-white leading-tight mb-4">
-          IronID est construit sur{" "}
+          {t("headline1")}{" "}
           <span className="text-gradient-gold">C2PA</span> —
           <br />
-          la norme adoptée par les leaders mondiaux.
+          {t("headline2")}
         </h2>
         <p className="text-iron-white/40 max-w-2xl mx-auto">
-          La Coalition for Content Provenance and Authenticity (C2PA) regroupe
-          Adobe, Microsoft, Google, Apple, BBC, Sony, Reuters et des dizaines d'autres.
-          IronID implémente cette norme ouverte pour garantir une interopérabilité universelle.
+          {t("description")}
         </p>
       </div>
 
-      {/* Founding members highlight */}
+      {/* Founding members */}
       <div className="max-w-5xl mx-auto px-6 mb-12">
         <p className="text-xs text-iron-white/25 uppercase tracking-widest text-center mb-6">
-          Membres fondateurs de la C2PA
+          {t("foundersLabel")}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {FOUNDERS.map(({ name, note }) => (
+          {FOUNDER_NAMES.map((name) => (
             <div
               key={name}
               className="rounded-2xl bg-iron-slate border border-iron-border p-4 flex flex-col items-center text-center hover:border-iron-gold/20 transition-colors"
             >
               <span className="text-base font-black text-iron-white">{name}</span>
-              <span className="text-[10px] text-iron-gold/50 mt-1">{note}</span>
+              <span className="text-[10px] text-iron-gold/50 mt-1">{t("foundingNote")}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* All adopters marquee */}
+      {/* Adopters marquee */}
       <div className="space-y-3 mb-10">
-        <MarqueeRow items={ROW_A} />
-        <MarqueeRow items={ROW_B} reverse />
+        <MarqueeRow items={ADOPTERS_ROW_A} />
+        <MarqueeRow items={ADOPTERS_ROW_B} reverse />
       </div>
 
       {/* Trust statement */}
@@ -120,14 +85,10 @@ export function C2PACoalition() {
           </div>
           <div>
             <p className="text-sm font-bold text-iron-white mb-1">
-              Standard ouvert · Interopérable · Vérifiable publiquement
+              {t("trustBadge")}
             </p>
             <p className="text-sm text-iron-white/40 leading-relaxed">
-              Un fichier certifié avec IronID peut être vérifié par n'importe quel outil
-              compatible C2PA — Adobe Content Credentials, Microsoft Azure, Google, ou directement
-              sur{" "}
-              <span className="text-iron-gold/70">verify.contentauthenticity.org</span>.
-              Pas de vendor lock-in.
+              {t("trustDesc")}
             </p>
           </div>
         </div>

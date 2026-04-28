@@ -54,6 +54,46 @@
     "certified": "Certified",
     "failed": "Failed"
   },
+  "socialProof": {
+    "eyebrow": "Testimonials",
+    "headline": "Trusted by IronID users",
+    "stats": [
+      { "label": "Open standard" },
+      { "label": "Verification latency" },
+      { "label": "Max file size" },
+      { "label": "Uptime SLA" }
+    ],
+    "testimonials": [
+      { "quote": "IronID let us prove the authenticity of our press photos in seconds. A game-changer for our readers' trust.", "name": "Marie L.", "role": "Photo editor, Press agency" },
+      { "quote": "SDK integration took 20 minutes. We now automatically certify every export from our creative pipeline.", "name": "Théo M.", "role": "Lead developer, Video studio" },
+      { "quote": "Public verification without an account is what convinced us. Our clients can prove authenticity themselves.", "name": "Anis B.", "role": "CTO, LegalTech startup" }
+    ]
+  },
+  "industries": {
+    "eyebrow": "Industries",
+    "headline1": "The digital authenticity crisis",
+    "headline2": "affects every industry.",
+    "description": "Deepfakes, AI-generated content, forged documents — IronID protects organizations that cannot afford to doubt their files.",
+    "footer": "20 industries covered · C2PA standard · Public verification",
+    "featured": [
+      { "sector": "Press & Journalism",         "statLabel": "of the public distrusts news photos",   "value": "Every published image proves its origin. End accusations of manipulation." },
+      { "sector": "Generative AI",              "statLabel": "of AI content traceable",               "value": "Declare AI provenance at creation. EU AI Act compliance included." },
+      { "sector": "Law & Justice",              "statLabel": "integrity certified at capture",        "value": "Court-admissible tamper-proof digital evidence." },
+      { "sector": "Healthcare & Medical Imaging","statLabel": "DICOM & HL7 compatible",               "value": "Integrity of medical images, lab results and patient records." },
+      { "sector": "Governments",                "statLabel": "countries affected by regulation",      "value": "Certified official documents, national archives and government communications." },
+      { "sector": "Film & Video Production",    "statLabel": "lost per year to piracy",               "value": "Protect your rushes, control distribution, prove the original." }
+    ]
+  },
+  "c2pa": {
+    "eyebrow": "Global standard",
+    "headline1": "IronID is built on",
+    "headline2": "the standard adopted by global leaders.",
+    "description": "The Coalition for Content Provenance and Authenticity (C2PA) brings together Adobe, Microsoft, Google, Apple, BBC, Sony, Reuters and dozens more. IronID implements this open standard to guarantee universal interoperability.",
+    "foundersLabel": "C2PA Founding Members",
+    "foundingNote": "Founding member",
+    "trustBadge": "Open standard · Interoperable · Publicly verifiable",
+    "trustDesc": "A file certified with IronID can be verified by any C2PA-compatible tool — Adobe Content Credentials, Microsoft Azure, Google, or directly at verify.contentauthenticity.org. No vendor lock-in."
+  },
   "landingNav": {
     "features": "Features",
     "howItWorks": "How it works",
