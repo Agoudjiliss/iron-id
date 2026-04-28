@@ -13,6 +13,7 @@ const isPublicRoute = createRouteMatcher([
   "/enterprise(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  "/admin(.*)",
   "/sitemap.xml",
   "/robots.txt",
   "/api/v1/verify(.*)",
