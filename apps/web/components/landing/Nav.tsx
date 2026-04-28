@@ -80,14 +80,17 @@ export function Nav({ locale, links, cta }: NavProps) {
           </Link>
         </div>
 
-        {/* Mobile hamburger */}
-        <button
-          className="md:hidden p-2 text-iron-white/60 hover:text-iron-white"
-          onClick={() => setOpen(!open)}
-          aria-label="Menu"
-        >
-          {open ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        {/* Mobile: language switcher + hamburger — always visible */}
+        <div className="md:hidden flex items-center gap-2">
+          <LanguageSwitcher current={locale} compact />
+          <button
+            className="p-2 text-iron-white/60 hover:text-iron-white"
+            onClick={() => setOpen(!open)}
+            aria-label="Menu"
+          >
+            {open ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile drawer */}
@@ -117,9 +120,6 @@ export function Nav({ locale, links, cta }: NavProps) {
           >
             {cta.signUp}
           </Link>
-          <div className="pt-2">
-            <LanguageSwitcher current={locale} />
-          </div>
         </div>
       )}
     </header>
