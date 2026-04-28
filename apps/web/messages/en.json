@@ -99,6 +99,7 @@
     "howItWorks": "How it works",
     "pricing": "Pricing",
     "affiliate": "Affiliate",
+    "enterprise": "Enterprise",
     "docs": "Documentation",
     "signIn": "Sign in",
     "signUp": "Get started free"
@@ -111,26 +112,26 @@
     "subtitle": "IronID certifies your images, videos and documents with a <b>cryptographic C2PA</b> signature and records them in an <b>immutable ledger</b> — publicly verifiable, forever.",
     "ctaPrimary": "Get started free",
     "ctaSecondary": "View documentation",
-    "trust": ["C2PA certified", "Immutable ledger", "API-first", "Open source SDK"]
+    "trust": ["C2PA certified", "Tamper-proof ledger", "API-first", "Official SDK"]
   },
   "howItWorks": {
     "eyebrow": "How it works",
     "headline": "Three steps. Immutable forever.",
     "steps": [
       {
-        "title": "Upload your file",
-        "description": "Send any file via our REST API or JS/Python SDKs. We accept images, videos, PDFs and audio up to 100 MB.",
-        "detail": "POST /v1/certify"
+        "title": "Send your file",
+        "description": "Upload any file via our API, SDK, or dashboard. We support images, videos, PDFs and audio files.",
+        "detail": "API · SDK · Dashboard"
       },
       {
-        "title": "C2PA Signature & Ledger",
-        "description": "IronID computes the SHA-256, builds a C2PA manifest, signs with ECDSA P-256 and writes everything to an immutable PostgreSQL ledger protected by Row-Level Security.",
-        "detail": "Async — webhook or polling"
+        "title": "Certified & Anchored",
+        "description": "IronID processes your file through our proprietary certification engine, applies a C2PA-compliant cryptographic signature, and permanently anchors it in our tamper-proof provenance ledger.",
+        "detail": "Signed · Secured · Permanent"
       },
       {
         "title": "Public verification",
-        "description": "Anyone can verify a file's authenticity via the public URL or by uploading the file directly — no account required.",
-        "detail": "GET /v1/verify/:hash"
+        "description": "Anyone can verify a file's authenticity via the public verification page or our API — no account required.",
+        "detail": "Public · Free · Forever"
       }
     ]
   },
@@ -139,13 +140,13 @@
     "headline1": "Everything you need for",
     "headline2": "authenticity at scale.",
     "items": [
-      { "title": "C2PA Signature", "desc": "Open standard by the Coalition for Content Provenance and Authenticity. Interoperable with Adobe, Microsoft, Google." },
-      { "title": "Immutable ledger", "desc": "PostgreSQL with Row-Level Security — UPDATE and DELETE blocked at the database level. No rollback possible." },
-      { "title": "Async processing", "desc": "Certification via BackgroundTasks. Webhook callbacks or polling. No HTTP timeout on the client side." },
-      { "title": "Official SDK", "desc": "JavaScript/TypeScript and Python SDKs with strict types, error handling and automatic retry." },
-      { "title": "Public verification", "desc": "Shareable verification URL. Anyone can prove or disprove a file's authenticity." },
-      { "title": "Full dashboard", "desc": "Overview, usage chart, certification history, API key management." },
-      { "title": "Flexible billing", "desc": "Pay only for what you use. Monthly subscriptions or PAYG via PayPal." },
+      { "title": "C2PA Signature", "desc": "Open standard supported by the Coalition for Content Provenance and Authenticity. Interoperable with Adobe, Microsoft, Google." },
+      { "title": "Tamper-proof ledger", "desc": "Our proprietary write-once ledger guarantees that certified records can never be altered or deleted. Permanent by design." },
+      { "title": "Non-blocking pipeline", "desc": "High-throughput certification pipeline with real-time webhook notifications — no waiting, no client-side timeouts." },
+      { "title": "Official SDK", "desc": "JavaScript/TypeScript and Python SDKs with strict types, built-in error handling and automatic retry." },
+      { "title": "Public verification", "desc": "Shareable verification link. Anyone can prove or disprove a file's authenticity — no account needed." },
+      { "title": "Full dashboard", "desc": "Real-time overview, usage analytics, certification history, API key management." },
+      { "title": "Flexible billing", "desc": "Pay only for what you use. Monthly subscriptions or pay-as-you-go via PayPal." },
       { "title": "Affiliate program", "desc": "Refer users, earn up to 20% recurring commission. Automatic PayPal payment." }
     ]
   },
@@ -156,6 +157,138 @@
     "subtitle": "Create an account, generate your API key, certify your first files in under 5 minutes.",
     "ctaPrimary": "Create a free account",
     "ctaSecondary": "Read the documentation →"
+  },
+  "pricing": {
+    "headline1": "Certify. Prove.",
+    "headline2": "Protect.",
+    "subtitle": "Choose the plan that fits your needs. Secure payment via PayPal. Cancel anytime.",
+    "faqTitle": "Frequently asked questions",
+    "faq": [
+      { "q": "How does PayPal payment work?", "a": "You are redirected to PayPal to approve the subscription. Once confirmed, your plan is activated immediately. You will receive a PayPal notification on each renewal." },
+      { "q": "Can I cancel at any time?", "a": "Yes. You can cancel your subscription from the dashboard or directly via PayPal. Access is maintained until the end of the paid period." },
+      { "q": "What is Pay-as-you-go?", "a": "Without a subscription, you pay $0.10 per signature via a one-time PayPal order. Ideal for occasional use or testing." },
+      { "q": "Is your data hosted in Europe?", "a": "Yes. All data is hosted in Europe (Cloudflare EU + Railway Frankfurt) for GDPR compliance." }
+    ]
+  },
+  "docs": {
+    "title": "IronID Documentation",
+    "subtitle": "The IronID API is a JSON REST API. Base URL:",
+    "cta": "Get started",
+    "nav": {
+      "authentication": "Authentication",
+      "certify": "Certifications",
+      "verify": "Verification",
+      "keys": "API Keys",
+      "webhooks": "Webhooks",
+      "sdkJs": "JavaScript SDK",
+      "sdkPy": "Python SDK",
+      "errors": "Error Codes"
+    },
+    "authentication": {
+      "title": "Authentication",
+      "desc": "All authenticated requests require an Authorization: Bearer header with your API key. Generate your keys from the dashboard under API Keys."
+    },
+    "certify": {
+      "title": "Certifications",
+      "submit": "Submit a file for C2PA certification. Returns 202 Accepted immediately.",
+      "status": "Get the status of a certification. Statuses: pending → processing → certified | failed.",
+      "list": "List certifications (paginated). Parameters: page, page_size, status_filter."
+    },
+    "verify": {
+      "title": "Verification",
+      "publicNote": "Verification endpoints are public — no API key required.",
+      "upload": "Verify a file by upload. The SHA-256 is computed server-side.",
+      "hash": "Look up a certification by its SHA-256 hash."
+    },
+    "keys": {
+      "title": "API Keys",
+      "create": "Create a new API key. The raw key is only returned once.",
+      "list": "List all user keys.",
+      "delete": "Revoke an API key."
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "desc": "IronID sends HTTP POST requests to your URL when a certification changes status."
+    },
+    "sdkJs": "JavaScript / TypeScript SDK",
+    "sdkPy": "Python SDK",
+    "errors": {
+      "title": "Error Codes",
+      "colStatus": "HTTP Code",
+      "colCode": "Code",
+      "colDesc": "Description",
+      "INVALID_BODY": "Malformed request or invalid parameter.",
+      "UNAUTHORIZED": "Missing, invalid, or revoked API key.",
+      "FORBIDDEN": "Action not allowed for this plan or role.",
+      "NOT_FOUND": "Resource not found.",
+      "FILE_TOO_LARGE": "File exceeds the limit (100 MB).",
+      "UNSUPPORTED_MIME": "Unsupported file type.",
+      "QUOTA_EXCEEDED": "Monthly certification quota exhausted.",
+      "RATE_LIMITED": "Too many requests. Wait before retrying.",
+      "INTERNAL_ERROR": "Internal server error."
+    }
+  },
+  "earn": {
+    "badge": "Affiliate program — Active",
+    "headline1": "Earn money",
+    "headline2": "for free.",
+    "subtitle": "Recommend IronID. Earn up to 20% recurring commission every month — as long as your referrals stay subscribed.",
+    "ctaPrimary": "Get my affiliate link",
+    "ctaSecondary": "See how it works",
+    "trustPills": ["Free forever", "90-day cookie", "Automatic PayPal", "Unlimited referrals"],
+    "stats": [
+      { "label": "Max commission",   "sub": "Platinum tier"           },
+      { "label": "Cookie duration",  "sub": "guaranteed attribution"  },
+      { "label": "Payment delay",    "sub": "anti-fraud"              },
+      { "label": "Referrals",        "sub": "no limit"                }
+    ],
+    "howEyebrow": "How it works",
+    "howHeadline1": "4 steps,",
+    "howHeadline2": "that's all.",
+    "howDesc": "No minimum threshold, no ridiculous conditions. Your link is ready from day one.",
+    "steps": [
+      { "title": "Create a free account",   "body": "No credit card. Your affiliate code is generated instantly in the dashboard." },
+      { "title": "Share your link",          "body": "YouTube, Twitter, LinkedIn, blog — paste your unique link wherever your audience is." },
+      { "title": "Your referrals sign up",   "body": "Cookie lasts 90 days. You get credit even if they come back later." },
+      { "title": "Cash in every month",      "body": "Automatic PayPal D+30. Recurring — you get paid as long as your referrals stay subscribed." }
+    ],
+    "tiersEyebrow": "Commission tiers",
+    "tiersHeadline1": "The more you bring,",
+    "tiersHeadline2": "the more you earn.",
+    "tiersSubtitle": "Your rate rises automatically with the number of active referrals.",
+    "activeReferrals": "active referrals",
+    "perReferralPerMonth": "Individual / referral / month",
+    "popular": "Popular",
+    "tiersFooter": "Commissions calculated on the net amount. Studio ($199) and Enterprise plans offer up to 3× higher earnings.",
+    "calcEyebrow": "Simulator",
+    "calcHeadline1": "How much can you",
+    "calcHeadline2": "earn?",
+    "calcDesc": "Simulate your earnings based on the number of referrals and the plan subscribed.",
+    "whyEyebrow": "Why us?",
+    "whyHeadline1": "Promoting IronID",
+    "whyHeadline2": "is a smart bet.",
+    "whyCards": [
+      { "title": "Recurring commission", "body": "You get paid every month as long as your referral stays subscribed — not once, every month." },
+      { "title": "Exploding market",     "body": "C2PA certification is becoming essential post-AI. Demand grows daily in press, legal, and media." },
+      { "title": "Credible product",     "body": "IronID solves a real problem. Easy to explain to any audience — tech or not." }
+    ],
+    "faqTitle": "Frequently asked questions",
+    "faq": [
+      { "q": "Do I need to pay to become an affiliate?", "a": "No. Registration is free and your affiliate code is generated as soon as you create an account. You can stay on the free plan and still receive your commissions." },
+      { "q": "When do I get paid?",                      "a": "Commissions are paid via PayPal, 30 days after the transaction (anti-fraud delay). Payment is fully automatic." },
+      { "q": "How long does the cookie last?",           "a": "90 days. If someone clicks your link today and signs up within 3 months, you get credit." },
+      { "q": "Do I earn on renewals?",                   "a": "Yes. The commission is recurring — you earn your percentage every month your referral stays subscribed." },
+      { "q": "Is there a maximum number of referrals?",  "a": "No limit. The more you bring, the higher your rate — up to 20% for 50+ active referrals." },
+      { "q": "What if a referral cancels?",              "a": "The commission stops. If they resubscribe, it resumes automatically." }
+    ],
+    "ctaFinalBadge": "Free forever",
+    "ctaFinalHeadline1": "Start earning",
+    "ctaFinalHeadline2": "today.",
+    "ctaFinalSubtitle": "Create your account, copy your link, share. Your first commissions can arrive within 24h.",
+    "ctaFinalBtn": "Create my free account",
+    "alreadyAffiliate": "Already an affiliate?",
+    "signInLink": "Sign in",
+    "toDashboard": "to access your dashboard."
   },
   "footer": {
     "tagline": "The reference standard for digital authenticity. C2PA-signed, immutable, verifiable.",

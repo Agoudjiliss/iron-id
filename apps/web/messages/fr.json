@@ -99,6 +99,7 @@
     "howItWorks": "Comment ça marche",
     "pricing": "Tarifs",
     "affiliate": "Affiliation",
+    "enterprise": "Entreprise",
     "docs": "Documentation",
     "signIn": "Connexion",
     "signUp": "Commencer gratuitement"
@@ -111,26 +112,26 @@
     "subtitle": "IronID certifie vos images, vidéos et documents avec une signature <b>C2PA cryptographique</b> et les inscrit dans un <b>ledger immuable</b> — vérifiable publiquement, pour toujours.",
     "ctaPrimary": "Commencer gratuitement",
     "ctaSecondary": "Voir la documentation",
-    "trust": ["Certifié C2PA", "Ledger immuable", "API-first", "Open source SDK"]
+    "trust": ["Certifié C2PA", "Ledger inviolable", "API-first", "SDK officiel"]
   },
   "howItWorks": {
     "eyebrow": "Comment ça marche",
     "headline": "Trois étapes. Immuable pour toujours.",
     "steps": [
       {
-        "title": "Uploadez votre fichier",
-        "description": "Envoyez n'importe quel fichier via notre API REST ou nos SDK JS/Python. Nous acceptons images, vidéos, PDF et audio jusqu'à 100 Mo.",
-        "detail": "POST /v1/certify"
+        "title": "Envoyez votre fichier",
+        "description": "Déposez n'importe quel fichier via notre API, SDK ou dashboard. Nous supportons images, vidéos, PDF et audio.",
+        "detail": "API · SDK · Dashboard"
       },
       {
-        "title": "Signature C2PA & Ledger",
-        "description": "IronID calcule le SHA-256, construit un manifest C2PA, signe avec ECDSA P-256 et inscrit le tout dans un ledger PostgreSQL immuable protégé par Row-Level Security.",
-        "detail": "Asynchrone — webhook ou polling"
+        "title": "Certifié & Ancré",
+        "description": "IronID traite votre fichier via notre moteur de certification propriétaire, applique une signature cryptographique conforme C2PA, et l'ancre définitivement dans notre ledger de provenance inviolable.",
+        "detail": "Signé · Sécurisé · Permanent"
       },
       {
         "title": "Vérification publique",
-        "description": "N'importe qui peut vérifier l'authenticité d'un fichier via l'URL publique ou en uploadant le fichier directement — aucun compte requis.",
-        "detail": "GET /v1/verify/:hash"
+        "description": "N'importe qui peut vérifier l'authenticité d'un fichier via notre page de vérification ou notre API — aucun compte requis.",
+        "detail": "Public · Gratuit · Pour toujours"
       }
     ]
   },
@@ -139,13 +140,13 @@
     "headline1": "Tout ce qu'il faut pour",
     "headline2": "l'authenticité à l'échelle.",
     "items": [
-      { "title": "Signature C2PA", "desc": "Standard ouvert Coalition for Content Provenance and Authenticity. Interopérable avec Adobe, Microsoft, Google." },
-      { "title": "Ledger immuable", "desc": "PostgreSQL avec Row-Level Security — UPDATE et DELETE bloqués au niveau base de données. Pas de rollback possible." },
-      { "title": "Traitement asynchrone", "desc": "Certification via BackgroundTasks. Retours webhook ou polling. Aucun timeout HTTP côté client." },
-      { "title": "SDK officiel", "desc": "SDK JavaScript/TypeScript et Python avec types stricts, gestion d'erreurs et retry automatique." },
-      { "title": "Vérification publique", "desc": "URL de vérification partageable. N'importe qui peut prouver ou réfuter l'authenticité d'un fichier." },
-      { "title": "Dashboard complet", "desc": "Vue d'ensemble, graphique de consommation, historique des certifications, gestion des clés API." },
-      { "title": "Billing flexible", "desc": "Payez uniquement ce que vous utilisez. Abonnements mensuels ou PAYG via PayPal." },
+      { "title": "Signature C2PA", "desc": "Standard ouvert soutenu par la Coalition for Content Provenance and Authenticity. Interopérable avec Adobe, Microsoft, Google." },
+      { "title": "Ledger inviolable", "desc": "Notre ledger propriétaire en écriture unique garantit qu'aucun enregistrement certifié ne peut être modifié ou supprimé. Permanent par conception." },
+      { "title": "Pipeline haute performance", "desc": "Pipeline de certification à haut débit avec notifications webhook en temps réel — sans attente, sans timeout côté client." },
+      { "title": "SDK officiel", "desc": "SDK JavaScript/TypeScript et Python avec types stricts, gestion d'erreurs intégrée et retry automatique." },
+      { "title": "Vérification publique", "desc": "Lien de vérification partageable. N'importe qui peut prouver ou réfuter l'authenticité d'un fichier — sans compte." },
+      { "title": "Dashboard complet", "desc": "Vue d'ensemble en temps réel, analytiques d'utilisation, historique des certifications, gestion des clés API." },
+      { "title": "Billing flexible", "desc": "Payez uniquement ce que vous utilisez. Abonnements mensuels ou paiement à l'usage via PayPal." },
       { "title": "Programme d'affiliation", "desc": "Parrainez des utilisateurs, gagnez jusqu'à 20% de commission récurrente. Paiement PayPal automatique." }
     ]
   },
@@ -176,5 +177,137 @@
     "contact": "Contact",
     "privacy": "Confidentialité",
     "terms": "CGU"
+  },
+  "pricing": {
+    "headline1": "Certifiez. Prouvez.",
+    "headline2": "Protégez.",
+    "subtitle": "Choisissez le plan adapté à vos besoins. Paiement sécurisé via PayPal. Annulation à tout moment.",
+    "faqTitle": "Questions fréquentes",
+    "faq": [
+      { "q": "Comment fonctionne le paiement PayPal ?", "a": "Vous êtes redirigé vers PayPal pour approuver l'abonnement. Une fois confirmé, votre plan est activé immédiatement. Vous recevrez une notification PayPal à chaque renouvellement." },
+      { "q": "Puis-je annuler à tout moment ?", "a": "Oui. Vous pouvez annuler votre abonnement depuis le tableau de bord ou directement via PayPal. L'accès est maintenu jusqu'à la fin de la période payée." },
+      { "q": "Qu'est-ce que le Pay-as-you-go ?", "a": "Sans abonnement, vous payez 0,10 $ par signature via une commande PayPal ponctuelle. Idéal pour les usages occasionnels ou les tests." },
+      { "q": "Vos données sont-elles hébergées en Europe ?", "a": "Oui. Toutes les données sont hébergées en Europe (Cloudflare EU + Railway Frankfurt) pour la conformité RGPD." }
+    ]
+  },
+  "docs": {
+    "title": "Documentation IronID",
+    "subtitle": "L'API IronID est une API REST JSON. Base URL :",
+    "cta": "Commencer",
+    "nav": {
+      "authentication": "Authentification",
+      "certify": "Certifications",
+      "verify": "Vérification",
+      "keys": "Clés API",
+      "webhooks": "Webhooks",
+      "sdkJs": "SDK JavaScript",
+      "sdkPy": "SDK Python",
+      "errors": "Erreurs"
+    },
+    "authentication": {
+      "title": "Authentification",
+      "desc": "Toutes les requêtes authentifiées nécessitent un en-tête Authorization: Bearer avec votre clé API. Générez vos clés depuis le dashboard sous Clés API."
+    },
+    "certify": {
+      "title": "Certifications",
+      "submit": "Soumettre un fichier pour certification C2PA. Retourne 202 Accepted immédiatement.",
+      "status": "Récupérer le statut d'une certification. Statuts : pending → processing → certified | failed.",
+      "list": "Lister les certifications (paginé). Paramètres : page, page_size, status_filter."
+    },
+    "verify": {
+      "title": "Vérification",
+      "publicNote": "Les endpoints de vérification sont publics — aucune clé API requise.",
+      "upload": "Vérifier un fichier par upload. Le SHA-256 est calculé côté serveur.",
+      "hash": "Rechercher une certification par son hash SHA-256."
+    },
+    "keys": {
+      "title": "Clés API",
+      "create": "Créer une nouvelle clé API. La clé brute n'est retournée qu'une seule fois.",
+      "list": "Lister toutes les clés de l'utilisateur.",
+      "delete": "Révoquer une clé API."
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "desc": "IronID envoie des POST HTTP à votre URL lorsqu'une certification change de statut."
+    },
+    "sdkJs": "SDK JavaScript / TypeScript",
+    "sdkPy": "SDK Python",
+    "errors": {
+      "title": "Codes d'erreur",
+      "colStatus": "Code HTTP",
+      "colCode": "Code",
+      "colDesc": "Description",
+      "INVALID_BODY": "Requête malformée ou paramètre invalide.",
+      "UNAUTHORIZED": "Clé API manquante, invalide ou révoquée.",
+      "FORBIDDEN": "Action non autorisée pour ce plan ou ce rôle.",
+      "NOT_FOUND": "Ressource introuvable.",
+      "FILE_TOO_LARGE": "Fichier dépasse la limite (100 Mo).",
+      "UNSUPPORTED_MIME": "Type de fichier non supporté.",
+      "QUOTA_EXCEEDED": "Quota mensuel de certifications épuisé.",
+      "RATE_LIMITED": "Trop de requêtes. Attendez avant de réessayer.",
+      "INTERNAL_ERROR": "Erreur serveur interne."
+    }
+  },
+  "earn": {
+    "badge": "Programme affilié — Actif",
+    "headline1": "Gagnez de l'argent",
+    "headline2": "sans rien payer.",
+    "subtitle": "Recommandez IronID. Touchez jusqu'à 20% de commission récurrente chaque mois — tant que vos filleuls restent clients.",
+    "ctaPrimary": "Obtenir mon lien affilié",
+    "ctaSecondary": "Comment ça marche",
+    "trustPills": ["Gratuit pour toujours", "Cookie 90 jours", "PayPal automatique", "Filleuls illimités"],
+    "stats": [
+      { "label": "Commission max",    "sub": "palier Platinum"          },
+      { "label": "Durée du cookie",   "sub": "attribution garantie"     },
+      { "label": "Délai paiement",    "sub": "anti-fraude"              },
+      { "label": "Filleuls",          "sub": "aucune limite"            }
+    ],
+    "howEyebrow": "Fonctionnement",
+    "howHeadline1": "4 étapes,",
+    "howHeadline2": "c'est tout.",
+    "howDesc": "Pas de seuil minimum, pas de conditions absurdes. Votre lien est prêt dès votre inscription.",
+    "steps": [
+      { "title": "Créez un compte gratuit",    "body": "Zéro carte bancaire. Votre code affilié est généré instantanément dans le dashboard." },
+      { "title": "Partagez votre lien",         "body": "YouTube, Twitter, LinkedIn, blog — collez votre lien unique partout où votre audience est." },
+      { "title": "Vos filleuls s'inscrivent",   "body": "Le cookie dure 90 jours. Vous êtes crédité même s'ils reviennent plus tard." },
+      { "title": "Encaissez chaque mois",       "body": "PayPal automatique J+30. Récurrent — vous êtes payé tant que vos filleuls restent abonnés." }
+    ],
+    "tiersEyebrow": "Paliers de commission",
+    "tiersHeadline1": "Plus vous apportez,",
+    "tiersHeadline2": "plus vous gagnez.",
+    "tiersSubtitle": "Votre taux monte automatiquement avec le nombre de filleuls actifs.",
+    "activeReferrals": "filleuls actifs",
+    "perReferralPerMonth": "Individual / filleul / mois",
+    "popular": "Populaire",
+    "tiersFooter": "Commissions calculées sur le montant HT. Plans Studio ($199) et Enterprise offrent des gains jusqu'à 3× plus élevés.",
+    "calcEyebrow": "Simulateur",
+    "calcHeadline1": "Combien pouvez-vous",
+    "calcHeadline2": "gagner ?",
+    "calcDesc": "Simulez vos revenus selon le nombre de filleuls et le plan souscrit.",
+    "whyEyebrow": "Pourquoi nous ?",
+    "whyHeadline1": "Promouvoir IronID,",
+    "whyHeadline2": "c'est miser juste.",
+    "whyCards": [
+      { "title": "Commission récurrente", "body": "Vous êtes payé chaque mois tant que votre filleul reste abonné — pas une seule fois, tous les mois." },
+      { "title": "Marché en explosion",   "body": "La certification C2PA devient incontournable post-IA. La demande augmente chaque jour dans la presse, le juridique, les médias." },
+      { "title": "Produit crédible",      "body": "IronID résout un vrai problème. Facile à expliquer à n'importe quelle audience — tech ou non." }
+    ],
+    "faqTitle": "Questions fréquentes",
+    "faq": [
+      { "q": "Dois-je payer pour devenir affilié ?",     "a": "Non. L'inscription est gratuite et votre code affilié est généré dès que vous créez un compte. Vous pouvez rester sur le plan gratuit et toucher vos commissions." },
+      { "q": "Quand est-ce que je suis payé ?",          "a": "Les commissions sont versées via PayPal, 30 jours après la transaction (délai anti-fraude). Le paiement est entièrement automatique." },
+      { "q": "Combien de temps dure le cookie ?",        "a": "90 jours. Si quelqu'un clique sur votre lien aujourd'hui et s'inscrit dans les 3 mois, vous êtes crédité." },
+      { "q": "Est-ce que je gagne sur les renouvellements ?", "a": "Oui. La commission est récurrente — vous touchez votre pourcentage chaque mois que votre filleul reste abonné." },
+      { "q": "Y a-t-il un nombre maximum de filleuls ?", "a": "Aucune limite. Plus vous en apportez, plus votre taux monte — jusqu'à 20% pour 50+ filleuls actifs." },
+      { "q": "Que se passe-t-il si mon filleul annule ?","a": "La commission s'arrête. Si il se réabonne, elle reprend automatiquement." }
+    ],
+    "ctaFinalBadge": "Gratuit pour toujours",
+    "ctaFinalHeadline1": "Commencez à gagner",
+    "ctaFinalHeadline2": "dès aujourd'hui.",
+    "ctaFinalSubtitle": "Créez votre compte, copiez votre lien, partagez. Vos premières commissions peuvent arriver sous 24h.",
+    "ctaFinalBtn": "Créer mon compte gratuit",
+    "alreadyAffiliate": "Déjà affilié ?",
+    "signInLink": "Connectez-vous",
+    "toDashboard": "pour accéder à votre dashboard."
   }
 }

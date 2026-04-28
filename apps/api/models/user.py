@@ -22,6 +22,14 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
 
 
+def is_trial_active(trial_ends_at: datetime | None) -> bool:
+    """Return True if the trial has not yet expired."""
+    if trial_ends_at is None:
+        return False
+    from datetime import timezone
+    return datetime.now(timezone.utc) < trial_ends_at
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -52,6 +60,9 @@ class User(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
+    )
+    trial_ends_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )
 
     __table_args__ = (

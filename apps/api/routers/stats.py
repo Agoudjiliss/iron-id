@@ -46,9 +46,21 @@ async def get_usage(
     )
     daily = [{"date": str(row.day), "count": row.count} for row in daily_result]
 
+    trial_ends_at = None
+    trial_active  = False
+    if user.trial_ends_at is not None:
+        from datetime import timezone as _tz
+        trial_ts = user.trial_ends_at
+        if trial_ts.tzinfo is None:
+            trial_ts = trial_ts.replace(tzinfo=_tz.utc)
+        trial_ends_at = trial_ts.isoformat()
+        trial_active  = now.replace(tzinfo=_tz.utc) < trial_ts
+
     return {
         "plan": user.plan,
         "used": user.monthly_signatures_used,
         "limit": user.monthly_signatures_limit,
         "daily": daily,
+        "trial_ends_at": trial_ends_at,
+        "trial_active":  trial_active,
     }

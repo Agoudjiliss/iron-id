@@ -27,9 +27,9 @@ export async function Footer() {
     {
       heading: t("enterprise"),
       links: [
-        { href: "/affiliate", label: t("affiliate") },
-        { href: "/pricing#enterprise", label: t("enterpriseLink") },
-        { href: "mailto:hello@ironid.io", label: t("contact") },
+        { href: "/enterprise", label: t("enterpriseLink") },
+        { href: "/earn",       label: t("affiliate") },
+        { href: "mailto:enterprise@iron-id.io", label: t("contact") },
       ],
     },
   ];

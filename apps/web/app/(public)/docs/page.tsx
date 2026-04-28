@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Shield } from "lucide-react";
+import { getTranslations } from "next-intl/server";
+import { NavServer } from "@/components/landing/NavServer";
+import { Footer }    from "@/components/landing/Footer";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Documentation API — IronID",
@@ -15,7 +19,7 @@ export const metadata: Metadata = {
   },
 };
 
-// ---- Code block helper ----
+// ── Sub-components ────────────────────────────────────────────────────────────
 
 function Code({ children, lang = "bash" }: { children: string; lang?: string }) {
   return (
@@ -69,277 +73,245 @@ function Endpoint({
   );
 }
 
-// ---- Main page ----
+// ── Main page ─────────────────────────────────────────────────────────────────
 
-export default function DocsPage() {
+export default async function DocsPage() {
+  const t = await getTranslations("docs");
+
+  const navItems = [
+    { href: "#authentication", label: t("nav.authentication") },
+    { href: "#certify",        label: t("nav.certify")        },
+    { href: "#verify",         label: t("nav.verify")         },
+    { href: "#keys",           label: t("nav.keys")           },
+    { href: "#webhooks",       label: t("nav.webhooks")       },
+    { href: "#sdk-js",         label: t("nav.sdkJs")          },
+    { href: "#sdk-py",         label: t("nav.sdkPy")          },
+    { href: "#errors",         label: t("nav.errors")         },
+  ];
+
+  const errors = [
+    { status: "400", code: "INVALID_BODY"    },
+    { status: "401", code: "UNAUTHORIZED"    },
+    { status: "403", code: "FORBIDDEN"       },
+    { status: "404", code: "NOT_FOUND"       },
+    { status: "413", code: "FILE_TOO_LARGE"  },
+    { status: "415", code: "UNSUPPORTED_MIME"},
+    { status: "422", code: "QUOTA_EXCEEDED"  },
+    { status: "429", code: "RATE_LIMITED"    },
+    { status: "500", code: "INTERNAL_ERROR"  },
+  ] as const;
+
   return (
-    <div className="min-h-screen bg-iron-black">
-      {/* Top nav */}
-      <header className="sticky top-0 z-50 bg-iron-black/90 backdrop-blur border-b border-iron-border">
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Shield size={18} className="text-iron-gold" />
-            <span className="font-bold text-iron-white">Iron<span className="text-gradient-gold">ID</span></span>
-            <span className="text-iron-white/30 text-sm ml-1">/ Docs</span>
-          </Link>
-          <Link href="/sign-up" className="text-sm px-4 py-1.5 rounded-lg bg-iron-gold text-iron-black font-semibold">
-            Commencer
-          </Link>
-        </div>
-      </header>
+    <>
+      <NavServer />
+      <div className="min-h-screen bg-iron-black">
+        <div className="max-w-6xl mx-auto px-6 pt-28 pb-12 flex gap-10">
+          {/* Sidebar */}
+          <aside className="hidden lg:block w-52 flex-shrink-0">
+            <nav className="sticky top-24 space-y-1 text-sm">
+              {navItems.map(({ href, label }) => (
+                <a
+                  key={href}
+                  href={href}
+                  className="block px-3 py-2 rounded-lg text-iron-white/40 hover:text-iron-white hover:bg-iron-border/30 transition-colors"
+                >
+                  {label}
+                </a>
+              ))}
+            </nav>
+          </aside>
 
-      <div className="max-w-6xl mx-auto px-6 py-12 flex gap-10">
-        {/* Sidebar nav */}
-        <aside className="hidden lg:block w-52 flex-shrink-0">
-          <nav className="sticky top-24 space-y-1 text-sm">
-            {[
-              { href: "#authentication", label: "Authentification" },
-              { href: "#certify",        label: "Certifications"   },
-              { href: "#verify",         label: "Vérification"     },
-              { href: "#keys",           label: "Clés API"         },
-              { href: "#webhooks",       label: "Webhooks"         },
-              { href: "#sdk-js",         label: "SDK JavaScript"   },
-              { href: "#sdk-py",         label: "SDK Python"       },
-              { href: "#errors",         label: "Erreurs"          },
-            ].map(({ href, label }) => (
-              <a
-                key={href}
-                href={href}
-                className="block px-3 py-2 rounded-lg text-iron-white/40 hover:text-iron-white hover:bg-iron-border/30 transition-colors"
-              >
-                {label}
-              </a>
-            ))}
-          </nav>
-        </aside>
+          {/* Content */}
+          <main className="flex-1 max-w-3xl min-w-0">
+            {/* Intro */}
+            <div className="mb-12">
+              <h1 className="text-3xl font-extrabold text-iron-white mb-3">{t("title")}</h1>
+              <p className="text-iron-white/50 leading-relaxed">
+                {t("subtitle")}{" "}
+                <code className="mono text-iron-gold text-sm">https://api.iron-id.io</code>
+              </p>
+            </div>
 
-        {/* Content */}
-        <main className="flex-1 max-w-3xl min-w-0">
-          {/* Intro */}
-          <div className="mb-12">
-            <h1 className="text-3xl font-extrabold text-iron-white mb-3">Documentation IronID</h1>
-            <p className="text-iron-white/50 leading-relaxed">
-              L'API IronID est une API REST JSON. Base URL :{" "}
-              <code className="mono text-iron-gold text-sm">https://api.ironid.io</code>
-            </p>
-          </div>
+            {/* Authentication */}
+            <Section id="authentication" title={t("authentication.title")}>
+              <p className="text-sm text-iron-white/50 mb-4">
+                {t("authentication.desc")}
+              </p>
+              <Code lang="bash">{`curl https://api.iron-id.io/v1/keys \\
+  -H "Authorization: Bearer YOUR_API_KEY"`}</Code>
+            </Section>
 
-          {/* Authentication */}
-          <Section id="authentication" title="Authentification">
-            <p className="text-sm text-iron-white/50 mb-4">
-              Toutes les requêtes authentifiées nécessitent un en-tête{" "}
-              <code className="mono text-sm text-iron-white">Authorization: Bearer iid_live_...</code>.
-              Générez vos clés dans le dashboard sous <strong>Clés API</strong>.
-            </p>
-            <Code lang="bash">{`curl https://api.ironid.io/v1/keys \\
-  -H "Authorization: Bearer iid_live_YOUR_KEY"`}</Code>
-          </Section>
-
-          {/* Certifications */}
-          <Section id="certify" title="Certifications">
-            <Endpoint
-              method="POST"
-              path="/v1/certify"
-              desc="Soumettre un fichier pour certification C2PA. Retourne 202 Accepted immédiatement."
-            >
-              <Code lang="bash">{`curl -X POST https://api.ironid.io/v1/certify \\
-  -H "Authorization: Bearer iid_live_..." \\
+            {/* Certifications */}
+            <Section id="certify" title={t("certify.title")}>
+              <Endpoint method="POST" path="/v1/certify" desc={t("certify.submit")}>
+                <Code lang="bash">{`curl -X POST https://api.iron-id.io/v1/certify \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
   -F "file=@photo.jpg" \\
   -F 'metadata={"author":"Jane Doe","location":"Paris"}' \\
   -F "webhook_url=https://myapp.com/webhooks/ironid"`}</Code>
-              <Code lang="json">{`{
+                <Code lang="json">{`{
   "id": "cert_01j8x9abc",
   "status": "pending",
-  "file_hash_sha256": null,
-  "created_at": "2026-04-24T10:00:00Z"
+  "certified_url": null,
+  "created_at": "2026-04-28T10:00:00Z"
 }`}</Code>
-            </Endpoint>
+              </Endpoint>
 
-            <Endpoint
-              method="GET"
-              path="/v1/certify/{id}"
-              desc="Récupérer le statut d'une certification. Statuts : pending → processing → certified | failed."
-            >
-              <Code lang="bash">{`curl https://api.ironid.io/v1/certify/cert_01j8x9abc \\
-  -H "Authorization: Bearer iid_live_..."`}</Code>
-              <Code lang="json">{`{
+              <Endpoint method="GET" path="/v1/certify/{id}" desc={t("certify.status")}>
+                <Code lang="bash">{`curl https://api.iron-id.io/v1/certify/cert_01j8x9abc \\
+  -H "Authorization: Bearer YOUR_API_KEY"`}</Code>
+                <Code lang="json">{`{
   "id": "cert_01j8x9abc",
   "status": "certified",
-  "file_hash_sha256": "a3f5b9c1d2e3...",
-  "certified_url": "https://r2.ironid.io/certified/...",
-  "verification_url": "https://ironid.io/verify/a3f5b9c1...",
-  "c2pa_manifest": { "claim": { "dc:title": "photo.jpg" } },
-  "metadata": { "author": "Jane Doe", "location": "Paris" },
-  "created_at": "2026-04-24T10:00:00Z"
-}`}</Code>
-            </Endpoint>
-
-            <Endpoint
-              method="GET"
-              path="/v1/certifications"
-              desc="Lister les certifications (paginé). Paramètres : page, page_size, status_filter."
-            >
-              <Code lang="bash">{`curl "https://api.ironid.io/v1/certifications?page=1&page_size=20" \\
-  -H "Authorization: Bearer iid_live_..."`}</Code>
-            </Endpoint>
-          </Section>
-
-          {/* Verify */}
-          <Section id="verify" title="Vérification">
-            <p className="text-sm text-iron-white/50 mb-4">
-              Les endpoints de vérification sont publics — aucune clé API requise.
-            </p>
-            <Endpoint
-              method="POST"
-              path="/v1/verify"
-              desc="Vérifier un fichier par upload. Le SHA-256 est calculé côté serveur."
-            >
-              <Code lang="bash">{`curl -X POST https://api.ironid.io/v1/verify \\
-  -F "file=@photo.jpg"`}</Code>
-            </Endpoint>
-            <Endpoint
-              method="GET"
-              path="/v1/verify/{hash}"
-              desc="Rechercher une certification par son hash SHA-256."
-            >
-              <Code lang="bash">{`curl https://api.ironid.io/v1/verify/a3f5b9c1d2e3...`}</Code>
-              <Code lang="json">{`{
-  "is_certified": true,
-  "file_hash_sha256": "a3f5b9c1d2e3...",
-  "certification_id": "cert_01j8x9abc",
-  "certified_at": "2026-04-24T10:05:00Z",
+  "certified_url": "https://cdn.iron-id.io/certified/...",
+  "verification_url": "https://www.iron-id.io/verify/...",
   "c2pa_manifest": { ... },
-  "ledger_history_count": 1
+  "metadata": { "author": "Jane Doe", "location": "Paris" },
+  "created_at": "2026-04-28T10:00:00Z"
 }`}</Code>
-            </Endpoint>
-          </Section>
+              </Endpoint>
 
-          {/* Keys */}
-          <Section id="keys" title="Clés API">
-            <Endpoint method="POST" path="/v1/keys" desc="Créer une nouvelle clé API. La clé brute n'est retournée qu'une seule fois.">
-              <Code lang="bash">{`curl -X POST https://api.ironid.io/v1/keys \\
-  -H "Authorization: Bearer iid_live_..." \\
+              <Endpoint method="GET" path="/v1/certifications" desc={t("certify.list")}>
+                <Code lang="bash">{`curl "https://api.iron-id.io/v1/certifications?page=1&page_size=20" \\
+  -H "Authorization: Bearer YOUR_API_KEY"`}</Code>
+              </Endpoint>
+            </Section>
+
+            {/* Verification */}
+            <Section id="verify" title={t("verify.title")}>
+              <p className="text-sm text-iron-white/50 mb-4">{t("verify.publicNote")}</p>
+              <Endpoint method="POST" path="/v1/verify" desc={t("verify.upload")}>
+                <Code lang="bash">{`curl -X POST https://api.iron-id.io/v1/verify \\
+  -F "file=@photo.jpg"`}</Code>
+              </Endpoint>
+              <Endpoint method="GET" path="/v1/verify/{fingerprint}" desc={t("verify.hash")}>
+                <Code lang="bash">{`curl https://api.iron-id.io/v1/verify/<file-fingerprint>`}</Code>
+                <Code lang="json">{`{
+  "is_certified": true,
+  "certification_id": "cert_01j8x9abc",
+  "certified_url": "https://cdn.iron-id.io/certified/...",
+  "certified_at": "2026-04-28T10:05:00Z",
+  "c2pa_manifest": { ... }
+}`}</Code>
+              </Endpoint>
+            </Section>
+
+            {/* API Keys */}
+            <Section id="keys" title={t("keys.title")}>
+              <Endpoint method="POST"   path="/v1/keys"      desc={t("keys.create")}>
+                <Code lang="bash">{`curl -X POST https://api.iron-id.io/v1/keys \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"name":"Production key","environment":"production"}'`}</Code>
-              <Code lang="json">{`{
+                <Code lang="json">{`{
   "id": "key_abc123",
   "name": "Production key",
-  "key_prefix": "iid_live_Ab1c",
-  "raw_key": "iid_live_Ab1cDe2fGh3iJk4l...",
+  "key_prefix": "sk_prod_Ab1c",
+  "raw_key": "sk_prod_Ab1cDe2f...",
   "is_active": true,
-  "created_at": "2026-04-24T10:00:00Z"
+  "created_at": "2026-04-28T10:00:00Z"
 }`}</Code>
-            </Endpoint>
-            <Endpoint method="GET"    path="/v1/keys"       desc="Lister toutes les clés de l'utilisateur." />
-            <Endpoint method="DELETE" path="/v1/keys/{id}"  desc="Révoquer une clé API." />
-          </Section>
+              </Endpoint>
+              <Endpoint method="GET"    path="/v1/keys"      desc={t("keys.list")} />
+              <Endpoint method="DELETE" path="/v1/keys/{id}" desc={t("keys.delete")} />
+            </Section>
 
-          {/* Webhooks */}
-          <Section id="webhooks" title="Webhooks">
-            <p className="text-sm text-iron-white/50 mb-4">
-              IronID envoie des POST HTTP à votre URL lorsqu'une certification change de statut.
-            </p>
-            <Code lang="json">{`// Payload envoyé à votre webhook_url
-{
+            {/* Webhooks */}
+            <Section id="webhooks" title={t("webhooks.title")}>
+              <p className="text-sm text-iron-white/50 mb-4">{t("webhooks.desc")}</p>
+              <Code lang="json">{`{
   "event": "certification.completed",
   "certification_id": "cert_01j8x9abc",
   "status": "certified",
-  "file_hash_sha256": "a3f5b9c1d2e3...",
-  "certified_url": "https://r2.ironid.io/certified/...",
-  "timestamp": "2026-04-24T10:05:00Z"
+  "certified_url": "https://cdn.iron-id.io/certified/...",
+  "verification_url": "https://www.iron-id.io/verify/...",
+  "timestamp": "2026-04-28T10:05:00Z"
 }`}</Code>
-          </Section>
+            </Section>
 
-          {/* SDK JS */}
-          <Section id="sdk-js" title="SDK JavaScript / TypeScript">
-            <Code lang="bash">{`npm install @ironid/sdk`}</Code>
-            <Code lang="typescript">{`import { IronID } from '@ironid/sdk';
+            {/* SDK JS */}
+            <Section id="sdk-js" title={t("sdkJs")}>
+              <Code lang="bash">{`npm install ironid`}</Code>
+              <Code lang="typescript">{`import { IronID } from 'ironid';
 
-const client = new IronID({ apiKey: 'iid_live_...' });
+const client = new IronID({ apiKey: process.env.IRONID_API_KEY });
 
-// Certifier et attendre la complétion
-const cert = await client.certifications.certifyAndWait({
+// Certify a file
+const cert = await client.certify({
   file: fs.readFileSync('photo.jpg'),
   filename: 'photo.jpg',
   metadata: { author: 'Jane Doe', location: 'Paris' },
   webhookUrl: 'https://myapp.com/webhooks/ironid',
 });
 
-console.log(cert.file_hash_sha256); // a3f5b9c1...
-console.log(cert.certified_url);    // https://r2.ironid.io/...
+console.log(cert.certified_url);    // share & verify
+console.log(cert.verification_url); // public proof link
 
-// Vérifier par hash
-const result = await client.verify.byHash('a3f5b9c1...');
+// Verify a file
+const result = await client.verify('photo.jpg');
 console.log(result.is_certified); // true
 
-// Gérer les clés
-const key = await client.keys.create({ name: 'Prod' });
-console.log(key.raw_key); // iid_live_... (affiché une seule fois)`}</Code>
-          </Section>
+// Manage API keys
+const key = await client.keys.create({ name: 'Production' });
+console.log(key.raw_key); // shown once — store securely`}</Code>
+            </Section>
 
-          {/* SDK Python */}
-          <Section id="sdk-py" title="SDK Python">
-            <Code lang="bash">{`pip install ironid`}</Code>
-            <Code lang="python">{`from ironid import IronID
+            {/* SDK Python */}
+            <Section id="sdk-py" title={t("sdkPy")}>
+              <Code lang="bash">{`pip install ironid`}</Code>
+              <Code lang="python">{`from ironid import IronID
+import os
 
-client = IronID(api_key="iid_live_...")
+client = IronID(api_key=os.environ["IRONID_API_KEY"])
 
-# Certifier et attendre la complétion
+# Certify a file
 with open("photo.jpg", "rb") as f:
-    cert = client.certifications.certify_and_wait(
+    cert = client.certify(
         f,
         filename="photo.jpg",
         metadata={"author": "Jane Doe", "location": "Paris"},
     )
 
-print(cert.file_hash_sha256)  # a3f5b9c1...
-print(cert.certified_url)     # https://r2.ironid.io/...
+print(cert.certified_url)    # share & verify
+print(cert.verification_url) # public proof link
 
-# Vérifier par hash
-result = client.verify.by_hash("a3f5b9c1...")
-print(result.is_certified)    # True
+# Verify a file
+result = client.verify("photo.jpg")
+print(result.is_certified)   # True
 
-# Utilisation comme context manager (ferme les connexions proprement)
-with IronID(api_key="iid_live_...") as client:
+# Manage API keys
+with IronID(api_key=os.environ["IRONID_API_KEY"]) as client:
     keys = client.keys.list()
-    print(keys[0].key_prefix)`}</Code>
-          </Section>
+    print(keys[0].name)`}</Code>
+            </Section>
 
-          {/* Errors */}
-          <Section id="errors" title="Codes d'erreur">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-xs text-iron-white/30 border-b border-iron-border">
-                    <th className="text-left py-3 font-medium">Code HTTP</th>
-                    <th className="text-left py-3 font-medium">Code</th>
-                    <th className="text-left py-3 font-medium">Description</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-iron-border/30">
-                  {[
-                    { status: "400", code: "INVALID_BODY",       desc: "Requête malformée ou paramètre invalide."              },
-                    { status: "401", code: "UNAUTHORIZED",        desc: "Clé API manquante, invalide ou révoquée."              },
-                    { status: "403", code: "FORBIDDEN",           desc: "Action non autorisée pour ce plan ou ce rôle."         },
-                    { status: "404", code: "NOT_FOUND",           desc: "Ressource introuvable."                                },
-                    { status: "413", code: "FILE_TOO_LARGE",      desc: "Fichier dépasse la limite (100 Mo)."                   },
-                    { status: "415", code: "UNSUPPORTED_MIME",    desc: "Type de fichier non supporté."                         },
-                    { status: "422", code: "QUOTA_EXCEEDED",      desc: "Quota mensuel de certifications épuisé."               },
-                    { status: "429", code: "RATE_LIMITED",        desc: "Trop de requêtes. Attendez avant de réessayer."        },
-                    { status: "500", code: "INTERNAL_ERROR",      desc: "Erreur serveur interne."                               },
-                  ].map(({ status, code, desc }) => (
-                    <tr key={code}>
-                      <td className="py-3 font-mono text-iron-white/60">{status}</td>
-                      <td className="py-3 font-mono text-iron-gold text-xs">{code}</td>
-                      <td className="py-3 text-iron-white/40">{desc}</td>
+            {/* Error codes */}
+            <Section id="errors" title={t("errors.title")}>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-xs text-iron-white/30 border-b border-iron-border">
+                      <th className="text-left py-3 font-medium">{t("errors.colStatus")}</th>
+                      <th className="text-left py-3 font-medium">{t("errors.colCode")}</th>
+                      <th className="text-left py-3 font-medium">{t("errors.colDesc")}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Section>
-        </main>
+                  </thead>
+                  <tbody className="divide-y divide-iron-border/30">
+                    {errors.map(({ status, code }) => (
+                      <tr key={code}>
+                        <td className="py-3 font-mono text-iron-white/60">{status}</td>
+                        <td className="py-3 font-mono text-iron-gold text-xs">{code}</td>
+                        <td className="py-3 text-iron-white/40">{t(`errors.${code}`)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Section>
+          </main>
+        </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 }

@@ -91,22 +91,22 @@ export async function Hero() {
           {/* Code */}
           <pre className="text-sm font-mono p-5 text-iron-white/80 overflow-x-auto leading-relaxed">
             <code>
-              <span className="text-iron-white/30">{"// npm install @ironid/sdk\n"}</span>
+              <span className="text-iron-white/30">{"// Certify a file in 3 lines\n"}</span>
               <span className="text-purple-400">{"import"}</span>
               <span className="text-iron-white/70">{" { IronID } "}</span>
               <span className="text-purple-400">{"from"}</span>
-              <span className="text-iron-green">{" '@ironid/sdk';\n\n"}</span>
+              <span className="text-iron-green">{" 'ironid';\n\n"}</span>
               <span className="text-iron-white/50">{"const "}</span>
               <span className="text-iron-white">{"client "}</span>
               <span className="text-iron-white/50">{"= new "}</span>
               <span className="text-amber-400">{"IronID"}</span>
               <span className="text-iron-white/50">{"({ apiKey: "}</span>
-              <span className="text-iron-green">{"'iid_live_...'"}</span>
+              <span className="text-iron-green">{"process.env.IRONID_API_KEY"}</span>
               <span className="text-iron-white/50">{" });\n\n"}</span>
               <span className="text-iron-white/50">{"const "}</span>
               <span className="text-iron-white">{"cert "}</span>
-              <span className="text-iron-white/50">{"= await client.certifications."}</span>
-              <span className="text-amber-400">{"certifyAndWait"}</span>
+              <span className="text-iron-white/50">{"= await client."}</span>
+              <span className="text-amber-400">{"certify"}</span>
               <span className="text-iron-white/50">{"({\n"}</span>
               <span className="text-iron-white/50">{"  file: "}</span>
               <span className="text-iron-white">{"imageBuffer"}</span>
@@ -118,9 +118,9 @@ export async function Hero() {
               <span className="text-iron-green">{"'Jane Doe'"}</span>
               <span className="text-iron-white/50">{" },\n});\n\n"}</span>
               <span className="text-iron-white/50">{"console.log(cert."}</span>
-              <span className="text-iron-white">{"file_hash_sha256"}</span>
+              <span className="text-iron-white">{"certified_url"}</span>
               <span className="text-iron-white/50">{"); "}</span>
-              <span className="text-iron-white/30">{"// a3f5b9c1..."}</span>
+              <span className="text-iron-white/30">{"// share & verify"}</span>
             </code>
           </pre>
         </div>

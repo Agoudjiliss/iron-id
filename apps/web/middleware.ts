@@ -10,11 +10,13 @@ const isPublicRoute = createRouteMatcher([
   "/pricing(.*)",
   "/docs(.*)",
   "/earn(.*)",
+  "/enterprise(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/sitemap.xml",
   "/robots.txt",
   "/api/v1/verify(.*)",
+  "/api/enterprise-contact(.*)",
 ]);
 
 function applyAffiliateCookie(req: NextRequest, res: NextResponse): NextResponse {

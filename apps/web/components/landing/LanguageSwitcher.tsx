@@ -1,6 +1,4 @@
 "use client";
-import { useTransition } from "react";
-import { setLocale } from "@/lib/actions/locale";
 
 const LANGS = [
   { code: "fr", label: "FR", flag: "🇫🇷" },
@@ -8,64 +6,66 @@ const LANGS = [
   { code: "ar", label: "عر", flag: "🇸🇦" },
 ];
 
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
 interface Props {
   current: string;
-  /** compact = mobile header version (flag + label, bigger touch target) */
   compact?: boolean;
 }
 
 export function LanguageSwitcher({ current, compact = false }: Props) {
-  const [isPending, startTransition] = useTransition();
-
   function handleSwitch(code: string) {
     if (code === current) return;
-    startTransition(async () => {
-      await setLocale(code);
-      window.location.reload();
-    });
+
+    // 1. Write cookie directly from the browser (no server action required).
+    //    The NEXT_LOCALE cookie is not httpOnly, so JS can write it.
+    document.cookie =
+      `NEXT_LOCALE=${code}; path=/; max-age=${COOKIE_MAX_AGE}; samesite=lax`;
+
+    // 2. Full navigation to the same URL — guaranteed fresh server render.
+    //    The browser sends the new cookie in the request so the server
+    //    picks up the new locale immediately.
+    window.location.href =
+      window.location.pathname + window.location.search;
   }
 
   if (compact) {
-    // Mobile version — flag buttons side by side, gold ring on active
     return (
-      <div className={`flex items-center gap-1 ${isPending ? "opacity-60" : ""}`}>
+      <div className="flex items-center gap-1">
         {LANGS.map(({ code, flag, label }) => (
           <button
             key={code}
             onClick={() => handleSwitch(code)}
-            aria-label={label}
+            aria-label={`Switch to ${label}`}
             className={`
-              flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-bold
-              border transition-all duration-150
+              flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold
+              border transition-all duration-150 min-w-[36px] justify-center
               ${current === code
                 ? "bg-iron-gold/15 border-iron-gold text-iron-gold"
-                : "border-iron-border/60 text-iron-white/50 hover:text-iron-white hover:border-iron-white/30"
+                : "border-iron-border/60 text-iron-white/50 hover:text-iron-white hover:border-iron-white/30 active:scale-95"
               }
             `}
           >
             <span className="text-sm leading-none">{flag}</span>
-            <span className="hidden xs:inline">{label}</span>
+            <span className="hidden sm:inline ml-0.5">{label}</span>
           </button>
         ))}
       </div>
     );
   }
 
-  // Desktop version — pill group
+  // Desktop pill group
   return (
-    <div
-      className={`flex items-center gap-0.5 rounded-xl border border-iron-border bg-iron-black/50 p-1 ${
-        isPending ? "opacity-60" : ""
-      }`}
-    >
+    <div className="flex items-center gap-0.5 rounded-xl border border-iron-border bg-iron-black/50 p-1">
       {LANGS.map(({ code, label }) => (
         <button
           key={code}
           onClick={() => handleSwitch(code)}
-          className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+          aria-label={`Switch to ${label}`}
+          className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
             current === code
               ? "bg-iron-gold text-iron-black"
-              : "text-iron-white/40 hover:text-iron-white"
+              : "text-iron-white/40 hover:text-iron-white active:scale-95"
           }`}
         >
           {label}

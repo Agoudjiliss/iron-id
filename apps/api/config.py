@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     # App
     app_env: str = "development"
     app_secret_key: str
+    admin_secret_key: str = ""  # Required for admin endpoints (POST /v1/admin/*)
     frontend_url: str = "http://localhost:3000"
     api_url: str = "http://localhost:8000"
     cors_origins: str = "http://localhost:3000"

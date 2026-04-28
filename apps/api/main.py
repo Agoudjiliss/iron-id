@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 from config import get_settings
 from database import close_db, init_db
 from middleware.rate_limit import RateLimitMiddleware
-from routers import affiliate, billing, certify, clerk_webhook, keys, stats, verify, webhooks
+from routers import admin, affiliate, billing, certify, clerk_webhook, feedback, keys, stats, verify, webhooks
 
 settings = get_settings()
 
@@ -105,3 +105,5 @@ app.include_router(billing.router)
 app.include_router(webhooks.router)
 app.include_router(affiliate.router)
 app.include_router(clerk_webhook.router)
+app.include_router(feedback.router)
+app.include_router(admin.router)   # /v1/admin/* — secured by X-Admin-Key

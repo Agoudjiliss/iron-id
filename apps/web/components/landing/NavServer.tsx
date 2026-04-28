@@ -6,11 +6,12 @@ export async function NavServer() {
   const t = await getTranslations("landingNav");
 
   const links = [
-    { href: "/#features", label: t("features") },
-    { href: "/#how", label: t("howItWorks") },
-    { href: "/pricing", label: t("pricing") },
-    { href: "/earn", label: t("affiliate") },
-    { href: "/docs", label: t("docs") },
+    { href: "/#features",  label: t("features") },
+    { href: "/#how",       label: t("howItWorks") },
+    { href: "/pricing",    label: t("pricing") },
+    { href: "/enterprise", label: t("enterprise") },
+    { href: "/earn",       label: t("affiliate") },
+    { href: "/docs",       label: t("docs") },
   ];
 
   return (

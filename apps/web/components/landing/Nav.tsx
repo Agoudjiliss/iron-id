@@ -80,9 +80,8 @@ export function Nav({ locale, links, cta }: NavProps) {
           </Link>
         </div>
 
-        {/* Mobile: language switcher + hamburger — always visible */}
+        {/* Mobile: hamburger only */}
         <div className="md:hidden flex items-center gap-2">
-          <LanguageSwitcher current={locale} compact />
           <button
             className="p-2 text-iron-white/60 hover:text-iron-white"
             onClick={() => setOpen(!open)}
@@ -96,6 +95,11 @@ export function Nav({ locale, links, cta }: NavProps) {
       {/* Mobile drawer */}
       {open && (
         <div className="md:hidden bg-iron-black/95 border-b border-iron-border px-6 py-4 space-y-3">
+          {/* Language switcher — prominent at top of drawer */}
+          <div className="pb-3 border-b border-iron-border/50">
+            <LanguageSwitcher current={locale} />
+          </div>
+
           {links.map(({ href, label }) => (
             <Link
               key={href}

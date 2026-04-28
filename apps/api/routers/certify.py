@@ -114,6 +114,26 @@ async def certify_file(
             detail={"error": f"Invalid metadata JSON: {exc}", "code": "INVALID_METADATA"},
         )
 
+    # Check if enterprise trial has expired
+    if user.trial_ends_at is not None:
+        from datetime import timezone as _tz
+        import datetime as _dt
+        now_utc = _dt.datetime.now(_tz.utc)
+        trial_ts = user.trial_ends_at
+        if trial_ts.tzinfo is None:
+            trial_ts = trial_ts.replace(tzinfo=_tz.utc)
+        if now_utc > trial_ts:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "error": (
+                        "Your enterprise trial has expired. "
+                        "Please contact sales@iron-id.io to continue."
+                    ),
+                    "code": "TRIAL_EXPIRED",
+                },
+            )
+
     # Check monthly signature quota
     if user.monthly_signatures_limit != -1:
         used = await count_certifications_this_month(db, user.id)
