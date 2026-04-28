@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -8,34 +8,18 @@ import {
   LogOut, ChevronRight, Lock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AdminKeyContext, adminFetch } from "./_components";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.iron-id.io";
 
-// ── Context ──────────────────────────────────────────────────────────────────
-export const AdminKeyContext = createContext<string>("");
-export function useAdminKey() { return useContext(AdminKeyContext); }
-
-export function adminFetch(path: string, key: string, init: RequestInit = {}) {
-  return fetch(`${API_URL}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      "X-Admin-Key": key,
-      ...(init.headers ?? {}),
-    },
-  });
-}
-
-// ── Nav items ─────────────────────────────────────────────────────────────────
 const NAV = [
-  { href: "/admin",          label: "Overview",  icon: BarChart2      },
-  { href: "/admin/users",    label: "Users",     icon: Users          },
-  { href: "/admin/coupons",  label: "Coupons",   icon: Tag            },
-  { href: "/admin/trials",   label: "Trials",    icon: Gift           },
-  { href: "/admin/feedback", label: "Feedback",  icon: MessageSquare  },
+  { href: "/admin",          label: "Overview",  icon: BarChart2     },
+  { href: "/admin/users",    label: "Users",     icon: Users         },
+  { href: "/admin/coupons",  label: "Coupons",   icon: Tag           },
+  { href: "/admin/trials",   label: "Trials",    icon: Gift          },
+  { href: "/admin/feedback", label: "Feedback",  icon: MessageSquare },
 ];
 
-// ── Gate ─────────────────────────────────────────────────────────────────────
 function AdminGate({ onKey }: { onKey: (k: string) => void }) {
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
@@ -70,10 +54,7 @@ function AdminGate({ onKey }: { onKey: (k: string) => void }) {
           <Shield size={28} className="text-iron-gold" />
           <span className="text-xl font-bold text-iron-white">IronID Admin</span>
         </div>
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-2xl border border-iron-border bg-iron-slate p-8 space-y-4"
-        >
+        <form onSubmit={handleSubmit} className="rounded-2xl border border-iron-border bg-iron-slate p-8 space-y-4">
           <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-iron-gold/10 border border-iron-gold/20 mx-auto mb-4">
             <Lock size={20} className="text-iron-gold" />
           </div>
@@ -99,7 +80,6 @@ function AdminGate({ onKey }: { onKey: (k: string) => void }) {
   );
 }
 
-// ── Sidebar ───────────────────────────────────────────────────────────────────
 function AdminSidebar({ onLogout }: { onLogout: () => void }) {
   const pathname = usePathname();
   return (
@@ -145,7 +125,6 @@ function AdminSidebar({ onLogout }: { onLogout: () => void }) {
   );
 }
 
-// ── Layout ────────────────────────────────────────────────────────────────────
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [adminKey, setAdminKey] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
@@ -162,10 +141,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   if (!checked) return null;
-
-  if (!adminKey) {
-    return <AdminGate onKey={setAdminKey} />;
-  }
+  if (!adminKey) return <AdminGate onKey={setAdminKey} />;
 
   return (
     <AdminKeyContext.Provider value={adminKey}>

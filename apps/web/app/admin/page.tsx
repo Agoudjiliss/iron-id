@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAdminKey, adminFetch } from "./layout";
+import { useAdminKey, adminFetch } from "./_components";
 import { PageShell, Spinner } from "./_components";
 import { Users, FileCheck, Zap, TrendingUp, Shield } from "lucide-react";
 

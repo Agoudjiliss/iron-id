@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useAdminKey, adminFetch } from "../layout";
+import { useAdminKey, adminFetch } from "../_components";
 import { PageShell, Spinner } from "../_components";
 import { Plus, Trash2, ToggleLeft, ToggleRight, Tag } from "lucide-react";
 

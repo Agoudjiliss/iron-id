@@ -1,5 +1,23 @@
 "use client";
 
+import { createContext, useContext } from "react";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "https://api.iron-id.io";
+
+export const AdminKeyContext = createContext<string>("");
+export function useAdminKey() { return useContext(AdminKeyContext); }
+
+export function adminFetch(path: string, key: string, init: RequestInit = {}) {
+  return fetch(`${API_URL}${path}`, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      "X-Admin-Key": key,
+      ...(init.headers ?? {}),
+    },
+  });
+}
+
 export function PageShell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
