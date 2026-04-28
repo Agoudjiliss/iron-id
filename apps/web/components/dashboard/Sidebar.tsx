@@ -14,22 +14,23 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useClerk, useUser } from "@clerk/nextjs";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
   href: string;
-  label: string;
+  labelKey: string;
   icon: React.ElementType;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/dashboard",           label: "Vue d'ensemble",   icon: BarChart2   },
-  { href: "/certify",             label: "Certifier",        icon: Upload      },
-  { href: "/certifications",      label: "Certifications",   icon: CheckCircle },
-  { href: "/keys",                label: "Clés API",         icon: Key         },
-  { href: "/usage",               label: "Utilisation",      icon: BarChart2   },
-  { href: "/billing",             label: "Facturation",      icon: CreditCard  },
-  { href: "/affiliate",           label: "Affiliation",      icon: Users       },
+  { href: "/dashboard",           labelKey: "overview",       icon: BarChart2   },
+  { href: "/certify",             labelKey: "certify",        icon: Upload      },
+  { href: "/certifications",      labelKey: "certifications", icon: CheckCircle },
+  { href: "/keys",                labelKey: "keys",           icon: Key         },
+  { href: "/usage",               labelKey: "usage",          icon: BarChart2   },
+  { href: "/billing",             labelKey: "billing",        icon: CreditCard  },
+  { href: "/affiliate",           labelKey: "affiliate",      icon: Users       },
 ];
 
 const PLAN_COLORS: Record<string, string> = {
@@ -52,6 +53,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const { signOut } = useClerk();
   const { user } = useUser();
+  const t = useTranslations("nav");
 
   // Read plan from public metadata (set by Stripe webhook)
   const plan = (user?.publicMetadata?.plan as string) ?? "free";
@@ -67,8 +69,8 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto" aria-label="Navigation principale">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto" aria-label="Navigation">
+        {NAV_ITEMS.map(({ href, labelKey, icon: Icon }) => {
           const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (
             <Link
@@ -90,7 +92,7 @@ export function Sidebar() {
                   active ? "text-iron-gold" : "text-iron-white/30 group-hover:text-iron-white/60",
                 )}
               />
-              {label}
+              {t(labelKey as Parameters<typeof t>[0])}
               {active && (
                 <ChevronRight size={12} className="ml-auto text-iron-gold/60" />
               )}
@@ -103,7 +105,7 @@ export function Sidebar() {
       <div className="px-3 pb-4 border-t border-iron-border pt-4 space-y-2">
         {/* Plan badge */}
         <div className="px-3 py-2 flex items-center justify-between">
-          <span className="text-xs text-iron-white/40">Plan actuel</span>
+          <span className="text-xs text-iron-white/40">{t("currentPlan")}</span>
           <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", PLAN_COLORS[plan] ?? PLAN_COLORS.free)}>
             {PLAN_LABELS[plan] ?? "Free"}
           </span>
@@ -142,7 +144,7 @@ export function Sidebar() {
           className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-iron-white/40 hover:text-iron-red hover:bg-iron-red/5 transition-colors"
         >
           <LogOut size={14} />
-          Se déconnecter
+          {t("signOut")}
         </button>
       </div>
     </aside>

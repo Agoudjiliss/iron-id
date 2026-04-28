@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Zap } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 interface PricingCardProps {
@@ -32,6 +33,7 @@ export function PricingCard({
   onSelect,
   loading = false,
 }: PricingCardProps) {
+  const t = useTranslations("pricing");
   const isEnterprise = planKey.startsWith("enterprise");
   const isPayg       = planKey === "payg";
 
@@ -49,7 +51,7 @@ export function PricingCard({
       {isPopular && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
           <span className="px-3 py-1 rounded-full text-xs font-bold bg-iron-gold text-iron-black">
-            Le plus populaire
+            {t("popularBadge")}
           </span>
         </div>
       )}
@@ -58,7 +60,7 @@ export function PricingCard({
       {isCurrentPlan && (
         <div className="absolute -top-3 right-4">
           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-iron-green/20 text-iron-green ring-1 ring-iron-green/30">
-            Plan actuel
+            {t("currentPlanBadge")}
           </span>
         </div>
       )}
@@ -79,9 +81,9 @@ export function PricingCard({
         </div>
 
         <p className="text-xs text-iron-white/40 mt-1">
-          {isPayg ? "Aucun engagement" :
-           interval === "yearly" ? "Facturé annuellement via PayPal" :
-           "Facturé mensuellement via PayPal"}
+          {isPayg ? t("noCommitment") :
+           interval === "yearly" ? t("billedYearly") :
+           t("billedMonthly")}
         </p>
       </div>
 
@@ -89,7 +91,9 @@ export function PricingCard({
       <div className="flex items-center gap-2 mb-5 p-3 rounded-xl bg-iron-black/40 border border-iron-border">
         <Zap size={14} className="text-iron-gold flex-shrink-0" />
         <span className="text-sm font-medium text-iron-white">
-          {signatures === -1 ? "Signatures illimitées" : `${signatures.toLocaleString("fr-FR")} signatures / mois`}
+          {signatures === -1
+            ? t("unlimited")
+            : `${signatures.toLocaleString()} ${t("sigsMonth")}`}
         </span>
       </div>
 
@@ -106,7 +110,7 @@ export function PricingCard({
       {/* CTA */}
       {isCurrentPlan ? (
         <div className="py-2.5 rounded-xl text-center text-sm font-medium text-iron-green bg-iron-green/10 border border-iron-green/20">
-          Plan actuel ✓
+          {t("currentPlanCta")}
         </div>
       ) : (
         <button
@@ -122,17 +126,17 @@ export function PricingCard({
               : "bg-iron-border text-iron-white hover:bg-iron-border/80 border border-iron-border hover:border-iron-gold/30",
           )}
         >
-          {loading ? "Redirection PayPal…" :
-           isPayg ? "Payer à la demande" :
-           isEnterprise ? "Contacter l'équipe" :
-           "S'abonner via PayPal"}
+          {loading ? t("redirecting") :
+           isPayg ? t("payPerUse") :
+           isEnterprise ? t("contactTeam") :
+           t("subscribe")}
         </button>
       )}
 
       {/* PayPal notice */}
       {!isCurrentPlan && !isPayg && (
         <p className="text-center text-xs text-iron-white/25 mt-2">
-          Paiement sécurisé via PayPal
+          {t("securePaypal")}
         </p>
       )}
     </div>

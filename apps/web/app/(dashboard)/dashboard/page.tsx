@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { CheckCircle, Upload, Key, Zap, Clock, TrendingUp } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { Header } from "@/components/dashboard/Header";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 
-export const metadata: Metadata = { title: "Vue d'ensemble" };
+export const dynamic = "force-dynamic";
+export const metadata: Metadata = { title: "Dashboard" };
 
 const API_URL =
   process.env.INTERNAL_API_URL ??
@@ -57,6 +59,7 @@ async function getDashboardStats(token: string): Promise<DashboardStats> {
 export default async function DashboardPage() {
   const { getToken } = await auth();
   const token = await getToken();
+  const t = await getTranslations("dashboard");
 
   const data = token
     ? await getDashboardStats(token)
@@ -70,40 +73,40 @@ export default async function DashboardPage() {
   return (
     <>
       <Header
-        title="Vue d'ensemble"
-        description="Bienvenue sur IronID — The Gold Standard for Digital Truth"
+        title={t("title")}
+        description={t("welcome")}
       />
 
       <main className="flex-1 p-6 space-y-6 overflow-y-auto">
         {/* Stats grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <StatsCard
-            title="Certifications totales"
+            title={t("totalCerts")}
             value={data.totalCertifications}
             icon={CheckCircle}
             accent="green"
-            subtitle="Depuis la création du compte"
+            subtitle={t("sinceCreation")}
           />
           <StatsCard
-            title="Signatures ce mois"
+            title={t("sigsMonth")}
             value={data.signaturesUsed}
             icon={TrendingUp}
             accent="gold"
-            subtitle="Utilisées ce mois-ci"
+            subtitle={t("usedThisMonth")}
           />
           <StatsCard
-            title="Quota mensuel"
+            title={t("quota")}
             value={`${data.signaturesUsed} / ${data.signaturesLimit === -1 ? "∞" : data.signaturesLimit}`}
             icon={Zap}
             accent={usagePct > 80 ? "red" : usagePct > 60 ? "gold" : "blue"}
-            subtitle={`${usagePct}% utilisé`}
+            subtitle={`${usagePct}${t("pctUsed")}`}
           />
           <StatsCard
-            title="Clés API actives"
+            title={t("activeKeys")}
             value={data.activeKeys}
             icon={Key}
             accent="blue"
-            subtitle="Clés de production actives"
+            subtitle={t("activeProduction")}
           />
         </div>
 
@@ -112,17 +115,17 @@ export default async function DashboardPage() {
           <QuickAction
             href="/certify"
             icon={<Upload size={20} className="text-iron-gold" />}
-            title="Certifier un fichier"
-            description="Signer cryptographiquement un fichier avec C2PA"
-            cta="Commencer →"
+            title={t("certifyTitle")}
+            description={t("certifyDesc")}
+            cta={t("certifyStart")}
             accent="gold"
           />
           <QuickAction
             href="/keys"
             icon={<Key size={20} className="text-iron-blue" />}
-            title="Gérer les clés API"
-            description="Créer ou révoquer des clés pour vos intégrations"
-            cta="Gérer →"
+            title={t("keysTitle")}
+            description={t("keysDesc")}
+            cta={t("manage")}
             accent="blue"
           />
         </div>
@@ -132,10 +135,10 @@ export default async function DashboardPage() {
           <div className="flex items-center justify-between px-5 py-4 border-b border-iron-border">
             <div className="flex items-center gap-2">
               <Clock size={15} className="text-iron-white/40" />
-              <h2 className="text-sm font-semibold text-iron-white">Certifications récentes</h2>
+              <h2 className="text-sm font-semibold text-iron-white">{t("recent")}</h2>
             </div>
             <a href="/certifications" className="text-xs text-iron-gold hover:text-iron-gold-dim transition-colors">
-              Voir tout →
+              {t("viewAll")}
             </a>
           </div>
 
@@ -143,12 +146,12 @@ export default async function DashboardPage() {
             <CheckCircle size={32} className="text-iron-border mb-3" />
             {data.totalCertifications === 0 ? (
               <>
-                <p className="text-sm text-iron-white/40">Aucune certification pour le moment.</p>
+                <p className="text-sm text-iron-white/40">{t("noYet")}</p>
                 <a
                   href="/certify"
                   className="mt-3 text-sm text-iron-gold hover:text-iron-gold-dim underline underline-offset-2 transition-colors"
                 >
-                  Certifier votre premier fichier
+                  {t("certifyFirst")}
                 </a>
               </>
             ) : (
@@ -156,7 +159,7 @@ export default async function DashboardPage() {
                 href="/certifications"
                 className="text-sm text-iron-gold hover:text-iron-gold-dim underline underline-offset-2 transition-colors"
               >
-                Voir les {data.totalCertifications} certification{data.totalCertifications > 1 ? "s" : ""} →
+                {t("viewAll")}
               </a>
             )}
           </div>

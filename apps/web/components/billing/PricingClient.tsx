@@ -3,116 +3,88 @@
 import { useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { PricingCard } from "./PricingCard";
 import { cn } from "@/lib/utils";
 
-const PLANS_MONTHLY = [
-  {
-    planKey: "payg",
-    label: "Pay-as-you-go",
-    interval: "monthly" as const,
-    priceLabel: "$0.10 / sig.",
-    priceUsd: 0.10,
-    yearlySave: null,
-    signatures: -1,
-    features: [
-      "Aucun abonnement",
-      "Facturation à la signature",
-      "Fichiers jusqu'à 100 MB",
-      "API REST complète",
-      "Manifest C2PA signé",
-    ],
-    isPopular: false,
-  },
-  {
-    planKey: "individual_monthly",
-    label: "Individual",
-    interval: "monthly" as const,
-    priceLabel: "$29 / mois",
-    priceUsd: 29,
-    yearlySave: null,
-    signatures: 10_000,
-    features: [
-      "10 000 signatures / mois",
-      "Fichiers jusqu'à 200 MB",
-      "API REST complète",
-      "Manifest C2PA signé",
-      "Historique 30 jours",
-      "Support email",
-    ],
-    isPopular: true,
-  },
-  {
-    planKey: "studio_monthly",
-    label: "Studio",
-    interval: "monthly" as const,
-    priceLabel: "$199 / mois",
-    priceUsd: 199,
-    yearlySave: null,
-    signatures: 100_000,
-    features: [
-      "100 000 signatures / mois",
-      "Fichiers jusqu'à 500 MB",
-      "API REST + SDK",
-      "Webhooks illimités",
-      "Historique 30 jours",
-      "Support prioritaire",
-      "Dashboard d'équipe",
-    ],
-    isPopular: false,
-  },
-  {
-    planKey: "enterprise_monthly",
-    label: "Enterprise",
-    interval: "monthly" as const,
-    priceLabel: "$1 200 / mois",
-    priceUsd: 1200,
-    yearlySave: null,
-    signatures: -1,
-    features: [
-      "Signatures illimitées",
-      "Fichiers jusqu'à 500 MB",
-      "API REST + SDK",
-      "SLA 99.9%",
-      "VPS dédié",
-      "Historique illimité",
-      "Support 24/7",
-      "RGPD — données EU",
-    ],
-    isPopular: false,
-  },
-];
-
-const PLANS_YEARLY = [
-  { ...PLANS_MONTHLY[0] },
-  {
-    ...PLANS_MONTHLY[1],
-    planKey: "individual_yearly",
-    priceLabel: "$232 / an",
-    priceUsd: 232,
-    yearlySave: "Économisez 20%",
-  },
-  {
-    ...PLANS_MONTHLY[2],
-    planKey: "studio_yearly",
-    priceLabel: "$1 908 / an",
-    priceUsd: 1908,
-    yearlySave: "Économisez 20%",
-  },
-  {
-    ...PLANS_MONTHLY[3],
-    planKey: "enterprise_yearly",
-    priceLabel: "$11 520 / an",
-    priceUsd: 11520,
-    yearlySave: "Économisez 20%",
-  },
-];
-
 export function PricingClient({ currentPlan = "free" }: { currentPlan?: string }) {
   const { getToken } = useAuth();
+  const t = useTranslations("pricing");
   const [interval, setInterval] = useState<"monthly" | "yearly">("monthly");
   const [loading, setLoading] = useState<string | null>(null);
   const router = useRouter();
+
+  const PLANS_MONTHLY = [
+    {
+      planKey: "payg",
+      label: "Pay-as-you-go",
+      interval: "monthly" as const,
+      priceLabel: "$0.10 / sig.",
+      priceUsd: 0.10,
+      yearlySave: null,
+      signatures: -1,
+      features: t.raw("paygFeatures") as string[],
+      isPopular: false,
+    },
+    {
+      planKey: "individual_monthly",
+      label: "Individual",
+      interval: "monthly" as const,
+      priceLabel: "$29 / mo",
+      priceUsd: 29,
+      yearlySave: null,
+      signatures: 10_000,
+      features: t.raw("individualFeatures") as string[],
+      isPopular: true,
+    },
+    {
+      planKey: "studio_monthly",
+      label: "Studio",
+      interval: "monthly" as const,
+      priceLabel: "$199 / mo",
+      priceUsd: 199,
+      yearlySave: null,
+      signatures: 100_000,
+      features: t.raw("studioFeatures") as string[],
+      isPopular: false,
+    },
+    {
+      planKey: "enterprise_monthly",
+      label: "Enterprise",
+      interval: "monthly" as const,
+      priceLabel: "$1,200 / mo",
+      priceUsd: 1200,
+      yearlySave: null,
+      signatures: -1,
+      features: t.raw("enterpriseFeatures") as string[],
+      isPopular: false,
+    },
+  ];
+
+  const PLANS_YEARLY = [
+    { ...PLANS_MONTHLY[0] },
+    {
+      ...PLANS_MONTHLY[1],
+      planKey: "individual_yearly",
+      priceLabel: "$232 / yr",
+      priceUsd: 232,
+      yearlySave: t("save20"),
+    },
+    {
+      ...PLANS_MONTHLY[2],
+      planKey: "studio_yearly",
+      priceLabel: "$1,908 / yr",
+      priceUsd: 1908,
+      yearlySave: t("save20"),
+    },
+    {
+      ...PLANS_MONTHLY[3],
+      planKey: "enterprise_yearly",
+      priceLabel: "$11,520 / yr",
+      priceUsd: 11520,
+      yearlySave: t("save20"),
+    },
+  ];
 
   const plans = interval === "monthly" ? PLANS_MONTHLY : PLANS_YEARLY;
 
@@ -127,7 +99,7 @@ export function PricingClient({ currentPlan = "free" }: { currentPlan?: string }
     }
 
     const token = await getToken();
-    if (!token) { alert("Session expirée. Veuillez vous reconnecter."); return; }
+    if (!token) { alert(t("sessionExpired")); return; }
 
     setLoading(planKey);
     try {
@@ -141,14 +113,14 @@ export function PricingClient({ currentPlan = "free" }: { currentPlan?: string }
         }),
       });
 
-      if (!res.ok) throw new Error("Erreur lors de la création de l'abonnement.");
+      if (!res.ok) throw new Error(t("subscribeError"));
       const data = await res.json();
 
       if (data.approval_url) {
         window.location.href = data.approval_url;
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erreur inattendue.");
+      alert(err instanceof Error ? err.message : t("subscribeError"));
       setLoading(null);
     }
   }
@@ -169,7 +141,7 @@ export function PricingClient({ currentPlan = "free" }: { currentPlan?: string }
                   : "text-iron-white/50 hover:text-iron-white",
               )}
             >
-              {iv === "monthly" ? "Mensuel" : "Annuel"}
+              {iv === "monthly" ? t("monthly") : t("yearly")}
               {iv === "yearly" && (
                 <span className="ml-1.5 text-xs font-semibold text-iron-green">−20%</span>
               )}
@@ -193,9 +165,9 @@ export function PricingClient({ currentPlan = "free" }: { currentPlan?: string }
 
       {/* PayPal trust badge */}
       <div className="flex items-center justify-center gap-3 text-xs text-iron-white/30">
-        <span>Paiement sécurisé via</span>
+        <span>{t("paypalTrust")}</span>
         <span className="font-bold text-[#003087] bg-white px-2 py-0.5 rounded text-xs">PayPal</span>
-        <span>· SSL 256-bit · Annulation à tout moment</span>
+        <span>· {t("paypalSuffix")}</span>
       </div>
     </div>
   );

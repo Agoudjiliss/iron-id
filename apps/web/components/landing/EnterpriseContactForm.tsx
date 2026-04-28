@@ -2,25 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle, Loader2 } from "lucide-react";
-
-const USE_CASES = [
-  "Media / Journalism",
-  "Legal & Digital Evidence",
-  "Generative AI Platform",
-  "Government / Public Sector",
-  "Camera / Hardware",
-  "Social Media Platform",
-  "Healthcare / Medical Imaging",
-  "Other",
-];
-
-const VOLUME_OPTIONS = [
-  "< 10 000 / month",
-  "10 000 – 100 000 / month",
-  "100 000 – 1 M / month",
-  "> 1 M / month",
-  "Not sure yet",
-];
+import { useTranslations } from "next-intl";
 
 interface FormState {
   firstName: string;
@@ -47,10 +29,14 @@ const INITIAL: FormState = {
 };
 
 export function EnterpriseContactForm() {
+  const t = useTranslations("enterprise.form");
   const [form, setForm]       = useState<FormState>(INITIAL);
   const [loading, setLoading] = useState(false);
   const [sent, setSent]       = useState(false);
   const [error, setError]     = useState("");
+
+  const useCases  = t.raw("useCases")  as string[];
+  const volumes   = t.raw("volumes")   as string[];
 
   function update(field: keyof FormState, value: string | boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -61,7 +47,7 @@ export function EnterpriseContactForm() {
     e.preventDefault();
 
     if (!form.email || !form.company || !form.message) {
-      setError("Please fill in all required fields.");
+      setError(t("errorRequired"));
       return;
     }
 
@@ -69,8 +55,6 @@ export function EnterpriseContactForm() {
     setError("");
 
     try {
-      // Submit to public email / contact API
-      // Falls back to mailto if API unavailable
       const res = await fetch("/api/enterprise-contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,12 +62,12 @@ export function EnterpriseContactForm() {
       });
 
       if (!res.ok) {
-        throw new Error("Submission failed. Please email enterprise@iron-id.io directly.");
+        throw new Error(t("errorSubmit"));
       }
 
       setSent(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Submission failed. Please try again.");
+      setError(err instanceof Error ? err.message : t("errorSubmit"));
     } finally {
       setLoading(false);
     }
@@ -93,13 +77,10 @@ export function EnterpriseContactForm() {
     return (
       <div className="rounded-2xl border border-iron-gold/20 bg-iron-gold/5 p-10 text-center">
         <CheckCircle size={40} className="text-iron-gold mx-auto mb-4" />
-        <h3 className="text-xl font-bold text-iron-white mb-2">Application received</h3>
-        <p className="text-iron-white/50 text-sm leading-relaxed">
-          Our enterprise team will review your application and respond within
-          one business day. Check your inbox — we may ask for a brief discovery call.
-        </p>
+        <h3 className="text-xl font-bold text-iron-white mb-2">{t("successTitle")}</h3>
+        <p className="text-iron-white/50 text-sm leading-relaxed">{t("successDesc")}</p>
         <p className="text-iron-white/30 text-xs mt-4">
-          In the meantime, feel free to reach us at{" "}
+          {t("successContact")}{" "}
           <a href="mailto:enterprise@iron-id.io" className="text-iron-gold underline">
             enterprise@iron-id.io
           </a>
@@ -115,7 +96,7 @@ export function EnterpriseContactForm() {
     >
       {/* Name row */}
       <div className="grid grid-cols-2 gap-4">
-        <Field label="First name" required>
+        <Field label={t("firstName")} required>
           <input
             type="text"
             value={form.firstName}
@@ -124,7 +105,7 @@ export function EnterpriseContactForm() {
             className={inputCls}
           />
         </Field>
-        <Field label="Last name" required>
+        <Field label={t("lastName")} required>
           <input
             type="text"
             value={form.lastName}
@@ -136,7 +117,7 @@ export function EnterpriseContactForm() {
       </div>
 
       {/* Email */}
-      <Field label="Work email" required>
+      <Field label={t("email")} required>
         <input
           type="email"
           value={form.email}
@@ -149,7 +130,7 @@ export function EnterpriseContactForm() {
 
       {/* Company + Role */}
       <div className="grid grid-cols-2 gap-4">
-        <Field label="Company" required>
+        <Field label={t("company")} required>
           <input
             type="text"
             value={form.company}
@@ -159,7 +140,7 @@ export function EnterpriseContactForm() {
             required
           />
         </Field>
-        <Field label="Your role">
+        <Field label={t("role")}>
           <input
             type="text"
             value={form.role}
@@ -171,40 +152,40 @@ export function EnterpriseContactForm() {
       </div>
 
       {/* Use case */}
-      <Field label="Primary use case">
+      <Field label={t("useCase")}>
         <select
           value={form.useCase}
           onChange={(e) => update("useCase", e.target.value)}
           className={inputCls}
         >
-          <option value="">Select a sector…</option>
-          {USE_CASES.map((uc) => (
+          <option value="">{t("useCasePlaceholder")}</option>
+          {useCases.map((uc) => (
             <option key={uc} value={uc}>{uc}</option>
           ))}
         </select>
       </Field>
 
       {/* Volume */}
-      <Field label="Expected certification volume">
+      <Field label={t("volume")}>
         <select
           value={form.volume}
           onChange={(e) => update("volume", e.target.value)}
           className={inputCls}
         >
-          <option value="">Select a range…</option>
-          {VOLUME_OPTIONS.map((v) => (
+          <option value="">{t("volumePlaceholder")}</option>
+          {volumes.map((v) => (
             <option key={v} value={v}>{v}</option>
           ))}
         </select>
       </Field>
 
       {/* Message */}
-      <Field label="Tell us about your project" required>
+      <Field label={t("message")} required>
         <textarea
           rows={4}
           value={form.message}
           onChange={(e) => update("message", e.target.value)}
-          placeholder="Describe your current workflow, what you're trying to certify, your timeline, and any technical constraints…"
+          placeholder={t("messagePlaceholder")}
           className={`${inputCls} resize-none`}
           required
         />
@@ -230,10 +211,7 @@ export function EnterpriseContactForm() {
             </svg>
           )}
         </div>
-        <span className="text-xs text-iron-white/50 leading-relaxed">
-          I require a mutual NDA / confidentiality agreement before discussing
-          technical or commercial details.
-        </span>
+        <span className="text-xs text-iron-white/50 leading-relaxed">{t("nda")}</span>
       </label>
 
       {error && (
@@ -248,16 +226,14 @@ export function EnterpriseContactForm() {
         {loading ? (
           <>
             <Loader2 size={16} className="animate-spin" />
-            Submitting…
+            {t("submitting")}
           </>
         ) : (
-          "Submit enterprise application"
+          t("submit")
         )}
       </button>
 
-      <p className="text-center text-xs text-iron-white/25">
-        We respond within 1 business day. No spam, no auto-sales sequences.
-      </p>
+      <p className="text-center text-xs text-iron-white/25">{t("note")}</p>
     </form>
   );
 }
