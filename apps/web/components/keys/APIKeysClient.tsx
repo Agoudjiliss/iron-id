@@ -49,9 +49,12 @@ export function APIKeysClient() {
     setError(null);
     try {
       const created = await createAPIKey(keyName.trim(), environment, token);
-      const lintrk = (window as Window & { lintrk?: (action: string, data: { name: string }) => void })
-        .lintrk;
-      lintrk?.("track", { name: "api_key_created" });
+      const lintrk = (
+        window as Window & {
+          lintrk?: (action: string, data: { conversion_id: number }) => void;
+        }
+      ).lintrk;
+      lintrk?.("track", { conversion_id: 27563273 });
       setNewKey(created as NewKey);
       setKeys((prev) => [created, ...prev]);
       setShowForm(false);
