@@ -3,14 +3,14 @@ import { Shield, Info } from "lucide-react";
 import { Header } from "@/components/dashboard/Header";
 import { CertificationUploader } from "@/components/certify/CertificationUploader";
 
-export const metadata: Metadata = { title: "Certifier un fichier" };
+export const metadata: Metadata = { title: "Certify a file" };
 
 export default function CertifyPage() {
   return (
     <>
       <Header
-        title="Certifier un fichier"
-        description="Signer cryptographiquement un fichier avec C2PA et l'inscrire dans le ledger IronID"
+        title="Certify a file"
+        description="Cryptographically sign a file with C2PA and record it in the IronID ledger"
       />
 
       <main className="flex-1 p-6 overflow-y-auto">
@@ -19,9 +19,9 @@ export default function CertifyPage() {
           <div className="flex items-start gap-3 rounded-xl bg-iron-blue/5 border border-iron-blue/20 px-4 py-3">
             <Info size={15} className="text-iron-blue flex-shrink-0 mt-0.5" />
             <p className="text-xs text-iron-white/60">
-              Chaque certification calcule l'empreinte SHA-256 du fichier côté serveur,
-              génère un manifest C2PA signé avec ECDSA P-256, et inscrit un enregistrement
-              immuable dans le ledger PostgreSQL. Le fichier certifié est stocké sur Cloudflare R2.
+              Each certification computes the SHA-256 fingerprint of the file server-side,
+              generates a C2PA manifest signed with ECDSA P-256, and writes an immutable record
+              to the PostgreSQL ledger. The certified file is stored on Cloudflare R2.
             </p>
           </div>
 

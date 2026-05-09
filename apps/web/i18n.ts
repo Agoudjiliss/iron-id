@@ -3,7 +3,7 @@ import { getRequestConfig } from "next-intl/server";
 
 const SUPPORTED = ["fr", "en", "ar"] as const;
 type Locale = typeof SUPPORTED[number];
-const DEFAULT: Locale = "fr";
+const DEFAULT: Locale = "en";
 
 export default getRequestConfig(async () => {
   const cookieStore = cookies();

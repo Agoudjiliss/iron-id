@@ -10,13 +10,13 @@ import { CTA }         from "@/components/landing/CTA";
 import { Footer }      from "@/components/landing/Footer";
 
 export const metadata: Metadata = {
-  title: "IronID — Certifiez l'authenticité de vos fichiers",
+  title: "IronID — Certify the authenticity of your files",
   description:
-    "Certifiez n'importe quel fichier avec une signature C2PA cryptographique. Prouvez l'origine, l'auteur et l'intégrité de vos contenus — vérifiable publiquement, pour toujours.",
+    "Certify any file with a cryptographic C2PA signature. Prove the origin, author and integrity of your content — publicly verifiable, forever.",
   alternates: { canonical: "https://www.iron-id.io" },
   openGraph: {
-    title:       "IronID — Certifiez l'authenticité de vos fichiers",
-    description: "Signature C2PA cryptographique pour développeurs, créateurs et entreprises. Vérifiable publiquement, pour toujours.",
+    title:       "IronID — Certify the authenticity of your files",
+    description: "Cryptographic C2PA signature for developers, creators and businesses. Publicly verifiable, forever.",
     url:         "https://www.iron-id.io",
     type:        "website",
   },
@@ -36,7 +36,7 @@ const jsonLd = {
       },
       sameAs: [],
       description:
-        "IronID est une plateforme de certification cryptographique basée sur le standard C2PA. Elle permet de certifier l'authenticité, l'origine et l'intégrité de tout fichier numérique.",
+        "IronID is a cryptographic certification platform based on the C2PA standard. It certifies the authenticity, origin and integrity of any digital file.",
     },
     {
       "@type": "WebSite",
@@ -60,7 +60,7 @@ const jsonLd = {
         { "@type": "Offer", name: "Studio",     price: "199", priceCurrency: "USD", billingIncrement: "P1M" },
       ],
       description:
-        "Plateforme de certification C2PA : signez cryptographiquement vos fichiers, inscrivez-les dans un ledger immuable et rendez-les vérifiables publiquement.",
+        "C2PA certification platform: cryptographically sign your files, record them in an immutable ledger and make them publicly verifiable.",
       url: "https://www.iron-id.io",
     },
     {
@@ -68,26 +68,26 @@ const jsonLd = {
       mainEntity: [
         {
           "@type": "Question",
-          name: "Qu'est-ce que la certification C2PA ?",
+          name: "What is C2PA certification?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "C2PA (Coalition for Content Provenance and Authenticity) est un standard ouvert co-fondé par Adobe, Microsoft, BBC et Intel pour certifier cryptographiquement l'origine et l'intégrité des fichiers numériques.",
+            text: "C2PA (Coalition for Content Provenance and Authenticity) is an open standard co-founded by Adobe, Microsoft, BBC and Intel to cryptographically certify the origin and integrity of digital files.",
           },
         },
         {
           "@type": "Question",
-          name: "Comment IronID certifie-t-il un fichier ?",
+          name: "How does IronID certify a file?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "IronID calcule un hash SHA-256 du fichier, génère une signature C2PA cryptographique et inscrit le tout dans un ledger immuable. La certification est ensuite vérifiable publiquement à tout moment.",
+            text: "IronID computes a SHA-256 hash of the file, generates a cryptographic C2PA signature and records everything in an immutable ledger. The certification can then be publicly verified at any time.",
           },
         },
         {
           "@type": "Question",
-          name: "Quels types de fichiers puis-je certifier ?",
+          name: "What types of files can I certify?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "IronID supporte tous types de fichiers : images (JPEG, PNG, WebP), vidéos (MP4, MOV), audio (MP3, WAV), documents PDF, et tout autre fichier numérique.",
+            text: "IronID supports all file types: images (JPEG, PNG, WebP), videos (MP4, MOV), audio (MP3, WAV), PDF documents, and any other digital file.",
           },
         },
       ],

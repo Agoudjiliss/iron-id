@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { CertificationStatus } from "@/lib/api";
 
@@ -10,12 +11,12 @@ interface StatusBadgeProps {
 }
 
 const CONFIG = {
-  certified:     { label: "Certifié",      dot: "bg-iron-green",  text: "text-iron-green",  ring: "ring-iron-green/20",  icon: "✓" },
-  verified:      { label: "Vérifié",       dot: "bg-iron-green",  text: "text-iron-green",  ring: "ring-iron-green/20",  icon: "✓" },
-  pending:       { label: "En attente",    dot: "bg-iron-gold",   text: "text-iron-gold",   ring: "ring-iron-gold/20",   icon: "⏳" },
-  processing:    { label: "Traitement…",   dot: "bg-iron-blue",   text: "text-iron-blue",   ring: "ring-iron-blue/20",   icon: "⚙" },
-  failed:        { label: "Échoué",        dot: "bg-iron-red",    text: "text-iron-red",    ring: "ring-iron-red/20",    icon: "✕" },
-  not_certified: { label: "Non certifié",  dot: "bg-iron-red",    text: "text-iron-red",    ring: "ring-iron-red/20",    icon: "✕" },
+  certified:     { dot: "bg-iron-green",  text: "text-iron-green",  ring: "ring-iron-green/20"  },
+  verified:      { dot: "bg-iron-green",  text: "text-iron-green",  ring: "ring-iron-green/20"  },
+  pending:       { dot: "bg-iron-gold",   text: "text-iron-gold",   ring: "ring-iron-gold/20"   },
+  processing:    { dot: "bg-iron-blue",   text: "text-iron-blue",   ring: "ring-iron-blue/20"   },
+  failed:        { dot: "bg-iron-red",    text: "text-iron-red",    ring: "ring-iron-red/20"    },
+  not_certified: { dot: "bg-iron-red",    text: "text-iron-red",    ring: "ring-iron-red/20"    },
 } as const;
 
 const SIZE = {
@@ -25,7 +26,9 @@ const SIZE = {
 };
 
 export function StatusBadge({ status, size = "md", className }: StatusBadgeProps) {
-  const { label, dot, text, ring, icon } = CONFIG[status] ?? CONFIG.failed;
+  const t = useTranslations("status");
+  const { dot, text, ring } = CONFIG[status] ?? CONFIG.failed;
+  const label = t(status as Parameters<typeof t>[0]);
 
   return (
     <span

@@ -25,16 +25,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const hash = params.hash.toLowerCase();
 
   if (hash.length !== 64 || !/^[0-9a-f]+$/.test(hash)) {
-    return { title: "Hash invalide" };
+    return { title: "Invalid hash" };
   }
 
   const data = await fetchVerification(hash);
 
   if (!data) {
-    return { title: "Vérification impossible" };
+    return { title: "Verification unavailable" };
   }
 
-  const status = data.is_certified ? "Certifié ✓" : "Non certifié";
+  const status = data.is_certified ? "Certified ✓" : "Not certified";
   const title = data.file_name
     ? `${data.file_name} — ${status}`
     : `${hash.slice(0, 16)}... — ${status}`;
@@ -42,8 +42,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description: data.is_certified
-      ? `Ce fichier a été certifié par IronID le ${new Date(data.certified_at).toLocaleDateString("fr-FR")}.`
-      : "Ce fichier n'est pas associé à une certification IronID.",
+      ? `This file was certified by IronID on ${new Date(data.certified_at).toLocaleDateString("en-US")}.`
+      : "This file is not associated with any IronID certification.",
   };
 }
 
@@ -58,7 +58,7 @@ export default async function VerifyHashPage({ params }: Props) {
   const data = await fetchVerification(hash);
 
   if (!data) {
-    return <ErrorView message="Impossible de contacter le serveur de vérification." />;
+    return <ErrorView message="Unable to contact the verification server." />;
   }
 
   const certified = data.is_certified;
@@ -97,12 +97,12 @@ export default async function VerifyHashPage({ params }: Props) {
             )}
             <div>
               <h1 className={`text-2xl font-bold mb-1 ${certified ? "text-iron-green" : "text-iron-red"}`}>
-                {certified ? "Fichier certifié" : "Non certifié"}
+                {certified ? "Certified file" : "Not certified"}
               </h1>
               <p className="text-iron-white/60 text-sm">
                 {certified
-                  ? "Ce fichier a été certifié par IronID. Son intégrité et son origine sont garanties."
-                  : "Ce hash n'est associé à aucune certification dans le ledger IronID."}
+                  ? "This file has been certified by IronID. Its integrity and origin are guaranteed."
+                  : "This hash is not associated with any certification in the IronID ledger."}
               </p>
               <div className="mt-3">
                 <StatusBadge status={certified ? "certified" : "not_certified"} size="sm" />
@@ -113,24 +113,24 @@ export default async function VerifyHashPage({ params }: Props) {
 
         {/* Details table */}
         <div className="rounded-2xl bg-iron-slate border border-iron-border divide-y divide-iron-border">
-          <Row icon={<Hash size={14} />} label="Empreinte SHA-256">
+          <Row icon={<Hash size={14} />} label="SHA-256 fingerprint">
             <HashBadge hash={hash} chars={12} />
           </Row>
 
           {data.file_name && (
-            <Row icon={<FileText size={14} />} label="Nom du fichier">
+            <Row icon={<FileText size={14} />} label="File name">
               <span className="text-iron-white text-sm">{data.file_name}</span>
             </Row>
           )}
 
           {data.certified_at && (
-            <Row icon={<Clock size={14} />} label="Certifié le">
+            <Row icon={<Clock size={14} />} label="Certified on">
               <span className="text-iron-white text-sm">{formatDate(data.certified_at)}</span>
             </Row>
           )}
 
           {data.certification_id && (
-            <Row icon={<ShieldCheck size={14} />} label="ID de certification">
+            <Row icon={<ShieldCheck size={14} />} label="Certification ID">
               <HashBadge hash={data.certification_id} chars={8} />
             </Row>
           )}
@@ -147,7 +147,7 @@ export default async function VerifyHashPage({ params }: Props) {
           <details className="mt-4 rounded-2xl bg-iron-slate border border-iron-border overflow-hidden">
             <summary className="px-5 py-3 cursor-pointer text-sm font-medium text-iron-white/70 hover:text-iron-white flex items-center gap-2 select-none list-none">
               <FileText size={14} />
-              Manifest C2PA
+              C2PA Manifest
             </summary>
             <pre className="px-5 pb-5 text-xs font-mono text-iron-white/50 overflow-x-auto leading-relaxed">
               {JSON.stringify(data.c2pa_manifest, null, 2)}
@@ -161,7 +161,7 @@ export default async function VerifyHashPage({ params }: Props) {
             href="/verify"
             className="px-4 py-2 rounded-xl text-sm font-medium bg-iron-border text-iron-white/80 hover:bg-iron-border/80 transition-colors"
           >
-            ← Vérifier un autre fichier
+            ← Verify another file
           </a>
 
           {data.certified_url && (
@@ -171,7 +171,7 @@ export default async function VerifyHashPage({ params }: Props) {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-iron-gold text-iron-black hover:bg-iron-gold-dim transition-colors"
             >
-              Télécharger le fichier certifié
+              Download certified file
               <ExternalLink size={12} />
             </a>
           )}
@@ -198,10 +198,10 @@ function ErrorView({ message }: { message: string }) {
     <main className="min-h-screen bg-iron-black flex items-center justify-center px-4">
       <div className="text-center">
         <ShieldX size={48} className="text-iron-red mx-auto mb-4" />
-        <h1 className="text-xl font-bold text-iron-white mb-2">Erreur</h1>
+        <h1 className="text-xl font-bold text-iron-white mb-2">Error</h1>
         <p className="text-iron-white/50">{message}</p>
         <a href="/verify" className="mt-6 inline-block text-iron-gold underline">
-          Retour à la vérification
+          Back to verification
         </a>
       </div>
     </main>

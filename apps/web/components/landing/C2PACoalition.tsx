@@ -1,6 +1,160 @@
+import type { ReactNode } from "react";
 import { getTranslations } from "next-intl/server";
 
+// ─── Founding member SVG logos (inline, monochrome — adapts to dark theme) ────
+
+function AdobeLogo() {
+  return (
+    <svg
+      className="h-9 w-auto"
+      viewBox="0 0 60 56"
+      fill="currentColor"
+      aria-label="Adobe"
+    >
+      {/* Adobe "A" mark — two angled beams */}
+      <path d="M30 0L0 56H16L30 20Z" />
+      <path d="M30 0L30 20L44 56H60Z" />
+    </svg>
+  );
+}
+
+function MicrosoftLogo() {
+  return (
+    <svg
+      className="h-8 w-8"
+      viewBox="0 0 21 21"
+      fill="currentColor"
+      aria-label="Microsoft"
+    >
+      {/* Windows 4-square symbol */}
+      <rect x="0"  y="0"  width="9" height="9" />
+      <rect x="12" y="0"  width="9" height="9" />
+      <rect x="0"  y="12" width="9" height="9" />
+      <rect x="12" y="12" width="9" height="9" />
+    </svg>
+  );
+}
+
+function BBCLogo() {
+  return (
+    <svg
+      className="h-6 w-auto"
+      viewBox="0 0 78 26"
+      aria-label="BBC"
+    >
+      {/* Three white boxes with dark letters — the actual BBC logo */}
+      <rect x="0"  y="0" width="24" height="26" rx="2" fill="white" />
+      <text
+        x="12" y="20"
+        textAnchor="middle"
+        fontSize="19" fontWeight="900"
+        fontFamily="Arial, Helvetica, sans-serif"
+        fill="#0e0e1a"
+      >B</text>
+
+      <rect x="27" y="0" width="24" height="26" rx="2" fill="white" />
+      <text
+        x="39" y="20"
+        textAnchor="middle"
+        fontSize="19" fontWeight="900"
+        fontFamily="Arial, Helvetica, sans-serif"
+        fill="#0e0e1a"
+      >B</text>
+
+      <rect x="54" y="0" width="24" height="26" rx="2" fill="white" />
+      <text
+        x="66" y="20"
+        textAnchor="middle"
+        fontSize="19" fontWeight="900"
+        fontFamily="Arial, Helvetica, sans-serif"
+        fill="#0e0e1a"
+      >C</text>
+    </svg>
+  );
+}
+
+function IntelLogo() {
+  return (
+    <svg
+      className="h-8 w-auto"
+      viewBox="0 0 72 28"
+      aria-label="Intel"
+      fill="currentColor"
+    >
+      <text
+        x="36" y="22"
+        textAnchor="middle"
+        fontSize="22"
+        fontWeight="300"
+        fontFamily="'Helvetica Neue', Helvetica, Arial, sans-serif"
+        letterSpacing="1"
+      >intel</text>
+    </svg>
+  );
+}
+
+function ArmLogo() {
+  return (
+    <svg
+      className="h-8 w-auto"
+      viewBox="0 0 52 28"
+      aria-label="Arm"
+      fill="currentColor"
+    >
+      <text
+        x="26" y="22"
+        textAnchor="middle"
+        fontSize="22"
+        fontWeight="700"
+        fontFamily="'Helvetica Neue', Helvetica, Arial, sans-serif"
+      >arm</text>
+    </svg>
+  );
+}
+
+function TruepicLogo() {
+  return (
+    <div className="flex items-center gap-1.5">
+      {/* Shield outline with checkmark */}
+      <svg
+        className="h-6 w-auto"
+        viewBox="0 0 20 22"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-label="Truepic"
+      >
+        <path d="M10 1L1 4.5V11.5C1 17.2 4.8 21.2 10 22C15.2 21.2 19 17.2 19 11.5V4.5L10 1Z" />
+        <path d="M6.5 11.5l2.5 2.5 4.5-4.5" />
+      </svg>
+      <span
+        className="text-[13px] font-bold tracking-tight"
+        style={{ fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif" }}
+      >
+        truepic
+      </span>
+    </div>
+  );
+}
+
+// ─── Logo registry ─────────────────────────────────────────────────────────────
+
+type LogoFC = () => ReactNode;
+
+const FOUNDER_LOGOS: Record<string, LogoFC> = {
+  Adobe:     AdobeLogo,
+  Microsoft: MicrosoftLogo,
+  BBC:       BBCLogo,
+  Intel:     IntelLogo,
+  Arm:       ArmLogo,
+  Truepic:   TruepicLogo,
+};
+
 const FOUNDER_NAMES = ["Adobe", "Microsoft", "BBC", "Intel", "Arm", "Truepic"];
+
+// ─── Adopters marquee ──────────────────────────────────────────────────────────
 
 const ADOPTERS_ROW_A = [
   "Google", "Apple", "OpenAI", "Reuters", "Associated Press",
@@ -32,6 +186,8 @@ function MarqueeRow({ items, reverse = false }: { items: string[]; reverse?: boo
   );
 }
 
+// ─── Main section ──────────────────────────────────────────────────────────────
+
 export async function C2PACoalition() {
   const t = await getTranslations("c2pa");
 
@@ -53,21 +209,28 @@ export async function C2PACoalition() {
         </p>
       </div>
 
-      {/* Founding members */}
+      {/* Founding members — logo cards */}
       <div className="max-w-5xl mx-auto px-6 mb-12">
         <p className="text-xs text-iron-white/25 uppercase tracking-widest text-center mb-6">
           {t("foundersLabel")}
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {FOUNDER_NAMES.map((name) => (
-            <div
-              key={name}
-              className="rounded-2xl bg-iron-slate border border-iron-border p-4 flex flex-col items-center text-center hover:border-iron-gold/20 transition-colors"
-            >
-              <span className="text-base font-black text-iron-white">{name}</span>
-              <span className="text-[10px] text-iron-gold/50 mt-1">{t("foundingNote")}</span>
-            </div>
-          ))}
+          {FOUNDER_NAMES.map((name) => {
+            const Logo = FOUNDER_LOGOS[name];
+            return (
+              <div
+                key={name}
+                className="rounded-2xl bg-iron-slate border border-iron-border p-5 flex flex-col items-center justify-center gap-3 min-h-[88px] hover:border-iron-gold/30 hover:bg-iron-slate/80 transition-all duration-200 text-iron-white/75 hover:text-iron-white/90 group"
+              >
+                {Logo ? <Logo /> : (
+                  <span className="text-base font-black">{name}</span>
+                )}
+                <span className="text-[10px] text-iron-gold/40 group-hover:text-iron-gold/60 transition-colors">
+                  {t("foundingNote")}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
 

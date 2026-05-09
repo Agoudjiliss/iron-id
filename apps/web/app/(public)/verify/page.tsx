@@ -3,9 +3,9 @@ import { Shield } from "lucide-react";
 import { FileVerifier } from "@/components/verify/FileVerifier";
 
 export const metadata: Metadata = {
-  title: "Vérifier un fichier",
+  title: "Verify a file",
   description:
-    "Vérifiez l'authenticité et la provenance d'un fichier numérique sur le ledger IronID. Aucun compte requis.",
+    "Verify the authenticity and provenance of a digital file on the IronID ledger. No account required.",
 };
 
 export default function VerifyPage() {
@@ -25,7 +25,7 @@ export default function VerifyPage() {
           <a
             href="/"
             className="inline-flex items-center gap-2 mb-8 group"
-            aria-label="Retour à l'accueil IronID"
+            aria-label="Back to IronID home"
           >
             <Shield
               size={28}
@@ -37,11 +37,11 @@ export default function VerifyPage() {
           </a>
 
           <h1 className="text-3xl sm:text-4xl font-bold text-iron-white mb-3">
-            Vérifier un fichier
+            Verify a file
           </h1>
           <p className="text-iron-white/50 text-base max-w-md mx-auto">
-            Glissez un fichier ou entrez son empreinte SHA-256 pour vérifier son
-            authenticité sur le ledger IronID.
+            Drop a file or enter its SHA-256 fingerprint to verify its
+            authenticity on the IronID ledger.
           </p>
         </div>
 
@@ -50,12 +50,12 @@ export default function VerifyPage() {
 
         {/* Footer note */}
         <p className="mt-8 text-center text-xs text-iron-white/25">
-          Vérification publique — aucun compte requis.{" "}
+          Public verification — no account required.{" "}
           <a
             href="/pricing"
             className="text-iron-gold/60 hover:text-iron-gold underline underline-offset-2"
           >
-            Certifier vos propres fichiers →
+            Certify your own files →
           </a>
         </p>
       </div>

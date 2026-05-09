@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { Eye, EyeOff, Copy, Check, Trash2, Key, Clock } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn, formatDate } from "@/lib/utils";
 import type { APIKey } from "@/lib/api";
 
 interface APIKeyCardProps {
   apiKey: APIKey;
-  rawKey?: string;           // Only present immediately after creation
+  rawKey?: string;
   onRevoke: (id: string) => void;
   isRevoking?: boolean;
 }
@@ -18,6 +19,7 @@ export function APIKeyCard({
   onRevoke,
   isRevoking = false,
 }: APIKeyCardProps) {
+  const t = useTranslations("keys");
   const [revealed, setRevealed] = useState(!!rawKey);
   const [copied, setCopied] = useState(false);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
@@ -54,15 +56,14 @@ export function APIKeyCard({
             <div>
               <p className="text-sm font-semibold text-iron-white">{apiKey.name}</p>
               <p className="text-xs text-iron-white/40">
-                {apiKey.is_active ? "Active" : "Révoquée"}
+                {apiKey.is_active ? t("active") : t("revoked")}
               </p>
             </div>
           </div>
 
-          {/* New badge */}
           {rawKey && (
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-iron-green/15 text-iron-green ring-1 ring-iron-green/20">
-              Nouvelle
+              {t("newBadge")}
             </span>
           )}
         </div>
@@ -78,7 +79,7 @@ export function APIKeyCard({
           {rawKey && (
             <button
               onClick={() => setRevealed(!revealed)}
-              title={revealed ? "Masquer" : "Révéler"}
+              title={revealed ? t("hide") : t("reveal")}
               className="flex-shrink-0 p-2 rounded-xl text-iron-white/40 hover:text-iron-white hover:bg-iron-border transition-colors"
             >
               {revealed ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -87,7 +88,7 @@ export function APIKeyCard({
 
           <button
             onClick={handleCopy}
-            title="Copier"
+            title={t("copy")}
             className="flex-shrink-0 p-2 rounded-xl text-iron-white/40 hover:text-iron-gold hover:bg-iron-gold/10 transition-colors"
           >
             {copied ? <Check size={14} className="text-iron-green" /> : <Copy size={14} />}
@@ -97,7 +98,7 @@ export function APIKeyCard({
         {/* New key warning */}
         {rawKey && (
           <div className="mb-3 px-3 py-2 rounded-xl bg-iron-gold/5 border border-iron-gold/20 text-xs text-iron-gold/80">
-            ⚠️ Copiez cette clé maintenant — elle ne sera plus affichée.
+            {t("copyWarning")}
           </div>
         )}
 
@@ -105,12 +106,12 @@ export function APIKeyCard({
         <div className="flex items-center gap-4 text-xs text-iron-white/30">
           <span className="flex items-center gap-1">
             <Clock size={10} />
-            Créée le {formatDate(apiKey.created_at)}
+            {t("createdOn")} {formatDate(apiKey.created_at)}
           </span>
           {apiKey.last_used_at && (
             <span className="flex items-center gap-1">
               <Clock size={10} />
-              Utilisée le {formatDate(apiKey.last_used_at)}
+              {t("lastUsedOn")} {formatDate(apiKey.last_used_at)}
             </span>
           )}
         </div>
@@ -121,19 +122,19 @@ export function APIKeyCard({
         <div className="border-t border-iron-border/50 px-4 py-3 flex justify-end">
           {confirmRevoke ? (
             <div className="flex items-center gap-3">
-              <span className="text-xs text-iron-white/50">Confirmer la révocation ?</span>
+              <span className="text-xs text-iron-white/50">{t("confirmRevoke")}</span>
               <button
                 onClick={() => setConfirmRevoke(false)}
                 className="text-xs text-iron-white/40 hover:text-iron-white px-2 py-1 rounded-lg transition-colors"
               >
-                Annuler
+                {t("cancel")}
               </button>
               <button
                 onClick={() => { setConfirmRevoke(false); onRevoke(apiKey.id); }}
                 disabled={isRevoking}
                 className="text-xs text-iron-red hover:text-iron-red/80 px-3 py-1 rounded-lg bg-iron-red/10 hover:bg-iron-red/20 transition-colors disabled:opacity-40"
               >
-                {isRevoking ? "Révocation…" : "Révoquer"}
+                {isRevoking ? t("revoking") : t("revoke")}
               </button>
             </div>
           ) : (
@@ -142,7 +143,7 @@ export function APIKeyCard({
               className="flex items-center gap-1.5 text-xs text-iron-white/30 hover:text-iron-red transition-colors"
             >
               <Trash2 size={12} />
-              Révoquer
+              {t("revoke")}
             </button>
           )}
         </div>

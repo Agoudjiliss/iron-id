@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useTranslations } from "next-intl";
 import { Users, TrendingUp, DollarSign, Copy, Check, ExternalLink, ChevronRight } from "lucide-react";
 import { getAffiliateLink, getAffiliateStats, type AffiliateLinkResponse, type AffiliateStats } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -17,7 +18,7 @@ const TIER_CONFIG: Record<string, { color: string; bg: string; label: string }> 
 };
 
 function formatCents(cents: number): string {
-  return (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "USD" });
+  return (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
 // ---- Link copy button ----
@@ -37,7 +38,7 @@ function CopyButton({ text }: { text: string }) {
       className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-iron-gold/10 text-iron-gold hover:bg-iron-gold/20 transition-colors"
     >
       {copied ? <Check size={12} /> : <Copy size={12} />}
-      {copied ? "Copié !" : "Copier"}
+      {copied ? "Copied!" : "Copy"}
     </button>
   );
 }
@@ -73,16 +74,17 @@ function StatCard({
 
 export function AffiliateWidget() {
   const { getToken } = useAuth();
+  const t = useTranslations("affiliate");
   const [link, setLink]   = useState<AffiliateLinkResponse | null>(null);
   const [stats, setStats] = useState<AffiliateStats | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getToken().then((token) => {
-      if (!token) { setError("Session expirée."); return; }
+      if (!token) { setError("Session expired."); return; }
       Promise.all([getAffiliateLink(token), getAffiliateStats(token)])
         .then(([l, s]) => { setLink(l); setStats(s); })
-        .catch((e) => setError(e.message ?? "Erreur chargement affiliation"));
+        .catch((e) => setError(e.message ?? t("widgetLoadError")));
     });
   }, [getToken]);
 
@@ -105,7 +107,7 @@ export function AffiliateWidget() {
       {/* Referral link card */}
       <div className="bg-iron-slate border border-iron-border rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-iron-white">Votre lien de parrainage</h2>
+          <h2 className="text-sm font-semibold text-iron-white">Your referral link</h2>
           {tier && (
             <span className={cn("text-xs font-bold px-2.5 py-1 rounded-full", tier.bg, tier.color)}>
               {tier.label} — {stats ? Math.round(stats.commission_rate * 100) : 0}%
@@ -124,7 +126,7 @@ export function AffiliateWidget() {
         )}
 
         <p className="mt-3 text-xs text-iron-white/30">
-          Attribution dernier-clic · Cookie {link?.cookie_days ?? 90} jours · Code : <span className="font-mono text-iron-white/50">{link?.code ?? "…"}</span>
+          Last-click attribution · {link?.cookie_days ?? 90}-day cookie · Code: <span className="font-mono text-iron-white/50">{link?.code ?? "…"}</span>
         </p>
       </div>
 
@@ -134,26 +136,26 @@ export function AffiliateWidget() {
           <>
             <StatCard
               icon={Users}
-              label="Filleuls actifs"
+              label="Active referrals"
               value={String(stats.active_referrals)}
-              sub={`${stats.total_referrals} au total`}
+              sub={`${stats.total_referrals} total`}
               accent="bg-iron-gold/10"
             />
             <StatCard
               icon={DollarSign}
-              label="Gains en attente"
+              label="Pending earnings"
               value={formatCents(stats.pending_cents)}
-              sub="Paiement J+30"
+              sub="Payment D+30"
               accent="bg-iron-gold/10"
             />
             <StatCard
               icon={DollarSign}
-              label="Déjà payé"
+              label={t("alreadyPaid")}
               value={formatCents(stats.paid_cents)}
             />
             <StatCard
               icon={TrendingUp}
-              label="Total gagné"
+              label="Total earned"
               value={formatCents(stats.total_earned_cents)}
             />
           </>
@@ -168,9 +170,9 @@ export function AffiliateWidget() {
       {stats && nextT && (
         <div className="bg-iron-slate border border-iron-border rounded-2xl p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-iron-white">Progression vers {nextT.name}</h3>
+            <h3 className="text-sm font-semibold text-iron-white">Progress toward {nextT.name}</h3>
             <span className="text-xs text-iron-white/40">
-              {stats.active_referrals} / {nextT.required} filleuls actifs
+              {stats.active_referrals} / {nextT.required} {t("activeReferrals")}
             </span>
           </div>
           <div className="relative h-2 bg-iron-border rounded-full overflow-hidden">
@@ -181,14 +183,14 @@ export function AffiliateWidget() {
           </div>
           <p className="mt-2 text-xs text-iron-white/30 flex items-center gap-1">
             <ChevronRight size={10} />
-            {nextT.name} débloque {Math.round(nextT.rate * 100)}% de commission
+            {nextT.name} unlocks {Math.round(nextT.rate * 100)}% commission
           </p>
         </div>
       )}
 
       {stats && !nextT && (
         <div className="bg-purple-500/5 border border-purple-500/20 rounded-2xl p-4 text-sm text-purple-300">
-          Niveau Platinum atteint — commission maximale (20%) active.
+          {t("platinumReached")}
         </div>
       )}
     </div>

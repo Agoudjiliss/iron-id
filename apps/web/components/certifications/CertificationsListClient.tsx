@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useTranslations } from "next-intl";
 import {
   CheckCircle,
   Loader2,
@@ -21,16 +22,20 @@ import { cn, formatBytes, formatDate } from "@/lib/utils";
 
 const PAGE_SIZE = 15;
 
-const STATUS_OPTIONS: { value: CertificationStatus | "all"; label: string }[] = [
-  { value: "all",        label: "Tous les statuts"  },
-  { value: "certified",  label: "Certifiés"         },
-  { value: "pending",    label: "En attente"        },
-  { value: "processing", label: "En cours"          },
-  { value: "failed",     label: "Échoués"           },
-];
-
 export function CertificationsListClient() {
   const { getToken } = useAuth();
+  const t = useTranslations("certifications");
+  const tStatus = useTranslations("status");
+  const tCommon = useTranslations("common");
+
+  const STATUS_OPTIONS: { value: CertificationStatus | "all"; label: string }[] = [
+    { value: "all",        label: tStatus("all")        },
+    { value: "certified",  label: tStatus("certified")  },
+    { value: "pending",    label: tStatus("pending")    },
+    { value: "processing", label: tStatus("processing") },
+    { value: "failed",     label: tStatus("failed")     },
+  ];
+
   const [certs, setCerts] = useState<Certification[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -45,7 +50,7 @@ export function CertificationsListClient() {
     setError(null);
     try {
       const token = await getToken();
-      if (!token) { setError("Session expirée. Veuillez vous reconnecter."); setLoading(false); return; }
+      if (!token) { setError(t("sessionExpired")); setLoading(false); return; }
       const res = await listCertifications(token, {
         page,
         pageSize: PAGE_SIZE,
@@ -54,7 +59,7 @@ export function CertificationsListClient() {
       setCerts(res.data);
       setTotal(res.total);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur de chargement");
+      setError(err instanceof Error ? err.message : t("loadError"));
     } finally {
       setLoading(false);
     }
@@ -88,7 +93,7 @@ export function CertificationsListClient() {
         {loading ? (
           <div className="flex items-center justify-center h-48 gap-2 text-iron-white/40 text-sm">
             <Loader2 size={16} className="animate-spin" />
-            Chargement…
+            {tCommon("loading")}
           </div>
         ) : error ? (
           <div className="flex items-center justify-center h-48 text-iron-red text-sm">
@@ -97,14 +102,14 @@ export function CertificationsListClient() {
         ) : certs.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-iron-white/40">
             <CheckCircle size={28} className="text-iron-border mb-3" />
-            <p className="text-sm">Aucune certification trouvée.</p>
+            <p className="text-sm">{t("noResults")}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-iron-border">
-                  {["Fichier", "Hash", "Statut", "Date", "Actions"].map((h) => (
+                  {[t("colFile"), t("colHash"), t("colStatus"), t("colDate"), t("colActions")].map((h) => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-medium text-iron-white/40 whitespace-nowrap">
                       {h}
                     </th>
@@ -113,7 +118,7 @@ export function CertificationsListClient() {
               </thead>
               <tbody className="divide-y divide-iron-border/50">
                 {certs.map((cert) => (
-                  <CertRow key={cert.id} cert={cert} />
+                  <CertRow key={cert.id} cert={cert} verifyLabel={t("verifyPage")} />
                 ))}
               </tbody>
             </table>
@@ -129,17 +134,17 @@ export function CertificationsListClient() {
             disabled={page === 1}
             className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm text-iron-white/50 hover:text-iron-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
-            <ChevronLeft size={14} /> Précédent
+            <ChevronLeft size={14} /> {t("previous")}
           </button>
           <span className="text-xs text-iron-white/40">
-            Page {page} / {totalPages}
+            {t("page")} {page} {t("of")} {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
             className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm text-iron-white/50 hover:text-iron-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
-            Suivant <ChevronRight size={14} />
+            {t("next")} <ChevronRight size={14} />
           </button>
         </div>
       )}
@@ -147,7 +152,7 @@ export function CertificationsListClient() {
   );
 }
 
-function CertRow({ cert }: { cert: Certification }) {
+function CertRow({ cert, verifyLabel }: { cert: Certification; verifyLabel: string }) {
   return (
     <tr className="hover:bg-iron-border/20 transition-colors group">
       <td className="px-4 py-3 max-w-[200px]">
@@ -182,7 +187,7 @@ function CertRow({ cert }: { cert: Certification }) {
               href={`/verify/${cert.file_hash_sha256}`}
               target="_blank"
               rel="noopener noreferrer"
-              title="Page de vérification publique"
+              title={verifyLabel}
               className="p-1.5 rounded-lg text-iron-white/40 hover:text-iron-gold hover:bg-iron-gold/10 transition-colors"
             >
               <ExternalLink size={13} />

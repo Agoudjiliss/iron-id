@@ -3,7 +3,7 @@ import {
   Newspaper, Sparkles, Building2, Scale, Share2, Palette,
   Megaphone, Camera, Smartphone, ShieldCheck, ShoppingBag,
   GraduationCap, HeartPulse, Siren, Film, Music, Tv2,
-  Stethoscope, Archive, Lock,
+  Truck, Archive, Lock,
 } from "lucide-react";
 
 // ─── Marquee industry labels (international — kept in English) ────────────────
@@ -25,7 +25,7 @@ const INDUSTRIES = [
   { label: "Film & Video Production",           Icon: Film          },
   { label: "Music & Audio Production",          Icon: Music         },
   { label: "Advertising & Media Agencies",      Icon: Tv2           },
-  { label: "Healthcare & Medical Imaging",      Icon: Stethoscope   },
+  { label: "Logistics & Supply Chain",           Icon: Truck         },
   { label: "Archival & Digital Preservation",   Icon: Archive       },
   { label: "Cybersecurity Platforms",           Icon: Lock          },
 ];
@@ -35,7 +35,7 @@ const FEATURED_META = [
   { Icon: Newspaper,  stat: "86%",   accent: "border-amber-500/25 bg-amber-500/5",   statColor: "text-amber-400"   },
   { Icon: Sparkles,   stat: "100%",  accent: "border-violet-500/25 bg-violet-500/5", statColor: "text-violet-400"  },
   { Icon: Scale,      stat: "J+0",   accent: "border-sky-500/25 bg-sky-500/5",       statColor: "text-sky-400"     },
-  { Icon: HeartPulse, stat: "ISO",   accent: "border-emerald-500/25 bg-emerald-500/5",statColor: "text-emerald-400"},
+  { Icon: Truck,      stat: "$50B",  accent: "border-teal-500/25 bg-teal-500/5",    statColor: "text-teal-400"   },
   { Icon: Building2,  stat: "190+",  accent: "border-iron-gold/25 bg-iron-gold/5",   statColor: "text-iron-gold"   },
   { Icon: Film,       stat: "$13B",  accent: "border-rose-500/25 bg-rose-500/5",     statColor: "text-rose-400"    },
 ];

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useTranslations } from "next-intl";
 import {
   AreaChart,
   Area,
@@ -34,9 +35,9 @@ const PLAN_LABELS: Record<string, string> = {
   enterprise: "Enterprise",
 };
 
-function formatDay(isoDate: string): string {
+function formatDay(isoDate: string, locale: string): string {
   const d = new Date(isoDate);
-  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+  return d.toLocaleDateString(locale, { day: "numeric", month: "short" });
 }
 
 function CustomTooltip({
@@ -61,28 +62,31 @@ function CustomTooltip({
 
 export function UsageClient() {
   const { getToken } = useAuth();
+  const t = useTranslations("billing");
+  const tCommon = useTranslations("common");
+
   const [stats, setStats] = useState<UsageStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getToken().then(async (token) => {
-      if (!token) { setError("Session expirée."); setLoading(false); return; }
+      if (!token) { setError(t("sessionExpired")); setLoading(false); return; }
       try {
         const res = await fetch("/api/v1/usage", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!res.ok) throw new Error(`Erreur ${res.status}`);
+        if (!res.ok) throw new Error(`Error ${res.status}`);
         const data = await res.json();
         setStats({
           ...data,
           daily: (data.daily as { date: string; count: number }[]).map((d) => ({
-            date: formatDay(d.date),
+            date: formatDay(d.date, "en-US"),
             count: d.count,
           })),
         });
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Erreur de chargement");
+        setError(e instanceof Error ? e.message : t("loadErrorGeneric"));
       } finally {
         setLoading(false);
       }
@@ -93,7 +97,7 @@ export function UsageClient() {
     return (
       <div className="flex items-center justify-center h-64 gap-2 text-iron-white/40 text-sm">
         <Loader2 size={16} className="animate-spin" />
-        Chargement…
+        {tCommon("loading")}
       </div>
     );
   }
@@ -101,7 +105,7 @@ export function UsageClient() {
   if (error || !stats) {
     return (
       <div className="flex items-center justify-center h-64 text-iron-red text-sm">
-        {error ?? "Données indisponibles"}
+        {error ?? tCommon("error")}
       </div>
     );
   }
@@ -115,6 +119,11 @@ export function UsageClient() {
   const today = new Date();
   const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
   const daysLeft = lastDay - today.getDate();
+  const monthLabel = today.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+  const signaturesLeftText = stats.limit - stats.used > 0
+    ? `${(stats.limit - stats.used).toLocaleString()} signatures remaining this month`
+    : t("quotaReached");
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -122,23 +131,23 @@ export function UsageClient() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <SummaryCard
           icon={<Zap size={16} className="text-iron-gold" />}
-          label="Signatures utilisées"
-          value={stats.used.toLocaleString("fr-FR")}
-          sub={`sur ${stats.limit === -1 ? "∞" : stats.limit.toLocaleString("fr-FR")}`}
+          label={t("signaturesUsed")}
+          value={stats.used.toLocaleString()}
+          sub={`${t("on")} ${stats.limit === -1 ? "∞" : stats.limit.toLocaleString()}`}
           accent="gold"
         />
         <SummaryCard
           icon={<TrendingUp size={16} className="text-iron-blue" />}
-          label="Plan actuel"
+          label={t("currentPlanLabel")}
           value={PLAN_LABELS[stats.plan] ?? stats.plan}
-          sub={stats.limit > 0 ? `${usagePct}% consommé` : "Illimité"}
+          sub={stats.limit > 0 ? `${usagePct}${t("consumed")}` : t("unlimited")}
           accent="blue"
         />
         <SummaryCard
           icon={<Calendar size={16} className="text-iron-white/50" />}
-          label="Remise à zéro dans"
-          value={`${daysLeft} jour${daysLeft !== 1 ? "s" : ""}`}
-          sub={today.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
+          label={t("resetsIn")}
+          value={daysLeft === 1 ? t("day_one", { count: daysLeft }) : t("day_other", { count: daysLeft })}
+          sub={monthLabel}
           accent="default"
         />
       </div>
@@ -147,9 +156,9 @@ export function UsageClient() {
       {stats.limit > 0 && (
         <div className="rounded-2xl bg-iron-slate border border-iron-border p-5 space-y-3">
           <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-iron-white">Quota mensuel</span>
+            <span className="font-medium text-iron-white">{t("resetsIn").replace("Resets in", "Monthly quota")}</span>
             <span className="font-mono text-iron-white/60">
-              {stats.used.toLocaleString("fr-FR")} / {stats.limit.toLocaleString("fr-FR")}
+              {stats.used.toLocaleString()} / {stats.limit.toLocaleString()}
             </span>
           </div>
           <div className="h-3 bg-iron-border rounded-full overflow-hidden">
@@ -158,24 +167,19 @@ export function UsageClient() {
               style={{ width: `${usagePct}%`, backgroundColor: barColor }}
             />
           </div>
-          <p className="text-xs text-iron-white/40">
-            {stats.limit - stats.used > 0
-              ? `${(stats.limit - stats.used).toLocaleString("fr-FR")} signatures restantes ce mois-ci`
-              : "Quota mensuel atteint — passez à un plan supérieur"}
-          </p>
+          <p className="text-xs text-iron-white/40">{signaturesLeftText}</p>
         </div>
       )}
 
       {/* Daily chart */}
       <div className="rounded-2xl bg-iron-slate border border-iron-border p-5">
         <h2 className="text-sm font-semibold text-iron-white mb-5">
-          Signatures par jour —{" "}
-          {today.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
+          {t("dailyChart")} {monthLabel}
         </h2>
 
         {stats.daily.length === 0 ? (
           <div className="flex items-center justify-center h-[220px] text-iron-white/30 text-sm">
-            Aucune certification ce mois-ci.
+            {t("noCertsThisMonth")}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={220}>
@@ -220,17 +224,15 @@ export function UsageClient() {
         <div className="rounded-2xl bg-iron-gold/5 border border-iron-gold/20 p-5 flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-iron-white">
-              {usagePct > 90 ? "Vous approchez de votre limite !" : "Pensez à mettre à niveau"}
+              {usagePct > 90 ? t("approachingLimit") : t("considerUpgrade")}
             </p>
-            <p className="text-xs text-iron-white/50 mt-0.5">
-              Passez à un plan supérieur pour ne jamais être bloqué.
-            </p>
+            <p className="text-xs text-iron-white/50 mt-0.5">{t("upgradeDesc")}</p>
           </div>
           <a
             href="/billing"
             className="flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium bg-iron-gold text-iron-black hover:bg-iron-gold-dim transition-colors"
           >
-            Mettre à niveau →
+            {t("upgrade")}
           </a>
         </div>
       )}

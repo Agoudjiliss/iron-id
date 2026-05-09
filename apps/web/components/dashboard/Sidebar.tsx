@@ -15,7 +15,9 @@ import {
 } from "lucide-react";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
+import { LanguageSwitcher } from "@/components/landing/LanguageSwitcher";
 
 interface NavItem {
   href: string;
@@ -54,6 +56,7 @@ export function Sidebar() {
   const { signOut } = useClerk();
   const { user } = useUser();
   const t = useTranslations("nav");
+  const locale = useLocale();
 
   // Read plan from public metadata (set by Stripe webhook)
   const plan = (user?.publicMetadata?.plan as string) ?? "free";
@@ -137,6 +140,11 @@ export function Sidebar() {
             </div>
           </div>
         )}
+
+        {/* Language switcher */}
+        <div className="px-3 py-2">
+          <LanguageSwitcher current={locale} compact />
+        </div>
 
         {/* Sign out */}
         <button

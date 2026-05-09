@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useTranslations } from "next-intl";
 import {
   CreditCard,
   CheckCircle,
@@ -14,7 +15,6 @@ import {
 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 import { PricingClient } from "./PricingClient";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 
 interface SubscriptionStatus {
   plan: string;
@@ -30,9 +30,9 @@ interface SubscriptionStatus {
 const PLAN_LABELS: Record<string, string> = {
   free:       "Free",
   payg:       "Pay-as-you-go",
-  individual: "Individual — $29/mois",
-  studio:     "Studio — $199/mois",
-  enterprise: "Enterprise — $1 200/mois",
+  individual: "Individual — $29/mo",
+  studio:     "Studio — $199/mo",
+  enterprise: "Enterprise — $1,200/mo",
 };
 
 const PAYPAL_STATUS_COLORS: Record<string, string> = {
@@ -44,6 +44,9 @@ const PAYPAL_STATUS_COLORS: Record<string, string> = {
 
 export function BillingClient() {
   const { getToken } = useAuth();
+  const t = useTranslations("billing");
+  const tCommon = useTranslations("common");
+
   const [sub, setSub] = useState<SubscriptionStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
@@ -51,18 +54,17 @@ export function BillingClient() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Check URL for PayPal return params
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("success") === "1") {
-        setSuccessMsg("Abonnement activé ! Votre plan sera mis à jour sous quelques instants.");
+        setSuccessMsg(t("subscriptionActivated"));
       }
       if (params.get("cancelled") === "1") {
-        setError("Le paiement PayPal a été annulé.");
+        setError(t("paypalCancelled"));
       }
       if (params.get("payg") === "success") {
-        setSuccessMsg("Paiement PAYG confirmé ! Vos signatures seront créditées sous peu.");
+        setSuccessMsg(t("paygConfirmed"));
       }
     }
   }, []);
@@ -71,14 +73,14 @@ export function BillingClient() {
     setLoading(true);
     try {
       const token = await getToken();
-      if (!token) throw new Error("Session expirée.");
+      if (!token) throw new Error(t("sessionExpired"));
       const res = await fetch("/api/v1/billing/subscription", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Impossible de charger le statut.");
+      if (!res.ok) throw new Error(t("loadError"));
       setSub(await res.json());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur de chargement.");
+      setError(err instanceof Error ? err.message : t("loadErrorGeneric"));
     } finally {
       setLoading(false);
     }
@@ -87,10 +89,10 @@ export function BillingClient() {
   useEffect(() => { loadStatus(); }, []);
 
   async function handleCancel() {
-    if (!confirm("Êtes-vous sûr de vouloir annuler votre abonnement ?")) return;
+    if (!confirm(t("cancelConfirm"))) return;
 
     const token = await getToken();
-    if (!token) { setError("Session expirée. Veuillez vous reconnecter."); return; }
+    if (!token) { setError(t("sessionExpired")); return; }
 
     setCancelling(true);
     setError(null);
@@ -101,12 +103,12 @@ export function BillingClient() {
       });
       if (!res.ok) {
         const body = await res.json();
-        throw new Error(body.error ?? "Erreur lors de l'annulation.");
+        throw new Error(body.error ?? t("cancelError"));
       }
-      setSuccessMsg("Abonnement annulé. Votre plan restera actif jusqu'à la fin de la période payée.");
+      setSuccessMsg(t("cancelSuccess"));
       await loadStatus();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur lors de l'annulation.");
+      setError(err instanceof Error ? err.message : t("cancelError"));
     } finally {
       setCancelling(false);
     }
@@ -116,7 +118,7 @@ export function BillingClient() {
     return (
       <div className="flex items-center justify-center h-48 gap-2 text-iron-white/40 text-sm">
         <Loader2 size={16} className="animate-spin" />
-        Chargement du statut de facturation…
+        {t("loadingStatus")}
       </div>
     );
   }
@@ -142,12 +144,12 @@ export function BillingClient() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CreditCard size={16} className="text-iron-gold" />
-            <h2 className="text-sm font-semibold text-iron-white">Plan actuel</h2>
+            <h2 className="text-sm font-semibold text-iron-white">{t("currentPlan")}</h2>
           </div>
           <button
             onClick={loadStatus}
             className="p-1.5 rounded-lg text-iron-white/30 hover:text-iron-white hover:bg-iron-border transition-colors"
-            title="Actualiser"
+            title={t("refresh")}
           >
             <RefreshCw size={13} />
           </button>
@@ -160,13 +162,13 @@ export function BillingClient() {
             </p>
             {sub?.paypal_status && (
               <p className={cn("text-xs mt-0.5", PAYPAL_STATUS_COLORS[sub.paypal_status] ?? "text-iron-white/40")}>
-                PayPal : {sub.paypal_status}
+                PayPal: {sub.paypal_status}
               </p>
             )}
           </div>
           {sub?.plan !== "free" && sub?.plan !== "payg" && (
             <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-iron-gold/15 text-iron-gold ring-1 ring-iron-gold/20">
-              Actif
+              {t("active")}
             </span>
           )}
         </div>
@@ -175,9 +177,9 @@ export function BillingClient() {
         {sub && sub.monthly_signatures_limit > 0 && (
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs text-iron-white/50">
-              <span className="flex items-center gap-1"><Zap size={10} /> Signatures ce mois-ci</span>
+              <span className="flex items-center gap-1"><Zap size={10} /> {t("signaturesThisMonth")}</span>
               <span className="font-mono">
-                {sub.monthly_signatures_used} / {sub.monthly_signatures_limit.toLocaleString("fr-FR")}
+                {sub.monthly_signatures_used} / {sub.monthly_signatures_limit.toLocaleString()}
               </span>
             </div>
             <div className="h-1.5 bg-iron-border rounded-full overflow-hidden">
@@ -195,14 +197,14 @@ export function BillingClient() {
         {sub?.next_billing && (
           <div className="flex items-center gap-2 text-xs text-iron-white/40">
             <Calendar size={12} />
-            Prochain paiement : {formatDate(sub.next_billing)}
+            {t("nextPayment")} {formatDate(sub.next_billing)}
           </div>
         )}
 
         {/* Last payment */}
         {sub?.last_payment?.amount?.value && (
           <div className="text-xs text-iron-white/40">
-            Dernier paiement : ${sub.last_payment.amount.value}
+            {t("lastPayment")} ${sub.last_payment.amount.value}
             {sub.last_payment.time && ` — ${formatDate(sub.last_payment.time)}`}
           </div>
         )}
@@ -214,7 +216,7 @@ export function BillingClient() {
           onClick={() => setShowPlans(!showPlans)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-iron-gold text-iron-black hover:bg-iron-gold-dim transition-colors"
         >
-          {showPlans ? "Masquer les plans" : "Changer de plan"}
+          {showPlans ? t("hidePlans") : t("changePlan")}
         </button>
 
         {sub?.paypal_subscription_id && sub?.plan !== "free" && (
@@ -224,7 +226,7 @@ export function BillingClient() {
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-iron-border text-iron-red hover:bg-iron-red/10 transition-colors disabled:opacity-40"
           >
             {cancelling ? <Loader2 size={13} className="animate-spin" /> : null}
-            {cancelling ? "Annulation…" : "Annuler l'abonnement"}
+            {cancelling ? t("cancelling") : t("cancelSubscription")}
           </button>
         )}
 
@@ -235,7 +237,7 @@ export function BillingClient() {
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-iron-white/50 hover:text-iron-white border border-iron-border hover:border-iron-gold/30 transition-colors"
           >
-            Gérer sur PayPal
+            {t("manageOnPaypal")}
             <ExternalLink size={12} />
           </a>
         )}
@@ -244,7 +246,7 @@ export function BillingClient() {
       {/* Plan selector */}
       {showPlans && (
         <div className="rounded-2xl border border-iron-border bg-iron-black/50 p-6">
-          <h3 className="text-sm font-semibold text-iron-white mb-5">Choisir un nouveau plan</h3>
+          <h3 className="text-sm font-semibold text-iron-white mb-5">{t("chooseNewPlan")}</h3>
           <PricingClient currentPlan={sub?.plan ?? "free"} />
         </div>
       )}

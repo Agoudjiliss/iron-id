@@ -23,7 +23,7 @@ function getTier(referrals: number) {
 }
 
 function fmt(n: number) {
-  return n.toLocaleString("fr-FR", {
+  return n.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });

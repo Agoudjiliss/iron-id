@@ -7,13 +7,13 @@ import { Footer }    from "@/components/landing/Footer";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Documentation API — IronID",
+  title: "API Documentation — IronID",
   description:
-    "Référence complète de l'API IronID : certification C2PA, SDK JavaScript & Python, webhooks, vérification publique. Intégrez la provenance numérique en quelques minutes.",
+    "Complete IronID API reference: C2PA certification, JavaScript & Python SDK, webhooks, public verification. Integrate digital provenance in minutes.",
   alternates: { canonical: "https://www.iron-id.io/docs" },
   openGraph: {
-    title:       "Documentation API IronID — Intégrez la certification C2PA",
-    description: "SDK JavaScript & Python, API REST, webhooks. Certifiez vos fichiers en quelques lignes de code.",
+    title:       "IronID API Documentation — Integrate C2PA Certification",
+    description: "JavaScript & Python SDK, REST API, webhooks. Certify your files in a few lines of code.",
     url:         "https://www.iron-id.io/docs",
     type:        "website",
   },

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { getCommissions, type Commission, type CommissionsListResponse } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -14,18 +15,12 @@ const STATUS_STYLES: Record<Commission["status"], string> = {
   cancelled: "bg-iron-red/10 text-iron-red",
 };
 
-const STATUS_LABELS: Record<Commission["status"], string> = {
-  pending:   "En attente",
-  paid:      "Payé",
-  cancelled: "Annulé",
-};
-
 function formatCents(cents: number): string {
-  return (cents / 100).toLocaleString("fr-FR", { style: "currency", currency: "USD" });
+  return (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("fr-FR", {
+  return new Date(iso).toLocaleDateString("en-US", {
     day:   "2-digit",
     month: "short",
     year:  "numeric",
@@ -34,6 +29,15 @@ function formatDate(iso: string): string {
 
 export function CommissionsTable() {
   const { getToken } = useAuth();
+  const t = useTranslations("affiliate");
+  const tCommon = useTranslations("common");
+
+  const STATUS_LABELS: Record<Commission["status"], string> = {
+    pending:   tCommon("loading").replace("Loading...", "Pending"),
+    paid:      t("alreadyPaid"),
+    cancelled: "Cancelled",
+  };
+
   const [data,   setData]   = useState<CommissionsListResponse | null>(null);
   const [page,   setPage]   = useState(1);
   const [filter, setFilter] = useState<Commission["status"] | "all">("all");
@@ -45,7 +49,7 @@ export function CommissionsTable() {
     setError(null);
     try {
       const token = await getToken();
-      if (!token) { setError("Session expirée."); return; }
+      if (!token) { setError("Session expired."); return; }
       const res = await getCommissions(token, {
         page,
         pageSize: PAGE_SIZE,
@@ -53,7 +57,7 @@ export function CommissionsTable() {
       });
       setData(res);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Erreur chargement commissions");
+      setError(e instanceof Error ? e.message : t("loadError"));
     } finally {
       setLoading(false);
     }
@@ -67,22 +71,20 @@ export function CommissionsTable() {
     <div className="bg-iron-slate border border-iron-border rounded-2xl overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-iron-border">
-        <h2 className="text-sm font-semibold text-iron-white">Historique des commissions</h2>
+        <h2 className="text-sm font-semibold text-iron-white">{t("commissionsTitle")}</h2>
 
         <div className="flex items-center gap-2">
-          {/* Status filter */}
           <select
             value={filter}
             onChange={(e) => { setFilter(e.target.value as Commission["status"] | "all"); setPage(1); }}
             className="text-xs bg-iron-black border border-iron-border rounded-lg px-2.5 py-1.5 text-iron-white/70 focus:outline-none focus:border-iron-gold/50"
           >
-            <option value="all">Tous</option>
-            <option value="pending">En attente</option>
-            <option value="paid">Payés</option>
-            <option value="cancelled">Annulés</option>
+            <option value="all">All</option>
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+            <option value="cancelled">Cancelled</option>
           </select>
 
-          {/* Refresh */}
           <button
             onClick={load}
             disabled={loading}
@@ -109,18 +111,18 @@ export function CommissionsTable() {
           </div>
         ) : data.data.length === 0 ? (
           <div className="px-5 py-12 text-center text-sm text-iron-white/30">
-            Aucune commission trouvée.
+            {t("noCommissions")}
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs text-iron-white/30 border-b border-iron-border/50">
                 <th className="text-left px-5 py-3 font-medium">Date</th>
-                <th className="text-right px-5 py-3 font-medium">Montant vente</th>
+                <th className="text-right px-5 py-3 font-medium">Sale amount</th>
                 <th className="text-right px-5 py-3 font-medium">Commission</th>
-                <th className="text-center px-5 py-3 font-medium">Taux</th>
-                <th className="text-center px-5 py-3 font-medium">Statut</th>
-                <th className="text-left px-5 py-3 font-medium">Payé le</th>
+                <th className="text-center px-5 py-3 font-medium">Rate</th>
+                <th className="text-center px-5 py-3 font-medium">Status</th>
+                <th className="text-left px-5 py-3 font-medium">Paid on</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-iron-border/30">

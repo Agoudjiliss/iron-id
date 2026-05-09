@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Plus, Key, Loader2, Info } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   createAPIKey,
   listAPIKeys,
@@ -18,6 +19,9 @@ interface NewKey extends APIKey {
 
 export function APIKeysClient() {
   const { getToken } = useAuth();
+  const t = useTranslations("keys");
+  const tCommon = useTranslations("common");
+
   const [keys, setKeys] = useState<APIKey[]>([]);
   const [newKey, setNewKey] = useState<NewKey | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,7 +37,7 @@ export function APIKeysClient() {
       if (!token) { setLoading(false); return; }
       listAPIKeys(token)
         .then(setKeys)
-        .catch(() => setError("Impossible de charger les clés API."))
+        .catch(() => setError(t("loadError")))
         .finally(() => setLoading(false));
     });
   }, [getToken]);
@@ -43,7 +47,7 @@ export function APIKeysClient() {
     if (!keyName.trim()) return;
 
     const token = await getToken();
-    if (!token) { setError("Session expirée. Veuillez vous reconnecter."); return; }
+    if (!token) { setError(t("sessionExpired")); return; }
 
     setCreating(true);
     setError(null);
@@ -60,7 +64,7 @@ export function APIKeysClient() {
       setShowForm(false);
       setKeyName("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur lors de la création.");
+      setError(err instanceof Error ? err.message : t("createError"));
     } finally {
       setCreating(false);
     }
@@ -68,7 +72,7 @@ export function APIKeysClient() {
 
   async function handleRevoke(id: string) {
     const token = await getToken();
-    if (!token) { setError("Session expirée. Veuillez vous reconnecter."); return; }
+    if (!token) { setError(t("sessionExpired")); return; }
 
     setRevoking(id);
     try {
@@ -76,25 +80,31 @@ export function APIKeysClient() {
       setKeys((prev) => prev.map((k) => k.id === id ? { ...k, is_active: false } : k));
       if (newKey?.id === id) setNewKey(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur lors de la révocation.");
+      setError(err instanceof Error ? err.message : t("revokeError"));
     } finally {
       setRevoking(null);
     }
   }
+
+  const activeCount = keys.filter((k) => k.is_active).length;
 
   return (
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-iron-white/50">
-          {keys.filter((k) => k.is_active).length} clé{keys.filter((k) => k.is_active).length !== 1 ? "s" : ""} active{keys.filter((k) => k.is_active).length !== 1 ? "s" : ""}
+          {activeCount === 0
+            ? t("activeCount_zero")
+            : activeCount === 1
+            ? t("activeCount_one")
+            : t("activeCount_other", { count: activeCount })}
         </p>
         <button
           onClick={() => { setShowForm(!showForm); setError(null); }}
           className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium bg-iron-gold text-iron-black hover:bg-iron-gold-dim transition-colors"
         >
           <Plus size={14} />
-          Nouvelle clé
+          {t("newKey")}
         </button>
       </div>
 
@@ -106,11 +116,11 @@ export function APIKeysClient() {
         >
           <h3 className="text-sm font-semibold text-iron-white flex items-center gap-2">
             <Key size={14} className="text-iron-gold" />
-            Créer une nouvelle clé API
+            {t("createTitle")}
           </h3>
 
           <div className="space-y-1">
-            <label className="text-xs text-iron-white/50">Nom de la clé</label>
+            <label className="text-xs text-iron-white/50">{t("keyName")}</label>
             <input
               type="text"
               autoFocus
@@ -124,7 +134,7 @@ export function APIKeysClient() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs text-iron-white/50">Environnement</label>
+            <label className="text-xs text-iron-white/50">{t("environment")}</label>
             <div className="flex gap-2">
               {(["production", "test"] as const).map((env) => (
                 <button
@@ -151,14 +161,14 @@ export function APIKeysClient() {
               className="flex-1 py-2 rounded-xl text-sm font-medium bg-iron-gold text-iron-black hover:bg-iron-gold-dim disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
             >
               {creating && <Loader2 size={13} className="animate-spin" />}
-              {creating ? "Création…" : "Créer la clé"}
+              {creating ? t("creating") : t("createKey")}
             </button>
             <button
               type="button"
               onClick={() => { setShowForm(false); setKeyName(""); }}
               className="px-4 py-2 rounded-xl text-sm text-iron-white/50 hover:text-iron-white bg-iron-border hover:bg-iron-border/80 transition-colors"
             >
-              Annuler
+              {t("cancel")}
             </button>
           </div>
         </form>
@@ -174,24 +184,22 @@ export function APIKeysClient() {
       {/* Info banner */}
       <div className="flex items-start gap-2 px-4 py-3 rounded-xl bg-iron-blue/5 border border-iron-blue/20 text-xs text-iron-white/50">
         <Info size={13} className="text-iron-blue flex-shrink-0 mt-0.5" />
-        Les clés sont hachées avec bcrypt dès leur création. Seul le préfixe est affiché par la suite.
-        Traitez vos clés comme des mots de passe.
+        {t("bcryptInfo")}
       </div>
 
       {/* Keys list */}
       {loading ? (
         <div className="flex items-center justify-center h-32 gap-2 text-iron-white/40 text-sm">
           <Loader2 size={16} className="animate-spin" />
-          Chargement…
+          {tCommon("loading")}
         </div>
       ) : keys.length === 0 ? (
         <div className="rounded-2xl bg-iron-slate border border-iron-border p-10 text-center">
           <Key size={28} className="text-iron-border mx-auto mb-3" />
-          <p className="text-sm text-iron-white/40">Aucune clé API. Créez-en une pour commencer.</p>
+          <p className="text-sm text-iron-white/40">{t("noKeys")}</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {/* Show newly created key first with raw key */}
           {newKey && (
             <APIKeyCard
               key={`new-${newKey.id}`}
@@ -202,7 +210,6 @@ export function APIKeysClient() {
             />
           )}
 
-          {/* All other keys */}
           {keys
             .filter((k) => k.id !== newKey?.id)
             .map((k) => (

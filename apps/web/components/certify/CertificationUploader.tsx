@@ -15,6 +15,7 @@ import {
   RotateCcw,
   Plus,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn, formatBytes, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { HashBadge } from "@/components/ui/HashBadge";
@@ -42,6 +43,9 @@ interface MetadataField {
 }
 
 export function CertificationUploader({ sessionToken }: { sessionToken: string }) {
+  const t = useTranslations("certify");
+  const tCommon = useTranslations("common");
+
   const [state, setState] = useState<UploaderState>("idle");
   const [file, setFile] = useState<File | null>(null);
   const [cert, setCert] = useState<Certification | null>(null);
@@ -55,7 +59,6 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
   const inputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // --- Metadata helpers ---
   function addMetaField() {
     setMetaFields((f) => [...f, { key: "", value: "" }]);
   }
@@ -74,17 +77,16 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
     );
   }
 
-  // --- Polling ---
   function startPolling(certId: string) {
     setState("polling");
     let attempts = 0;
-    const MAX_ATTEMPTS = 60; // 60 × 2s = 2 min max
+    const MAX_ATTEMPTS = 60;
 
     pollRef.current = setInterval(async () => {
       attempts++;
       if (attempts > MAX_ATTEMPTS) {
         clearInterval(pollRef.current!);
-        setError("Délai d'attente dépassé. Vérifiez l'onglet Certifications.");
+        setError(t("timeoutError"));
         setState("error");
         return;
       }
@@ -100,7 +102,7 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
           setState("done");
         } else if (updated.status === "failed") {
           clearInterval(pollRef.current!);
-          setError("La certification a échoué. Réessayez.");
+          setError(t("certifyFailed"));
           setState("error");
         }
       } catch {
@@ -109,7 +111,6 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
     }, 2000);
   }
 
-  // --- Submit ---
   async function processFile(f: File) {
     setFile(f);
     setError(null);
@@ -132,7 +133,7 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
         startPolling(result.id);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Une erreur est survenue.");
+      setError(err instanceof Error ? err.message : t("genericError"));
       setState("error");
     }
   }
@@ -146,7 +147,6 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
     setProgress(0);
   }
 
-  // --- Drag & drop ---
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     const f = e.dataTransfer.files[0];
@@ -162,27 +162,22 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
     if (state === "dragging") setState("idle");
   }, [state]);
 
-  // ---- Render: Result ----
   if (state === "done" && cert) {
     const FileIcon = cert.file_mime_type ? getFileIcon(cert.file_mime_type) : File;
     return (
       <div className="space-y-6 animate-slide-up">
-        {/* Success header */}
         <div className="rounded-2xl bg-iron-green/5 border border-iron-green/20 p-5 flex items-start gap-4">
           <CheckCircle size={36} className="text-iron-green flex-shrink-0 mt-0.5" />
           <div>
-            <h2 className="text-lg font-bold text-iron-green">Fichier certifié</h2>
-            <p className="text-sm text-iron-white/60 mt-0.5">
-              La signature C2PA et l'entrée dans le ledger sont confirmées.
-            </p>
+            <h2 className="text-lg font-bold text-iron-green">{t("uploadTitle")}</h2>
+            <p className="text-sm text-iron-white/60 mt-0.5">{t("uploadSuccess")}</p>
             <StatusBadge status="certified" size="sm" className="mt-2" />
           </div>
         </div>
 
-        {/* Details */}
         <div className="rounded-2xl bg-iron-slate border border-iron-border divide-y divide-iron-border">
           {[
-            { label: "Fichier",     value: (
+            { label: t("labelFile"), value: (
               <div className="flex items-center gap-2">
                 <FileIcon size={13} className="text-iron-white/40" />
                 <span className="text-sm text-iron-white">{cert.file_name}</span>
@@ -191,9 +186,9 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
                 )}
               </div>
             )},
-            { label: "Empreinte SHA-256", value: cert.file_hash_sha256 ? <HashBadge hash={cert.file_hash_sha256} /> : null },
-            { label: "ID de certification", value: <HashBadge hash={cert.id} chars={8} /> },
-            { label: "Certifié le",  value: <span className="text-sm text-iron-white">{formatDate(cert.created_at)}</span> },
+            { label: t("labelHash"), value: cert.file_hash_sha256 ? <HashBadge hash={cert.file_hash_sha256} /> : null },
+            { label: t("labelCertId"), value: <HashBadge hash={cert.id} chars={8} /> },
+            { label: t("labelCertifiedAt"), value: <span className="text-sm text-iron-white">{formatDate(cert.created_at)}</span> },
           ].map(({ label, value }) => value ? (
             <div key={label} className="flex items-center justify-between gap-4 px-5 py-3">
               <span className="text-sm text-iron-white/50 flex-shrink-0">{label}</span>
@@ -202,14 +197,13 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
           ) : null)}
         </div>
 
-        {/* Actions */}
         <div className="flex flex-wrap gap-3">
           <button
             onClick={reset}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-iron-border text-iron-white/80 hover:bg-iron-border/80 transition-colors"
           >
             <RotateCcw size={13} />
-            Certifier un autre fichier
+            {t("certifyAnother")}
           </button>
           {cert.certified_url && (
             <a
@@ -218,7 +212,7 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-iron-gold text-iron-black hover:bg-iron-gold-dim transition-colors"
             >
-              Télécharger le fichier certifié
+              {t("downloadCertified")}
               <ExternalLink size={12} />
             </a>
           )}
@@ -229,7 +223,7 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-iron-slate border border-iron-border text-iron-white/70 hover:text-iron-white transition-colors"
             >
-              Page de vérification publique
+              {t("publicVerify")}
               <ExternalLink size={12} />
             </a>
           )}
@@ -238,10 +232,8 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
     );
   }
 
-  // ---- Render: Form ----
   return (
     <div className="space-y-6">
-      {/* Drop zone */}
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -249,7 +241,7 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
         onClick={() => state === "idle" && inputRef.current?.click()}
         role="button"
         tabIndex={0}
-        aria-label="Zone de dépôt de fichier"
+        aria-label={t("dropzoneLabel")}
         onKeyDown={(e) => e.key === "Enter" && state === "idle" && inputRef.current?.click()}
         className={cn(
           "relative flex flex-col items-center justify-center",
@@ -282,11 +274,9 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
               )} />
             </div>
             <p className="font-medium text-iron-white">
-              {state === "dragging" ? "Déposez le fichier ici" : "Glissez un fichier ou cliquez"}
+              {state === "dragging" ? t("dropHere") : t("dragOrClick")}
             </p>
-            <p className="text-sm text-iron-white/40 mt-1">
-              Images, vidéos, PDF, audio — max 500 MB selon votre plan
-            </p>
+            <p className="text-sm text-iron-white/40 mt-1">{t("fileHint")}</p>
           </>
         )}
 
@@ -294,10 +284,9 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
           <div className="flex flex-col items-center gap-3 w-full px-8">
             <Loader2 size={28} className="text-iron-gold animate-spin" />
             <p className="text-sm font-medium text-iron-white">
-              {state === "uploading" ? "Envoi en cours…" : "Certification en cours…"}
+              {state === "uploading" ? t("uploading") : t("certifying")}
             </p>
             {file && <p className="text-xs text-iron-white/40">{file.name} · {formatBytes(file.size)}</p>}
-            {/* Progress bar */}
             <div className="w-full h-1.5 bg-iron-border rounded-full overflow-hidden">
               <div
                 className="h-full bg-iron-gold rounded-full transition-all duration-500"
@@ -316,21 +305,20 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
               onClick={(e) => { e.stopPropagation(); reset(); }}
               className="mt-3 text-xs text-iron-white/50 hover:text-iron-white underline"
             >
-              Réessayer
+              {t("retry")}
             </button>
           </>
         )}
       </div>
 
-      {/* Metadata */}
       <div className="rounded-2xl bg-iron-slate border border-iron-border overflow-hidden">
         <div className="px-5 py-3 border-b border-iron-border flex items-center justify-between">
-          <p className="text-sm font-medium text-iron-white">Métadonnées (optionnel)</p>
+          <p className="text-sm font-medium text-iron-white">{t("metadataTitle")}</p>
           <button
             onClick={addMetaField}
             className="flex items-center gap-1 text-xs text-iron-gold hover:text-iron-gold-dim transition-colors"
           >
-            <Plus size={12} /> Ajouter un champ
+            <Plus size={12} /> {t("addField")}
           </button>
         </div>
         <div className="p-4 space-y-2">
@@ -338,14 +326,14 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
             <div key={idx} className="flex gap-2">
               <input
                 type="text"
-                placeholder="Clé (ex: auteur)"
+                placeholder={t("keyPlaceholder")}
                 value={field.key}
                 onChange={(e) => updateMeta(idx, "key", e.target.value)}
                 className="flex-1 px-3 py-2 rounded-lg bg-iron-black border border-iron-border text-sm text-iron-white placeholder:text-iron-white/25 focus:outline-none focus:border-iron-gold/50 transition-colors"
               />
               <input
                 type="text"
-                placeholder="Valeur"
+                placeholder={t("valuePlaceholder")}
                 value={field.value}
                 onChange={(e) => updateMeta(idx, "value", e.target.value)}
                 className="flex-1 px-3 py-2 rounded-lg bg-iron-black border border-iron-border text-sm text-iron-white placeholder:text-iron-white/25 focus:outline-none focus:border-iron-gold/50 transition-colors"
@@ -354,7 +342,7 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
                 <button
                   onClick={() => removeMeta(idx)}
                   className="px-2 text-iron-white/30 hover:text-iron-red transition-colors"
-                  aria-label="Supprimer ce champ"
+                  aria-label={t("removeField")}
                 >
                   <XCircle size={14} />
                 </button>
@@ -364,21 +352,18 @@ export function CertificationUploader({ sessionToken }: { sessionToken: string }
         </div>
       </div>
 
-      {/* Webhook URL */}
       <div>
         <label className="text-sm font-medium text-iron-white/60 mb-1.5 block">
-          Webhook URL (optionnel)
+          {t("webhookLabel")}
         </label>
         <input
           type="url"
-          placeholder="https://monapp.com/webhooks/ironid"
+          placeholder={t("webhookPlaceholder")}
           value={webhookUrl}
           onChange={(e) => setWebhookUrl(e.target.value)}
           className="w-full px-4 py-2.5 rounded-xl bg-iron-slate border border-iron-border text-sm text-iron-white placeholder:text-iron-white/25 focus:outline-none focus:border-iron-gold/50 transition-colors"
         />
-        <p className="text-xs text-iron-white/30 mt-1">
-          Un POST sera envoyé à cette URL quand la certification est terminée.
-        </p>
+        <p className="text-xs text-iron-white/30 mt-1">{t("webhookHint")}</p>
       </div>
     </div>
   );
