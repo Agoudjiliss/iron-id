@@ -7,7 +7,6 @@ const COOKIE_MAX_AGE   = 60 * 60 * 24 * 90;
 const isPublicRoute = createRouteMatcher([
   "/",
   "/verify(.*)",
-  "/pricing(.*)",
   "/docs(.*)",
   "/earn(.*)",
   "/enterprise(.*)",

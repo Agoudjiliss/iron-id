@@ -10,7 +10,6 @@ export async function Footer() {
       heading: t("product"),
       links: [
         { href: "/#features", label: t("features") },
-        { href: "/pricing", label: t("pricing") },
         { href: "/verify", label: t("verify") },
         { href: "/docs", label: t("docs") },
       ],

@@ -109,7 +109,7 @@ export function PricingClient({ currentPlan = "free" }: { currentPlan?: string }
         body: JSON.stringify({
           plan_key: planKey,
           return_url: `${window.location.origin}/billing?success=1`,
-          cancel_url: `${window.location.origin}/pricing?cancelled=1`,
+          cancel_url: `${window.location.origin}/billing?cancelled=1`,
         }),
       });
 

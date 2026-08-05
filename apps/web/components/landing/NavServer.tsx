@@ -8,7 +8,6 @@ export async function NavServer() {
   const links = [
     { href: "/#features",  label: t("features") },
     { href: "/#how",       label: t("howItWorks") },
-    { href: "/pricing",    label: t("pricing") },
     { href: "/enterprise", label: t("enterprise") },
     { href: "/earn",       label: t("affiliate") },
     { href: "/docs",       label: t("docs") },

@@ -52,7 +52,7 @@ export default function VerifyPage() {
         <p className="mt-8 text-center text-xs text-iron-white/25">
           Public verification — no account required.{" "}
           <a
-            href="/pricing"
+            href="/sign-up"
             className="text-iron-gold/60 hover:text-iron-gold underline underline-offset-2"
           >
             Certify your own files →

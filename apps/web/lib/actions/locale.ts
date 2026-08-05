@@ -15,7 +15,6 @@ export async function setLocale(locale: string) {
   });
   revalidatePath("/", "layout");
   revalidatePath("/docs");
-  revalidatePath("/pricing");
   revalidatePath("/earn");
   revalidatePath("/enterprise");
 }
